@@ -1,0 +1,1376 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppL10nEn extends AppL10n {
+  AppL10nEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get appName => 'Kafa\'a';
+
+  @override
+  String get appTagline => 'Renal dialysis centre quality';
+
+  @override
+  String get appSubtitle => 'Directorate General of Health Services — Muscat';
+
+  @override
+  String get actionContinue => 'Continue';
+
+  @override
+  String get actionBack => 'Back';
+
+  @override
+  String get actionNext => 'Next';
+
+  @override
+  String get actionSave => 'Save';
+
+  @override
+  String get actionCancel => 'Cancel';
+
+  @override
+  String get actionClose => 'Close';
+
+  @override
+  String get actionDone => 'Done';
+
+  @override
+  String get actionRetry => 'Try again';
+
+  @override
+  String get actionSkip => 'Skip';
+
+  @override
+  String get actionSubmit => 'Submit';
+
+  @override
+  String get actionDelete => 'Delete';
+
+  @override
+  String get actionEdit => 'Edit';
+
+  @override
+  String get actionAdd => 'Add';
+
+  @override
+  String get actionSearch => 'Search';
+
+  @override
+  String get actionFilter => 'Filter';
+
+  @override
+  String get actionClear => 'Clear';
+
+  @override
+  String get actionExport => 'Export';
+
+  @override
+  String get actionShare => 'Share';
+
+  @override
+  String get actionRefresh => 'Refresh';
+
+  @override
+  String get actionViewAll => 'View all';
+
+  @override
+  String get actionSelect => 'Select';
+
+  @override
+  String get actionConfirm => 'Confirm';
+
+  @override
+  String get actionApprove => 'Approve';
+
+  @override
+  String get actionReject => 'Send back';
+
+  @override
+  String get actionSignIn => 'Sign in';
+
+  @override
+  String get actionSignOut => 'Sign out';
+
+  @override
+  String get onboardingTitle1 => 'One clear picture of every centre';
+
+  @override
+  String get onboardingBody1 =>
+      'Kafa\'a brings the quality assessment of every renal dialysis centre into a single place, so strengths and gaps are easy to see.';
+
+  @override
+  String get onboardingTitle2 => 'Score with confidence';
+
+  @override
+  String get onboardingBody2 =>
+      'Work through the checklist item by item. Add a photo or document as proof, and the score is calculated for you as you go.';
+
+  @override
+  String get onboardingTitle3 => 'Compare, improve, celebrate';
+
+  @override
+  String get onboardingBody3 =>
+      'Compare centres side by side, follow up on what needs fixing, and recognise the teams that do well.';
+
+  @override
+  String get onboardingGetStarted => 'Get started';
+
+  @override
+  String get signInTitle => 'Welcome back';
+
+  @override
+  String get signInSubtitle => 'Sign in to continue';
+
+  @override
+  String get emailLabel => 'Email address';
+
+  @override
+  String get passwordLabel => 'Password';
+
+  @override
+  String get forgotPassword => 'Forgot your password?';
+
+  @override
+  String get resetPasswordSent =>
+      'If that address has an account, a reset link is on its way.';
+
+  @override
+  String get signInErrorInvalid => 'That email or password is not correct.';
+
+  @override
+  String get signInErrorNoRole =>
+      'Your account has no role yet. Ask an administrator to give you access.';
+
+  @override
+  String get signInErrorNetwork =>
+      'We could not reach the server. Check your connection and try again.';
+
+  @override
+  String get validationRequired => 'This field is required';
+
+  @override
+  String get validationEmail => 'Enter a valid email address';
+
+  @override
+  String get validationPasswordShort => 'Use at least 8 characters';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navCentres => 'Centres';
+
+  @override
+  String get navCompare => 'Compare';
+
+  @override
+  String get navAudits => 'Audits';
+
+  @override
+  String get drilldownEditHint => 'Tap a choice to score or change a point';
+
+  @override
+  String get navActions => 'Actions';
+
+  @override
+  String get navStaff => 'Staff';
+
+  @override
+  String get navMore => 'More';
+
+  @override
+  String get navSettings => 'Settings';
+
+  @override
+  String get navAdmin => 'Setup';
+
+  @override
+  String get navNotifications => 'Notifications';
+
+  @override
+  String get roleSuperAdmin => 'Administrator';
+
+  @override
+  String get roleDirectorate => 'Directorate';
+
+  @override
+  String get roleAuditor => 'Auditor';
+
+  @override
+  String get roleCenterManager => 'Centre manager';
+
+  @override
+  String get roleViewer => 'Viewer';
+
+  @override
+  String homeGreeting(String name) {
+    return 'Hello, $name';
+  }
+
+  @override
+  String get homeOverview => 'Overview';
+
+  @override
+  String get homeYourCentre => 'Your centre';
+
+  @override
+  String get homeQuickActions => 'Quick actions';
+
+  @override
+  String get homeStartAudit => 'Start an assessment';
+
+  @override
+  String get homeOpenActions => 'Open actions';
+
+  @override
+  String get homeExpiringCerts => 'Expiring certificates';
+
+  @override
+  String get homeRecentAudits => 'Recent assessments';
+
+  @override
+  String get homeTopCentres => 'Leading centres';
+
+  @override
+  String get homeNoData => 'Nothing to show yet';
+
+  @override
+  String get centresTitle => 'Renal dialysis centres';
+
+  @override
+  String get centresSearchHint => 'Search by name or wilayat';
+
+  @override
+  String get centreDetails => 'Centre details';
+
+  @override
+  String get centrePatients => 'Registered patients';
+
+  @override
+  String get centreBeds => 'Dialysis beds';
+
+  @override
+  String get centreWilayat => 'Wilayat';
+
+  @override
+  String get centreLastAssessed => 'Last assessed';
+
+  @override
+  String get centreNoAudit => 'Not assessed yet';
+
+  @override
+  String get centreAddTitle => 'Add a centre';
+
+  @override
+  String get centreEditTitle => 'Edit centre';
+
+  @override
+  String get centreNameEn => 'Name (English)';
+
+  @override
+  String get centreNameAr => 'Name (Arabic)';
+
+  @override
+  String get centreCode => 'Centre code';
+
+  @override
+  String get scoreTitle => 'Score';
+
+  @override
+  String scoreOutOf(String points, String max) {
+    return '$points out of $max';
+  }
+
+  @override
+  String get scoreOverall => 'Overall score';
+
+  @override
+  String get scorePercent => 'Percentage';
+
+  @override
+  String get scoreGrade => 'Rating';
+
+  @override
+  String get scoreCompletion => 'Completed';
+
+  @override
+  String get scoreDomains => 'Main areas';
+
+  @override
+  String get scoreSections => 'Sections';
+
+  @override
+  String get scoreStrengths => 'Strengths';
+
+  @override
+  String get scoreWeaknesses => 'Areas to improve';
+
+  @override
+  String get scoreNoStrengths =>
+      'Not enough scored items yet to identify strengths.';
+
+  @override
+  String get gradeExcellent => 'Excellent';
+
+  @override
+  String get gradeVeryGood => 'Very good';
+
+  @override
+  String get gradeGood => 'Good';
+
+  @override
+  String get gradeNeedsImprovement => 'Needs improvement';
+
+  @override
+  String get levelMet => 'Met';
+
+  @override
+  String get levelPartiallyMet => 'Partially met';
+
+  @override
+  String get levelNotMet => 'Not met';
+
+  @override
+  String get levelNotApplicable => 'Not applicable';
+
+  @override
+  String get compareTitle => 'Compare centres';
+
+  @override
+  String get compareRanking => 'Ranking';
+
+  @override
+  String get compareByArea => 'By main area';
+
+  @override
+  String get compareTrend => 'Trend over time';
+
+  @override
+  String get compareSatisfaction => 'Patient satisfaction';
+
+  @override
+  String get compareSelectCentres => 'Choose centres to compare';
+
+  @override
+  String get compareRank => 'Rank';
+
+  @override
+  String get compareCentre => 'Centre';
+
+  @override
+  String get compareMostImproved => 'Most improved';
+
+  @override
+  String get compareDeclining => 'Needs attention';
+
+  @override
+  String compareImprovedBy(String value) {
+    return 'Up $value points since the last cycle';
+  }
+
+  @override
+  String compareDeclinedBy(String value) {
+    return 'Down $value points since the last cycle';
+  }
+
+  @override
+  String get compareNeedTwo => 'Choose at least two centres to compare.';
+
+  @override
+  String get auditsTitle => 'Assessments';
+
+  @override
+  String get auditNew => 'New assessment';
+
+  @override
+  String get auditDraft => 'Draft';
+
+  @override
+  String get auditSubmitted => 'Submitted';
+
+  @override
+  String get auditUnderReview => 'Under review';
+
+  @override
+  String get auditApproved => 'Approved';
+
+  @override
+  String get auditRejected => 'Sent back';
+
+  @override
+  String get auditArchived => 'Archived';
+
+  @override
+  String get auditCycle => 'Cycle';
+
+  @override
+  String get auditPeriod => 'Period covered';
+
+  @override
+  String get auditEvaluationDate => 'Date of evaluation';
+
+  @override
+  String get auditEvaluator => 'Evaluator';
+
+  @override
+  String get auditTemplate => 'Checklist';
+
+  @override
+  String auditProgress(int done, int total) {
+    return '$done of $total items scored';
+  }
+
+  @override
+  String get auditContinue => 'Continue assessment';
+
+  @override
+  String get auditContinueScoring => 'Continue scoring';
+
+  @override
+  String get auditStartScoring => 'Start scoring';
+
+  @override
+  String get auditOpenReview => 'Review and approve';
+
+  @override
+  String get auditViewSummary => 'View summary';
+
+  @override
+  String get auditScoreHint => 'Score each point Met, Partially Met or Not Met';
+
+  @override
+  String get auditNothingToScore =>
+      'Every assessment here is approved and locked. Start a new one to score a centre.';
+
+  @override
+  String get auditReview => 'Review and submit';
+
+  @override
+  String get auditSubmitConfirmTitle => 'Submit this assessment?';
+
+  @override
+  String get auditSubmitConfirmBody =>
+      'Once submitted, the directorate will review it. You will not be able to change scores unless it is sent back to you.';
+
+  @override
+  String auditSubmitIncomplete(int count) {
+    return '$count items are still unscored.';
+  }
+
+  @override
+  String auditMissingEvidence(int count) {
+    return '$count items need evidence before you can submit.';
+  }
+
+  @override
+  String get auditSubmitted_success => 'Assessment submitted for review.';
+
+  @override
+  String get auditApprovedSuccess => 'Assessment approved.';
+
+  @override
+  String get auditRejectedSuccess => 'Assessment sent back to the auditor.';
+
+  @override
+  String get auditReviewNotes => 'Review notes';
+
+  @override
+  String get auditGeneralRecommendations => 'General recommendations';
+
+  @override
+  String get auditSuggestedActionPlan => 'Suggested action plan';
+
+  @override
+  String get auditSummary => 'Summary';
+
+  @override
+  String get auditLocked =>
+      'This assessment is approved and can no longer be edited.';
+
+  @override
+  String get auditDeleteDraft => 'Delete draft';
+
+  @override
+  String get auditDeleteDraftTitle => 'Delete draft assessment?';
+
+  @override
+  String get auditDeleteDraftConfirm =>
+      'Are you sure you want to delete this draft assessment? This action cannot be undone.';
+
+  @override
+  String get auditDraftDeleted => 'Draft assessment deleted.';
+
+  @override
+  String get criterionComment => 'Comment';
+
+  @override
+  String get criterionRecommendation => 'Recommendation';
+
+  @override
+  String get criterionEvidence => 'Evidence';
+
+  @override
+  String get criterionEvidenceMethod => 'How was this checked?';
+
+  @override
+  String get criterionMeasuredValue => 'Measured value';
+
+  @override
+  String get criterionFollowUp => 'Needs follow-up';
+
+  @override
+  String get criterionAddEvidence => 'Add evidence';
+
+  @override
+  String get criterionEvidenceRequired => 'Evidence is required for this item';
+
+  @override
+  String get criterionRemarks => 'Note from the checklist';
+
+  @override
+  String get criterionGuidance => 'Guidance';
+
+  @override
+  String get criterionSampling => 'Random sample';
+
+  @override
+  String get criterionDrawSample => 'Draw a random sample';
+
+  @override
+  String get criterionSampleSize => 'Sample size';
+
+  @override
+  String get criterionSamplePool => 'Records to choose from';
+
+  @override
+  String get criterionSamplePoolHint =>
+      'Enter anonymised record references, one per line. Never enter a patient name.';
+
+  @override
+  String get criterionSampleResult => 'Selected references';
+
+  @override
+  String get criterionSampleRegenerate => 'Draw again';
+
+  @override
+  String get criterionSampleEmpty =>
+      'Add the list of eligible record references first.';
+
+  @override
+  String get criterionShowClinical => 'Show clinical wording';
+
+  @override
+  String get criterionShowPlain => 'Show plain language';
+
+  @override
+  String get criterionSuppressNcr => 'Do not raise a corrective action';
+
+  @override
+  String get criterionSuppressReason => 'Reason for not raising one';
+
+  @override
+  String get methodObservation => 'Observation on site';
+
+  @override
+  String get methodInterview => 'Interview';
+
+  @override
+  String get methodDocumentReview => 'Document review';
+
+  @override
+  String get methodOther => 'Other';
+
+  @override
+  String get evidenceFromCamera => 'Take a photo';
+
+  @override
+  String get evidenceFromGallery => 'Choose an image';
+
+  @override
+  String get evidenceFromFiles => 'Choose a document';
+
+  @override
+  String get evidenceUploading => 'Uploading…';
+
+  @override
+  String get evidencePendingUpload => 'Waiting to upload';
+
+  @override
+  String evidenceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '1 file',
+      zero: 'No evidence',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ncrTitle => 'Corrective actions';
+
+  @override
+  String get ncrSingular => 'Corrective action';
+
+  @override
+  String get ncrOpen => 'Open';
+
+  @override
+  String get ncrInProgress => 'In progress';
+
+  @override
+  String get ncrSubmittedForReview => 'Submitted for review';
+
+  @override
+  String get ncrResolved => 'Resolved';
+
+  @override
+  String get ncrClosed => 'Closed';
+
+  @override
+  String get ncrOverdue => 'Overdue';
+
+  @override
+  String get ncrRiskLow => 'Low';
+
+  @override
+  String get ncrRiskMedium => 'Medium';
+
+  @override
+  String get ncrRiskHigh => 'High';
+
+  @override
+  String get ncrRiskCritical => 'Critical';
+
+  @override
+  String get ncrOwner => 'Responsible person';
+
+  @override
+  String get ncrDueDate => 'Target date';
+
+  @override
+  String get ncrPlan => 'Corrective action plan';
+
+  @override
+  String get ncrRootCause => 'Root cause';
+
+  @override
+  String get ncrResolutionNotes => 'What was done';
+
+  @override
+  String get ncrTimeline => 'History';
+
+  @override
+  String get ncrRaisedFrom => 'Raised from';
+
+  @override
+  String get ncrNoneOpen => 'No open corrective actions. Well done.';
+
+  @override
+  String ncrOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count overdue',
+      one: '1 overdue',
+      zero: 'Nothing overdue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ncrRecurring => 'Repeating findings';
+
+  @override
+  String get ncrAvgResolution => 'Average days to close';
+
+  @override
+  String get ncrUpdateStatus => 'Update status';
+
+  @override
+  String get ncrAddNote => 'Add a note';
+
+  @override
+  String get staffTitle => 'Staff and training';
+
+  @override
+  String get staffMembers => 'Staff members';
+
+  @override
+  String get staffAdd => 'Add staff member';
+
+  @override
+  String get staffName => 'Full name';
+
+  @override
+  String get staffRef => 'Staff reference';
+
+  @override
+  String get staffCategory => 'Category';
+
+  @override
+  String get staffJobTitle => 'Job title';
+
+  @override
+  String get staffCategoryNurse => 'Nurse';
+
+  @override
+  String get staffCategoryPhysician => 'Physician';
+
+  @override
+  String get staffCategoryPharmacist => 'Pharmacist';
+
+  @override
+  String get staffCategoryTechnician => 'Technician';
+
+  @override
+  String get staffCategoryDietitian => 'Dietitian';
+
+  @override
+  String get staffCategoryAdministrative => 'Administrative';
+
+  @override
+  String get staffCategoryOther => 'Other';
+
+  @override
+  String get staffCertifications => 'Certificates';
+
+  @override
+  String get staffAddCertificate => 'Add a certificate';
+
+  @override
+  String get staffIssueDate => 'Issued on';
+
+  @override
+  String get staffExpiryDate => 'Expires on';
+
+  @override
+  String get staffReadiness => 'Team readiness';
+
+  @override
+  String get staffValid => 'Valid';
+
+  @override
+  String get staffExpiringSoon => 'Expiring soon';
+
+  @override
+  String get staffExpired => 'Expired';
+
+  @override
+  String get staffMissing => 'Not recorded';
+
+  @override
+  String staffExpiresInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Expires in $days days',
+      one: 'Expires tomorrow',
+      zero: 'Expires today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String staffExpiredDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Expired $days days ago',
+      one: 'Expired yesterday',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get drillsTitle => 'Emergency drills';
+
+  @override
+  String get drillAdd => 'Record a drill';
+
+  @override
+  String get drillType => 'Type of drill';
+
+  @override
+  String get drillDate => 'Date';
+
+  @override
+  String get drillParticipants => 'Number of participants';
+
+  @override
+  String get drillFindings => 'What we learned';
+
+  @override
+  String get drillFollowUp => 'Follow-up actions';
+
+  @override
+  String get surveyTitle => 'Patient experience';
+
+  @override
+  String get surveyStart => 'Start';
+
+  @override
+  String get surveyChooseLanguage => 'Choose your language';
+
+  @override
+  String get surveyConsentTitle => 'Before you begin';
+
+  @override
+  String get surveyConsentAgree => 'I understand and would like to continue';
+
+  @override
+  String surveyQuestionOf(int current, int total) {
+    return 'Question $current of $total';
+  }
+
+  @override
+  String get surveyThanks => 'Thank you';
+
+  @override
+  String get surveyThanksBody => 'Your feedback helps us improve the service.';
+
+  @override
+  String get surveyAlreadySubmitted =>
+      'You have already answered recently. Thank you.';
+
+  @override
+  String get surveyOptionalComment =>
+      'Anything you would like to tell us? (optional)';
+
+  @override
+  String get surveyKioskMode => 'Kiosk mode';
+
+  @override
+  String get surveyKioskExit => 'Exit kiosk mode';
+
+  @override
+  String get surveyQrTitle => 'Survey QR code';
+
+  @override
+  String get surveyQrHint =>
+      'Print this code and display it in the waiting area. Patients scan it to answer.';
+
+  @override
+  String surveyResponses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count responses',
+      one: '1 response',
+      zero: 'No responses',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveySatisfaction => 'Satisfaction';
+
+  @override
+  String get surveyBreakdown => 'By question';
+
+  @override
+  String get surveyTooFew => 'Not enough responses yet to show a result.';
+
+  @override
+  String get surveyEmojiVeryBad => 'Very poor';
+
+  @override
+  String get surveyEmojiBad => 'Poor';
+
+  @override
+  String get surveyEmojiOk => 'Acceptable';
+
+  @override
+  String get surveyEmojiGood => 'Good';
+
+  @override
+  String get surveyEmojiVeryGood => 'Excellent';
+
+  @override
+  String get achievementsTitle => 'Achievements';
+
+  @override
+  String get achievementUnlocked => 'Congratulations';
+
+  @override
+  String achievementEarnedBody(String centre, String badge) {
+    return '$centre has earned $badge';
+  }
+
+  @override
+  String get achievementNone => 'No badges yet. Keep going.';
+
+  @override
+  String get achievementPublic => 'Shown publicly';
+
+  @override
+  String get achievementPrivate => 'Internal only';
+
+  @override
+  String get adminTitle => 'Setup';
+
+  @override
+  String get adminTemplate => 'Checklist';
+
+  @override
+  String get adminDomains => 'Main areas';
+
+  @override
+  String get adminSections => 'Sections';
+
+  @override
+  String get adminCriteria => 'Criteria';
+
+  @override
+  String get adminGrading => 'Rating bands';
+
+  @override
+  String get adminTerminology => 'Plain-language dictionary';
+
+  @override
+  String get adminUsers => 'Users and access';
+
+  @override
+  String get adminSettings => 'General settings';
+
+  @override
+  String get adminBadges => 'Badges';
+
+  @override
+  String get adminSurvey => 'Survey questions';
+
+  @override
+  String get adminAddCriterion => 'Add a criterion';
+
+  @override
+  String get adminCriterionCode => 'Reference';
+
+  @override
+  String get adminCriterionTextEn => 'Wording (English)';
+
+  @override
+  String get adminCriterionTextAr => 'Wording (Arabic)';
+
+  @override
+  String get adminPlainTextEn => 'Plain language (English)';
+
+  @override
+  String get adminPlainTextAr => 'Plain language (Arabic)';
+
+  @override
+  String get adminMaxPoints => 'Maximum points';
+
+  @override
+  String get adminWeight => 'Weight';
+
+  @override
+  String get adminSortOrder => 'Order';
+
+  @override
+  String get adminActive => 'Active';
+
+  @override
+  String get adminArchived => 'Archived';
+
+  @override
+  String get adminExcludeFromTotal => 'Do not count toward the total';
+
+  @override
+  String get adminThresholds => 'Thresholds';
+
+  @override
+  String adminTotalItems(int count) {
+    return '$count items';
+  }
+
+  @override
+  String adminTotalPoints(int points) {
+    return '$points points maximum';
+  }
+
+  @override
+  String get adminClinicalTerm => 'Clinical term';
+
+  @override
+  String get adminPublicLabel => 'Plain-language label';
+
+  @override
+  String get reportTitle => 'Report';
+
+  @override
+  String get reportGenerate => 'Generate report';
+
+  @override
+  String get reportPdf => 'PDF report';
+
+  @override
+  String get reportCsv => 'Spreadsheet (CSV)';
+
+  @override
+  String get reportGenerating => 'Preparing your report…';
+
+  @override
+  String get reportReady => 'Report ready';
+
+  @override
+  String get reportIncludeEvidence => 'Include evidence list';
+
+  @override
+  String get reportLanguage => 'Report language';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsLanguageEnglish => 'English';
+
+  @override
+  String get settingsLanguageArabic => 'العربية';
+
+  @override
+  String get settingsTheme => 'Appearance';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeDark => 'Dark';
+
+  @override
+  String get settingsThemeSystem => 'Match device';
+
+  @override
+  String get settingsTextSize => 'Text size';
+
+  @override
+  String get settingsAccount => 'Account';
+
+  @override
+  String get settingsAbout => 'About Kafa\'a';
+
+  @override
+  String get settingsPrivacy => 'Privacy notice';
+
+  @override
+  String settingsVersion(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get settingsSignOutConfirm => 'Sign out of Kafa\'a?';
+
+  @override
+  String settingsPendingChanges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changes waiting to sync',
+      one: '1 change waiting to sync',
+      zero: 'Everything is synced',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get statusOnline => 'Online';
+
+  @override
+  String get statusOffline => 'Offline';
+
+  @override
+  String get statusSyncing => 'Syncing…';
+
+  @override
+  String get statusSynced => 'All changes saved';
+
+  @override
+  String get statusSyncFailed => 'Some changes could not be saved';
+
+  @override
+  String get statusWorkingOffline =>
+      'You are offline. Your work is saved on this device and will sync automatically.';
+
+  @override
+  String get statusSyncNow => 'Sync now';
+
+  @override
+  String get emptyTitle => 'Nothing here yet';
+
+  @override
+  String get emptyAudits => 'No assessments yet. Start one to begin scoring.';
+
+  @override
+  String get emptyCentres => 'No centres have been added yet.';
+
+  @override
+  String get emptyNcrs => 'No corrective actions have been raised.';
+
+  @override
+  String get emptyStaff => 'No staff members recorded yet.';
+
+  @override
+  String get emptyNotifications => 'You are all caught up.';
+
+  @override
+  String get errorTitle => 'Something went wrong';
+
+  @override
+  String get errorGeneric => 'We could not complete that. Please try again.';
+
+  @override
+  String get errorNetwork => 'No connection. Check your network and try again.';
+
+  @override
+  String get errorPermission => 'You do not have permission to do that.';
+
+  @override
+  String get errorNotFound => 'We could not find what you were looking for.';
+
+  @override
+  String get loading => 'Loading…';
+
+  @override
+  String get privacyNoticeTitle => 'How we handle information';
+
+  @override
+  String get privacyNoticeBody =>
+      'Kafa\'a stores assessment results, evidence documents and staff certificates. Patient records are referenced only by anonymised codes — never by name. Survey answers are anonymous and cannot be traced back to an individual. Access is limited by role and every sensitive action is logged.';
+
+  @override
+  String get confirmDeleteTitle => 'Delete this?';
+
+  @override
+  String get confirmDeleteBody => 'This cannot be undone.';
+
+  @override
+  String get unsavedChangesTitle => 'Leave without saving?';
+
+  @override
+  String get unsavedChangesBody => 'Your changes on this screen will be lost.';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterCentre => 'Centre';
+
+  @override
+  String get filterDateRange => 'Date range';
+
+  @override
+  String get filterStatus => 'Status';
+
+  @override
+  String get filterArea => 'Main area';
+
+  @override
+  String get filterCycle => 'Cycle';
+
+  @override
+  String get filterFrom => 'From';
+
+  @override
+  String get filterTo => 'To';
+
+  @override
+  String get filterPeriod => 'Period';
+
+  @override
+  String get filterAllPeriods => 'All periods';
+
+  @override
+  String get filterClearAll => 'Clear filters';
+
+  @override
+  String get periodMonthly => 'Monthly';
+
+  @override
+  String get periodQuarterly => 'Quarterly';
+
+  @override
+  String get periodSemiannual => 'Every 6 months';
+
+  @override
+  String get periodAnnual => 'Yearly';
+
+  @override
+  String get periodCustom => 'Custom dates';
+
+  @override
+  String get periodHowOften => 'How often is this assessed?';
+
+  @override
+  String get periodCovered => 'Period covered';
+
+  @override
+  String get periodChoose => 'Choose a period';
+
+  @override
+  String get periodYear => 'Year';
+
+  @override
+  String get structureTitle => 'Scoring structure';
+
+  @override
+  String get structureSubtitle =>
+      'Main areas, sections and the points scored under them';
+
+  @override
+  String get structureIntro =>
+      'An assessment is scored against the points below. Group related points under a section, and group sections under a main area — the totals and charts follow automatically.';
+
+  @override
+  String get structureAddDomain => 'Add main area';
+
+  @override
+  String get structureEditDomain => 'Edit main area';
+
+  @override
+  String get structureAddSection => 'Add section';
+
+  @override
+  String get structureEditSection => 'Edit section';
+
+  @override
+  String get structureAddPoint => 'Add point';
+
+  @override
+  String get structureEditPoint => 'Edit point';
+
+  @override
+  String get structureDomain => 'Main area';
+
+  @override
+  String get structureSection => 'Section';
+
+  @override
+  String get structurePoint => 'Scored point';
+
+  @override
+  String get structureNoSections =>
+      'No sections yet. Add one to start grouping points.';
+
+  @override
+  String get structureNoPoints => 'No points in this section yet.';
+
+  @override
+  String get structureNoDomains => 'No main areas yet. Add one to begin.';
+
+  @override
+  String get structureUngrouped => 'Not yet in a main area';
+
+  @override
+  String structurePointsSummary(int items, int max) {
+    return '$items points · $max max';
+  }
+
+  @override
+  String get structureMoveUp => 'Move up';
+
+  @override
+  String get structureMoveDown => 'Move down';
+
+  @override
+  String get structureArchive => 'Archive';
+
+  @override
+  String get structureRestore => 'Restore';
+
+  @override
+  String get structureArchiveDomainWarning =>
+      'Sections under this area will keep their points but will no longer be grouped. Nothing is deleted.';
+
+  @override
+  String get structureArchiveSectionWarning =>
+      'Points in this section stay in the checklist but will no longer be grouped. Nothing is deleted.';
+
+  @override
+  String get structureArchivePointWarning =>
+      'The point stops appearing in new assessments. Existing scores are kept.';
+
+  @override
+  String get structureNameEn => 'Name (English)';
+
+  @override
+  String get structureNameAr => 'Name (Arabic)';
+
+  @override
+  String get structurePlainNameEn => 'Plain language (English)';
+
+  @override
+  String get structurePlainNameAr => 'Plain language (Arabic)';
+
+  @override
+  String get structureCode => 'Reference code';
+
+  @override
+  String get structureColor => 'Colour';
+
+  @override
+  String get structureIcon => 'Icon';
+
+  @override
+  String get structureSourceGroup => 'Source table';
+
+  @override
+  String get structureBelongsTo => 'Belongs to';
+
+  @override
+  String get scoringTitle => 'Scoring';
+
+  @override
+  String get scoringEdit => 'Edit scoring';
+
+  @override
+  String get scoringInherited => 'Using the default scale';
+
+  @override
+  String scoringInheritedHint(int points, int partial, int notMet) {
+    return 'This point scores $points / $partial / $notMet with no measurable threshold. Set your own to match the checklist wording.';
+  }
+
+  @override
+  String get scoringCustomise => 'Set custom thresholds';
+
+  @override
+  String get scoringUseDefault => 'Use the default scale';
+
+  @override
+  String get scoringChoice => 'Choice';
+
+  @override
+  String get scoringThreshold => 'Threshold';
+
+  @override
+  String get scoringThresholdHint =>
+      'What the auditor measures against, for example 90% or 2 sessions';
+
+  @override
+  String get scoringPoints => 'Points';
+
+  @override
+  String get scoringTriggersAction => 'Raises a corrective action';
+
+  @override
+  String scoringMaxPointsNote(int max) {
+    return 'The highest choice sets this point\'s maximum: $max';
+  }
+
+  @override
+  String get scoringSaved => 'Scoring updated';
+
+  @override
+  String get scoringValidationPoints => 'Points must be 0 or more';
+
+  @override
+  String get scoringValidationOrder =>
+      'Met must score at least as much as Partially Met, which must score at least as much as Not Met';
+}

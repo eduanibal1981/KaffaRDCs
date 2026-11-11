@@ -1,0 +1,55 @@
+name: kafaa_app
+description: "Kafa'a Initiative — renal dialysis centre quality assessment and comparison."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State & navigation
+  flutter_riverpod: ^2.5.1
+  go_router: ^14.2.7
+
+  # Backend
+  supabase_flutter: ^2.6.0
+
+  # Storage / offline
+  sqflite: ^2.3.3
+  path: ^1.9.0
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.2
+  connectivity_plus: ^6.0.5
+
+  # UI
+  fl_chart: ^0.69.0
+  qr_flutter: ^4.1.0
+  intl: any
+
+  # Evidence capture & export
+  image_picker: ^1.1.2
+  file_picker: ^12.0.0
+  pdf: ^3.11.1
+  printing: ^5.13.2
+  share_plus: ^13.3.0
+  csv: ^6.0.0
+
+  uuid: ^4.5.1
+  collection: ^1.18.0
+  crypto: ^3.0.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/fonts/
