@@ -57,8 +57,8 @@ class _AuditRunnerScreenState extends ConsumerState<AuditRunnerScreen> {
             IconButton(
               icon: const Icon(Icons.delete_outline, color: KafaaColors.danger),
               tooltip: l10n.auditDeleteDraft,
-              onPressed: () => _confirmDelete(
-                  context, state.valueOrNull!.summary.auditId),
+              onPressed: () =>
+                  _confirmDelete(context, state.valueOrNull!.summary.auditId),
             ),
         ],
       ),
@@ -571,7 +571,11 @@ class CriterionTile extends ConsumerWidget {
           ],
 
           const SizedBox(height: 10),
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
             children: [
               if (needsEvidence)
                 StatusPill(
@@ -587,23 +591,27 @@ class CriterionTile extends ConsumerWidget {
                   icon: Icons.attach_file,
                   dense: true,
                 ),
-              const Spacer(),
-              if (criterion.samplingRequired)
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 4),
-                  child: Icon(Icons.casino_outlined,
-                      size: 16, color: theme.colorScheme.onSurfaceVariant),
-                ),
-              TextButton.icon(
-                onPressed: () => showCriterionSheet(
-                  context,
-                  auditId: auditId,
-                  centerId: centerId,
-                  criterion: criterion,
-                  canEdit: canEdit,
-                ),
-                icon: const Icon(Icons.notes_outlined, size: 18),
-                label: Text(l10n.actionEdit),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (criterion.samplingRequired)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 4),
+                      child: Icon(Icons.casino_outlined,
+                          size: 16, color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  TextButton.icon(
+                    onPressed: () => showCriterionSheet(
+                      context,
+                      auditId: auditId,
+                      centerId: centerId,
+                      criterion: criterion,
+                      canEdit: canEdit,
+                    ),
+                    icon: const Icon(Icons.notes_outlined, size: 18),
+                    label: Text(l10n.actionEdit),
+                  ),
+                ],
               ),
             ],
           ),

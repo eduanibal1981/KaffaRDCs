@@ -31,7 +31,8 @@ class CenterRepository {
   }
 
   Future<RenalCenter?> byId(String id) async {
-    final row = await _client.from('centers').select().eq('id', id).maybeSingle();
+    final row =
+        await _client.from('centers').select().eq('id', id).maybeSingle();
     return row == null ? null : RenalCenter.fromMap(row);
   }
 
@@ -47,7 +48,7 @@ class CenterRepository {
 
 final centerRepositoryProvider = Provider<CenterRepository>(
   (ref) => CenterRepository(
-    ref.watch(supabaseProvider),
+    watchSessionClient(ref),
     ref.watch(localStoreProvider),
   ),
 );

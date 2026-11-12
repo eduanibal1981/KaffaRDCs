@@ -27,9 +27,8 @@ class AuditRunnerState {
 
   int get totalItems => scorable.length;
 
-  int get answeredItems => scorable
-      .where((c) => responses[c.id]?.isAnswered ?? false)
-      .length;
+  int get answeredItems =>
+      scorable.where((c) => responses[c.id]?.isAnswered ?? false).length;
 
   double get progress => totalItems == 0 ? 0 : answeredItems / totalItems;
 
@@ -43,7 +42,8 @@ class AuditRunnerState {
   double get maxPoints => scorable.fold(
         0.0,
         (sum, c) =>
-            sum + ((responses[c.id]?.isNotApplicable ?? false) ? 0 : c.maxPoints),
+            sum +
+            ((responses[c.id]?.isNotApplicable ?? false) ? 0 : c.maxPoints),
       );
 
   double get percent => maxPoints == 0 ? 0 : (points / maxPoints) * 100;
@@ -64,9 +64,8 @@ class AuditRunnerState {
     return null;
   }
 
-  List<AssessmentCriterion> get unscored => scorable
-      .where((c) => !(responses[c.id]?.isAnswered ?? false))
-      .toList();
+  List<AssessmentCriterion> get unscored =>
+      scorable.where((c) => !(responses[c.id]?.isAnswered ?? false)).toList();
 
   /// Criteria the template marks as needing evidence that still have none.
   List<AssessmentCriterion> get missingEvidence => scorable
@@ -77,9 +76,8 @@ class AuditRunnerState {
           (responses[c.id]?.evidenceCount ?? 0) == 0)
       .toList();
 
-  int countAtLevel(ScoreLevel level) => scorable
-      .where((c) => responses[c.id]?.level == level)
-      .length;
+  int countAtLevel(ScoreLevel level) =>
+      scorable.where((c) => responses[c.id]?.level == level).length;
 
   int sectionAnswered(String sectionId) => blueprint
       .criteriaOfSection(sectionId)
@@ -91,7 +89,8 @@ class AuditRunnerState {
     final max = criteria.fold<double>(
         0,
         (sum, c) =>
-            sum + ((responses[c.id]?.isNotApplicable ?? false) ? 0 : c.maxPoints));
+            sum +
+            ((responses[c.id]?.isNotApplicable ?? false) ? 0 : c.maxPoints));
     if (max == 0) return 0;
     final got = criteria.fold<double>(
         0, (sum, c) => sum + (responses[c.id]?.points ?? 0));
@@ -126,12 +125,13 @@ class AuditRunnerController
   Future<void> load() async {
     state = const AsyncValue.loading();
     try {
-      final blueprint =
-          await _ref.read(assessmentRepositoryProvider).loadActiveBlueprint();
       final summary = await _audits.summary(auditId);
       if (summary == null) {
         throw StateError('Assessment not found');
       }
+      final blueprint = await _ref
+          .read(assessmentRepositoryProvider)
+          .loadBlueprint(summary.templateId);
       final responses = await _audits.responses(auditId);
       state = AsyncValue.data(AuditRunnerState(
         blueprint: blueprint,
@@ -283,14 +283,19 @@ class AuditRunnerController
           'general_recommendations': generalRecommendations,
         if (suggestedActionPlan != null)
           'suggested_action_plan': suggestedActionPlan,
-        if (registeredPatients != null) 'registered_patients': registeredPatients,
+        if (registeredPatients != null)
+          'registered_patients': registeredPatients,
         if (dialysisBeds != null) 'dialysis_beds': dialysisBeds,
       });
 
   /// Pushes every queued edit, then flips the status. Flushing first
   /// means the reviewer never sees a half-saved audit.
   Future<void> submit() async {
-    await _audits.flushNow();
+    if (_current?.savingCriterionIds.isNotEmpty ?? false) {
+      throw StateError(
+          'Assessment changes are still being saved. Please retry.');
+    }
+    await _audits.flushNow(auditId: auditId);
     await _audits.setStatus(auditId, AuditStatus.submitted);
     await load();
   }

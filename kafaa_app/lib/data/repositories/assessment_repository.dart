@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -16,7 +18,8 @@ class AssessmentRepository {
 
   static const _cacheKey = 'blueprint.active';
 
-  Future<AssessmentBlueprint> loadActiveBlueprint({bool forceRefresh = false}) async {
+  Future<AssessmentBlueprint> loadActiveBlueprint(
+      {bool forceRefresh = false}) async {
     if (!forceRefresh) {
       final cached = await _readCached();
       if (cached != null) {
@@ -32,8 +35,35 @@ class AssessmentRepository {
     _fetchAndCache().ignore();
   }
 
-  Future<AssessmentBlueprint?> _readCached() async {
-    final raw = await _store.readCache<Map<String, dynamic>>(_cacheKey);
+  /// Existing assessments keep using their own template when a newer
+  /// checklist becomes the default.
+  Future<AssessmentBlueprint> loadBlueprint(String templateId,
+      {bool forceRefresh = false}) async {
+    final key = 'blueprint.$templateId';
+    final cached = await _readCached(key: key) ?? await _readCached();
+    if (!forceRefresh && cached?.template.id == templateId) {
+      _fetchById(templateId, key).ignore();
+      return cached!;
+    }
+    try {
+      return await _fetchById(templateId, key);
+    } on SocketException {
+      if (cached?.template.id == templateId) return cached!;
+      rethrow;
+    }
+  }
+
+  Future<AssessmentBlueprint> _fetchById(String templateId, String key) async {
+    final template = await _client
+        .from('assessment_templates')
+        .select()
+        .eq('id', templateId)
+        .single();
+    return _fetchTemplate(template, key);
+  }
+
+  Future<AssessmentBlueprint?> _readCached({String key = _cacheKey}) async {
+    final raw = await _store.readCache<Map<String, dynamic>>(key);
     if (raw == null) return null;
     try {
       return _decode(raw);
@@ -54,6 +84,11 @@ class AssessmentRepository {
       throw StateError('No active assessment template has been published.');
     }
 
+    return _fetchTemplate(templateRow, _cacheKey);
+  }
+
+  Future<AssessmentBlueprint> _fetchTemplate(
+      Map<String, dynamic> templateRow, String cacheKey) async {
     final templateId = templateRow['id'] as String;
 
     final results = await Future.wait([
@@ -93,7 +128,8 @@ class AssessmentRepository {
       'bands': results[4],
     };
 
-    await _store.putCache(_cacheKey, raw);
+    await _store.putCache(cacheKey, raw);
+    await _store.putCache('blueprint.$templateId', raw);
     return _decode(raw);
   }
 
@@ -102,7 +138,9 @@ class AssessmentRepository {
     final byCriterion = <String, List<ScaleOption>>{};
     for (final row in scaleRows) {
       final criterionId = row['criterion_id'] as String;
-      byCriterion.putIfAbsent(criterionId, () => []).add(ScaleOption.fromMap(row));
+      byCriterion
+          .putIfAbsent(criterionId, () => [])
+          .add(ScaleOption.fromMap(row));
     }
     for (final list in byCriterion.values) {
       list.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
@@ -133,6 +171,71 @@ class AssessmentRepository {
     );
   }
 
+  /// Saved versions remain available offline within the existing user scope.
+  Future<List<AssessmentTemplate>> loadStructures(
+      {bool includeDrafts = false}) async {
+    final key = includeDrafts ? 'structures.admin' : 'structures.saved';
+    try {
+      var query = _client.from('assessment_templates').select();
+      if (!includeDrafts) query = query.eq('status', 'active');
+      final rows = await query.order('created_at', ascending: false);
+      await _store.putCache(key, rows);
+      return rows.map(AssessmentTemplate.fromMap).toList();
+    } catch (error) {
+      // Only network failures may use stale data; authorization and schema
+      // failures must remain visible.
+      if (error is! SocketException) rethrow;
+      final cached = await _store.readCache<List<dynamic>>(key);
+      if (cached == null) {
+        final previous = await _readCached();
+        if (previous?.template.status == 'active') return [previous!.template];
+        rethrow;
+      }
+      return cached
+          .cast<Map<String, dynamic>>()
+          .map(AssessmentTemplate.fromMap)
+          .toList();
+    }
+  }
+
+  Future<String> createStructure(
+      {required String version,
+      required String sourceId,
+      List<String> criteria = const [],
+      List<String> sections = const [],
+      List<String> domains = const [],
+      String? targetId}) async {
+    final id = await _client.rpc('create_audit_structure', params: {
+      'p_version': version,
+      'p_source_id': sourceId,
+      'p_criterion_ids': criteria,
+      'p_section_ids': sections,
+      'p_domain_ids': domains,
+      'p_target_id': targetId,
+    });
+    return id as String;
+  }
+
+  Future<void> publishStructure(String id) async {
+    await _client.rpc('publish_audit_structure', params: {'p_id': id});
+  }
+
+  Future<void> deleteStructure(String id) => _client
+      .from('assessment_templates')
+      .delete()
+      .eq('id', id)
+      .eq('status', 'draft');
+
+  Future<void> deleteDomain(String id) async =>
+      _client.rpc('delete_audit_structure_item',
+          params: {'p_kind': 'domain', 'p_id': id});
+  Future<void> deleteSection(String id) async =>
+      _client.rpc('delete_audit_structure_item',
+          params: {'p_kind': 'section', 'p_id': id});
+  Future<void> deleteCriterion(String id) async =>
+      _client.rpc('delete_audit_structure_item',
+          params: {'p_kind': 'criterion', 'p_id': id});
+
   // -------------------------------------------------------------------
   // Terminology dictionary
   // -------------------------------------------------------------------
@@ -158,21 +261,18 @@ class AssessmentRepository {
 
   Future<void> upsertCriterion(Map<String, dynamic> values) async {
     await _client.from('assessment_criteria').upsert(values);
-    await _fetchAndCache();
   }
 
   Future<void> archiveCriterion(String id) async {
     await _client
         .from('assessment_criteria')
         .update({'is_active': false}).eq('id', id);
-    await _fetchAndCache();
   }
 
   Future<void> setCriterionActive(String id, bool active) async {
     await _client
         .from('assessment_criteria')
         .update({'is_active': active}).eq('id', id);
-    await _fetchAndCache();
   }
 
   // -------------------------------------------------------------------
@@ -181,26 +281,22 @@ class AssessmentRepository {
 
   Future<void> upsertDomain(Map<String, dynamic> values) async {
     await _client.from('assessment_domains').upsert(values);
-    await _fetchAndCache();
   }
 
   Future<void> setDomainActive(String id, bool active) async {
     await _client
         .from('assessment_domains')
         .update({'is_active': active}).eq('id', id);
-    await _fetchAndCache();
   }
 
   Future<void> upsertSection(Map<String, dynamic> values) async {
     await _client.from('assessment_sections').upsert(values);
-    await _fetchAndCache();
   }
 
   Future<void> setSectionActive(String id, bool active) async {
     await _client
         .from('assessment_sections')
         .update({'is_active': active}).eq('id', id);
-    await _fetchAndCache();
   }
 
   /// Moves a section to a different main area. Criteria come with it, so
@@ -209,7 +305,6 @@ class AssessmentRepository {
     await _client
         .from('assessment_sections')
         .update({'domain_id': domainId}).eq('id', sectionId);
-    await _fetchAndCache();
   }
 
   // -------------------------------------------------------------------
@@ -225,7 +320,6 @@ class AssessmentRepository {
           .from(level.table)
           .update({'sort_order': item.sortOrder}).eq('id', item.id);
     }
-    await _fetchAndCache();
   }
 
   Future<void> reorderDomains(List<({String id, int sortOrder})> order) =>
@@ -273,8 +367,6 @@ class AssessmentRepository {
             .update({'max_points': highest}).eq('id', criterionId);
       }
     }
-
-    await _fetchAndCache();
   }
 
   /// Drops a criterion's own options so it falls back to the template
@@ -284,12 +376,10 @@ class AssessmentRepository {
         .from('assessment_scale_options')
         .delete()
         .eq('criterion_id', criterionId);
-    await _fetchAndCache();
   }
 
   Future<void> upsertGradingBand(Map<String, dynamic> values) async {
     await _client.from('grading_bands').upsert(values);
-    await _fetchAndCache();
   }
 }
 
@@ -312,7 +402,7 @@ extension _IgnoreFuture<T> on Future<T> {
 
 final assessmentRepositoryProvider = Provider<AssessmentRepository>(
   (ref) => AssessmentRepository(
-    ref.watch(supabaseProvider),
+    watchSessionClient(ref),
     ref.watch(localStoreProvider),
   ),
 );
@@ -324,4 +414,19 @@ final blueprintProvider = FutureProvider<AssessmentBlueprint>(
 
 final terminologyProvider = FutureProvider<List<TerminologyEntry>>(
   (ref) => ref.watch(assessmentRepositoryProvider).loadTerminology(),
+);
+
+final auditStructuresProvider = FutureProvider<List<AssessmentTemplate>>(
+  (ref) => ref.watch(assessmentRepositoryProvider).loadStructures(),
+);
+final adminStructuresProvider = FutureProvider<List<AssessmentTemplate>>(
+  (ref) => ref
+      .watch(assessmentRepositoryProvider)
+      .loadStructures(includeDrafts: true),
+);
+final structureBlueprintProvider =
+    FutureProvider.family<AssessmentBlueprint, String>(
+  (ref, id) => ref
+      .watch(assessmentRepositoryProvider)
+      .loadBlueprint(id, forceRefresh: true),
 );

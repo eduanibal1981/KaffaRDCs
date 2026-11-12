@@ -33,6 +33,10 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Local build configuration; commit only the key-free example.
+/env/*.json
+!/env/*.example.json
+
 # Symbolication related
 app.*.symbols
 

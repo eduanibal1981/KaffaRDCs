@@ -91,8 +91,8 @@ class AdminScreen extends ConsumerWidget {
             const SizedBox(height: 20),
             _AdminTile(
               icon: Icons.account_tree_outlined,
-              title: l10n.structureTitle,
-              subtitle: l10n.structureSubtitle,
+              title: l10n.structuresTitle,
+              subtitle: l10n.structuresCopy,
               onTap: () => context.push('/more/admin/structure'),
             ),
             _AdminTile(

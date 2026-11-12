@@ -1373,4 +1373,103 @@ class AppL10nEn extends AppL10n {
   @override
   String get scoringValidationOrder =>
       'Met must score at least as much as Partially Met, which must score at least as much as Not Met';
+
+  @override
+  String get structuresTitle => 'Audit Structures';
+
+  @override
+  String get structuresNew => 'New version';
+
+  @override
+  String get structuresVersion => 'Version number (for example, 1.01)';
+
+  @override
+  String get structuresVersionInvalid => 'Enter a unique version such as 1.01';
+
+  @override
+  String get structuresScratch => 'Build from scratch';
+
+  @override
+  String get structuresCopy => 'Select from a previous version';
+
+  @override
+  String get structuresSource => 'Previous version';
+
+  @override
+  String get structuresCreate => 'Create draft';
+
+  @override
+  String get structuresDraft => 'Draft';
+
+  @override
+  String get structuresSaved => 'Saved';
+
+  @override
+  String get structuresSave => 'Save version';
+
+  @override
+  String get structuresLocked =>
+      'This saved version is locked. Create a new version to make changes.';
+
+  @override
+  String get structuresDraftHint =>
+      'Changes are saved to this draft. Save the version when it is ready for new assessments.';
+
+  @override
+  String get structuresImport => 'Import items';
+
+  @override
+  String get structuresSelect =>
+      'Select main areas, sections, or individual items to copy. Their scoring and translations are preserved.';
+
+  @override
+  String get structuresChoose => 'Audit Structure';
+
+  @override
+  String get structuresDefault => 'Default for new assessments';
+
+  @override
+  String get structuresDelete => 'Delete draft?';
+
+  @override
+  String get structuresDeleteHint =>
+      'This draft and all its items will be deleted.';
+
+  @override
+  String get structuresDeleteItem => 'Delete item?';
+
+  @override
+  String get structuresDeleteItemHint =>
+      'This item and its sub-items will be removed from this draft.';
+
+  @override
+  String get structuresNone => 'No saved Audit Structures are available.';
+
+  @override
+  String get structuresSelectionRequired =>
+      'Select at least one item to import.';
+
+  @override
+  String get structuresScoringHint =>
+      'The current scoring scale and rating bands are copied as a starting point. Review them before saving.';
+
+  @override
+  String get structuresEmpty =>
+      'Add at least one scored item before saving the version.';
+
+  @override
+  String get structuresScaleInvalid =>
+      'Review the scoring choices. Each item needs Met, Partially Met and Not Met, and its maximum must match the highest choice.';
+
+  @override
+  String get structuresDuplicate =>
+      'This version number or item code already exists. Choose a different number or unselect items already imported.';
+
+  @override
+  String get structureDuplicateCode =>
+      'This reference code is already used in this Audit Structure. Enter a different code.';
+
+  @override
+  String get structureCodeHelp =>
+      'Unique within this version, for example GOV or GOV-2.';
 }

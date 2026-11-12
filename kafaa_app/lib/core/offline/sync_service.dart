@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/supabase/supabase_providers.dart';
+import '../../data/supabase/audit_draft_write.dart';
 import 'local_store.dart';
 
 enum SyncState { idle, syncing, offline, failed }
@@ -55,31 +56,42 @@ final connectivityProvider = StreamProvider<bool>((ref) async* {
 /// is harmless.
 class SyncService extends StateNotifier<SyncStatus> {
   SyncService(this._ref) : super(SyncStatus.initial) {
+    _store = _ref.read(localStoreProvider);
+    _client = _ref.read(supabaseProvider);
+    _userId = _client.auth.currentUser?.id;
     _watchConnectivity();
-    refreshPendingCount();
+    refreshPendingCount().then((_) {
+      if (mounted && state.pending > 0) scheduleSync();
+    });
   }
 
   final Ref _ref;
   Timer? _debounce;
-  bool _running = false;
+  Future<void>? _activeSync;
 
-  LocalStore get _store => _ref.read(localStoreProvider);
-  SupabaseClient get _client => _ref.read(supabaseProvider);
+  late final LocalStore _store;
+  late final SupabaseClient _client;
+  late final String? _userId;
+
+  bool get _sameUser => _client.auth.currentUser?.id == _userId;
 
   void _watchConnectivity() {
     _ref.listen<AsyncValue<bool>>(connectivityProvider, (_, next) {
       final online = next.valueOrNull ?? false;
       if (!online) {
         state = state.copyWith(state: SyncState.offline);
-      } else if (state.state == SyncState.offline) {
-        state = state.copyWith(state: SyncState.idle);
+      } else {
+        if (state.state == SyncState.offline) {
+          state = state.copyWith(state: SyncState.idle);
+        }
         scheduleSync();
       }
     });
   }
 
   Future<void> refreshPendingCount() async {
-    state = state.copyWith(pending: await _store.pendingCount());
+    final pending = await _store.pendingCount();
+    if (mounted) state = state.copyWith(pending: pending);
   }
 
   /// Coalesces bursts of edits into a single sync pass.
@@ -88,88 +100,107 @@ class SyncService extends StateNotifier<SyncStatus> {
     _debounce = Timer(delay, sync);
   }
 
-  Future<void> sync() async {
-    if (_running) return;
+  /// Callers that flush during an existing pass must wait for that pass.
+  Future<void> sync() =>
+      _activeSync ??= _drain().whenComplete(() => _activeSync = null);
+
+  Future<void> _drain() async {
+    if (!mounted || !_sameUser) return;
     final online = _ref.read(connectivityProvider).valueOrNull ?? true;
     if (!online) {
       state = state.copyWith(state: SyncState.offline);
       return;
     }
 
-    _running = true;
     state = state.copyWith(state: SyncState.syncing, clearError: true);
 
     try {
-      var entries = await _store.pending();
-      while (entries.isNotEmpty) {
+      final failedIds = <String>{};
+      var entries = await _store.pending(includeExhausted: false);
+      while (mounted && entries.isNotEmpty) {
         for (final entry in entries) {
-          if (entry.isExhausted) {
-            // Leave it in place but stop retrying; surfaced in Settings.
-            continue;
-          }
+          if (!mounted || !_sameUser) return;
           try {
             await _apply(entry);
-            await _store.remove(entry.id);
+            await _store.remove(entry.id, expected: entry);
           } on PostgrestException catch (e) {
             // A permission or validation failure will never succeed on
             // retry — record it and move on rather than blocking.
-            await _store.markFailed(entry.id, e.message);
-            state = state.copyWith(lastError: e.message);
+            await _store.markFailed(entry.id, e.message, expected: entry);
+            failedIds.add(entry.id);
+            if (mounted) state = state.copyWith(lastError: e.message);
           } on StorageException catch (e) {
-            await _store.markFailed(entry.id, e.message);
-            state = state.copyWith(lastError: e.message);
+            await _store.markFailed(entry.id, e.message, expected: entry);
+            failedIds.add(entry.id);
+            if (mounted) state = state.copyWith(lastError: e.message);
           } on SocketException {
             rethrow;
           }
         }
-        final remaining = await _store.pending();
-        final stalled = remaining.length == entries.length &&
-            remaining.every((e) => e.attempts > 0);
-        entries = stalled ? const [] : remaining;
+        // New edits made during a request get their own pass. Failed entries
+        // are tried once per flush; exhausted entries cannot hide later work.
+        entries = (await _store.pending(includeExhausted: false))
+            .where((entry) => !failedIds.contains(entry.id))
+            .toList();
       }
 
       final pending = await _store.pendingCount();
+      if (!mounted) return;
       state = state.copyWith(
         state: pending == 0 ? SyncState.idle : SyncState.failed,
         pending: pending,
-        lastSyncedAt: DateTime.now(),
+        lastSyncedAt: pending == 0 ? DateTime.now() : null,
       );
     } on SocketException {
-      state = state.copyWith(state: SyncState.offline);
+      if (mounted) state = state.copyWith(state: SyncState.offline);
     } catch (e) {
-      state = state.copyWith(state: SyncState.failed, lastError: e.toString());
-    } finally {
-      _running = false;
+      if (mounted) {
+        state =
+            state.copyWith(state: SyncState.failed, lastError: e.toString());
+      }
     }
   }
 
   Future<void> _apply(OutboxEntry entry) async {
+    final payload = Map<String, dynamic>.of(entry.payload)
+      ..remove('_local_response');
     switch (entry.kind) {
       case OutboxKind.responseUpsert:
         await _client.from('audit_responses').upsert(
-              entry.payload,
+              payload,
               onConflict: 'audit_id,criterion_id',
             );
 
       case OutboxKind.auditCreate:
-        await _client.from('audits').upsert(
-              entry.payload,
-              onConflict: 'client_uuid',
-            );
+        await writeAuditDraft(_client, payload, replay: true);
 
       case OutboxKind.auditUpdate:
-        final id = entry.payload.remove('id') as String;
-        await _client.from('audits').update(entry.payload).eq('id', id);
+        final id = payload.remove('id') as String;
+        await _client
+            .from('audits')
+            .update(payload)
+            .eq('id', id)
+            .select('id')
+            .single();
 
       case OutboxKind.sampleInsert:
-        await _client.from('audit_samples').insert(entry.payload);
+        await _client.from('audit_samples').upsert(
+              payload,
+              onConflict: 'id',
+              ignoreDuplicates: true,
+            );
 
       case OutboxKind.ncrUpdate:
-        final id = entry.payload.remove('id') as String;
-        await _client.from('ncrs').update(entry.payload).eq('id', id);
+        final id = payload.remove('id') as String;
+        await _client
+            .from('ncrs')
+            .update(payload)
+            .eq('id', id)
+            .select('id')
+            .single();
 
       case OutboxKind.evidenceUpload:
-        await _uploadEvidence(entry.payload);
+        await _uploadEvidence(payload);
     }
   }
 
@@ -181,7 +212,8 @@ class SyncService extends StateNotifier<SyncStatus> {
 
     if (!file.existsSync()) {
       // The device cleaned up the temp file; nothing recoverable to send.
-      throw StorageException('The evidence file is no longer on this device.');
+      throw const StorageException(
+          'The evidence file is no longer on this device.');
     }
 
     await _client.storage.from(bucket).upload(
@@ -215,4 +247,8 @@ class SyncService extends StateNotifier<SyncStatus> {
 }
 
 final syncServiceProvider =
-    StateNotifierProvider<SyncService, SyncStatus>(SyncService.new);
+    StateNotifierProvider<SyncService, SyncStatus>((ref) {
+  ref.watch(localStoreProvider);
+  ref.watch(currentUserProvider.select((user) => user?.id));
+  return SyncService(ref);
+});

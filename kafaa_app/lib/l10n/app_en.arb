@@ -1,10 +1,8 @@
 {
   "@@locale": "en",
-
   "appName": "Kafa'a",
   "appTagline": "Renal dialysis centre quality",
   "appSubtitle": "Directorate General of Health Services — Muscat",
-
   "actionContinue": "Continue",
   "actionBack": "Back",
   "actionNext": "Next",
@@ -31,7 +29,6 @@
   "actionReject": "Send back",
   "actionSignIn": "Sign in",
   "actionSignOut": "Sign out",
-
   "onboardingTitle1": "One clear picture of every centre",
   "onboardingBody1": "Kafa'a brings the quality assessment of every renal dialysis centre into a single place, so strengths and gaps are easy to see.",
   "onboardingTitle2": "Score with confidence",
@@ -39,7 +36,6 @@
   "onboardingTitle3": "Compare, improve, celebrate",
   "onboardingBody3": "Compare centres side by side, follow up on what needs fixing, and recognise the teams that do well.",
   "onboardingGetStarted": "Get started",
-
   "signInTitle": "Welcome back",
   "signInSubtitle": "Sign in to continue",
   "emailLabel": "Email address",
@@ -52,12 +48,13 @@
   "validationRequired": "This field is required",
   "validationEmail": "Enter a valid email address",
   "validationPasswordShort": "Use at least 8 characters",
-
   "navHome": "Home",
   "navCentres": "Centres",
   "navCompare": "Compare",
   "navAudits": "Audits",
-  "@navAudits": { "description": "Bottom-bar label. Kept short so it never wraps; screen titles use auditsTitle." },
+  "@navAudits": {
+    "description": "Bottom-bar label. Kept short so it never wraps; screen titles use auditsTitle."
+  },
   "drilldownEditHint": "Tap a choice to score or change a point",
   "navActions": "Actions",
   "navStaff": "Staff",
@@ -65,15 +62,19 @@
   "navSettings": "Settings",
   "navAdmin": "Setup",
   "navNotifications": "Notifications",
-
   "roleSuperAdmin": "Administrator",
   "roleDirectorate": "Directorate",
   "roleAuditor": "Auditor",
   "roleCenterManager": "Centre manager",
   "roleViewer": "Viewer",
-
   "homeGreeting": "Hello, {name}",
-  "@homeGreeting": { "placeholders": { "name": { "type": "String" } } },
+  "@homeGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "homeOverview": "Overview",
   "homeYourCentre": "Your centre",
   "homeQuickActions": "Quick actions",
@@ -83,7 +84,6 @@
   "homeRecentAudits": "Recent assessments",
   "homeTopCentres": "Leading centres",
   "homeNoData": "Nothing to show yet",
-
   "centresTitle": "Renal dialysis centres",
   "centresSearchHint": "Search by name or wilayat",
   "centreDetails": "Centre details",
@@ -97,10 +97,18 @@
   "centreNameEn": "Name (English)",
   "centreNameAr": "Name (Arabic)",
   "centreCode": "Centre code",
-
   "scoreTitle": "Score",
   "scoreOutOf": "{points} out of {max}",
-  "@scoreOutOf": { "placeholders": { "points": { "type": "String" }, "max": { "type": "String" } } },
+  "@scoreOutOf": {
+    "placeholders": {
+      "points": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "scoreOverall": "Overall score",
   "scorePercent": "Percentage",
   "scoreGrade": "Rating",
@@ -110,17 +118,14 @@
   "scoreStrengths": "Strengths",
   "scoreWeaknesses": "Areas to improve",
   "scoreNoStrengths": "Not enough scored items yet to identify strengths.",
-
   "gradeExcellent": "Excellent",
   "gradeVeryGood": "Very good",
   "gradeGood": "Good",
   "gradeNeedsImprovement": "Needs improvement",
-
   "levelMet": "Met",
   "levelPartiallyMet": "Partially met",
   "levelNotMet": "Not met",
   "levelNotApplicable": "Not applicable",
-
   "compareTitle": "Compare centres",
   "compareRanking": "Ranking",
   "compareByArea": "By main area",
@@ -132,11 +137,22 @@
   "compareMostImproved": "Most improved",
   "compareDeclining": "Needs attention",
   "compareImprovedBy": "Up {value} points since the last cycle",
-  "@compareImprovedBy": { "placeholders": { "value": { "type": "String" } } },
+  "@compareImprovedBy": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "compareDeclinedBy": "Down {value} points since the last cycle",
-  "@compareDeclinedBy": { "placeholders": { "value": { "type": "String" } } },
+  "@compareDeclinedBy": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "compareNeedTwo": "Choose at least two centres to compare.",
-
   "auditsTitle": "Assessments",
   "auditNew": "New assessment",
   "auditDraft": "Draft",
@@ -151,7 +167,16 @@
   "auditEvaluator": "Evaluator",
   "auditTemplate": "Checklist",
   "auditProgress": "{done} of {total} items scored",
-  "@auditProgress": { "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } } },
+  "@auditProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "auditContinue": "Continue assessment",
   "auditContinueScoring": "Continue scoring",
   "auditStartScoring": "Start scoring",
@@ -163,9 +188,21 @@
   "auditSubmitConfirmTitle": "Submit this assessment?",
   "auditSubmitConfirmBody": "Once submitted, the directorate will review it. You will not be able to change scores unless it is sent back to you.",
   "auditSubmitIncomplete": "{count} items are still unscored.",
-  "@auditSubmitIncomplete": { "placeholders": { "count": { "type": "int" } } },
+  "@auditSubmitIncomplete": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "auditMissingEvidence": "{count} items need evidence before you can submit.",
-  "@auditMissingEvidence": { "placeholders": { "count": { "type": "int" } } },
+  "@auditMissingEvidence": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "auditSubmitted_success": "Assessment submitted for review.",
   "auditApprovedSuccess": "Assessment approved.",
   "auditRejectedSuccess": "Assessment sent back to the auditor.",
@@ -178,7 +215,6 @@
   "auditDeleteDraftTitle": "Delete draft assessment?",
   "auditDeleteDraftConfirm": "Are you sure you want to delete this draft assessment? This action cannot be undone.",
   "auditDraftDeleted": "Draft assessment deleted.",
-
   "criterionComment": "Comment",
   "criterionRecommendation": "Recommendation",
   "criterionEvidence": "Evidence",
@@ -201,20 +237,23 @@
   "criterionShowPlain": "Show plain language",
   "criterionSuppressNcr": "Do not raise a corrective action",
   "criterionSuppressReason": "Reason for not raising one",
-
   "methodObservation": "Observation on site",
   "methodInterview": "Interview",
   "methodDocumentReview": "Document review",
   "methodOther": "Other",
-
   "evidenceFromCamera": "Take a photo",
   "evidenceFromGallery": "Choose an image",
   "evidenceFromFiles": "Choose a document",
   "evidenceUploading": "Uploading…",
   "evidencePendingUpload": "Waiting to upload",
   "evidenceCount": "{count, plural, =0{No evidence} =1{1 file} other{{count} files}}",
-  "@evidenceCount": { "placeholders": { "count": { "type": "int" } } },
-
+  "@evidenceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "ncrTitle": "Corrective actions",
   "ncrSingular": "Corrective action",
   "ncrOpen": "Open",
@@ -236,12 +275,17 @@
   "ncrRaisedFrom": "Raised from",
   "ncrNoneOpen": "No open corrective actions. Well done.",
   "ncrOverdueCount": "{count, plural, =0{Nothing overdue} =1{1 overdue} other{{count} overdue}}",
-  "@ncrOverdueCount": { "placeholders": { "count": { "type": "int" } } },
+  "@ncrOverdueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "ncrRecurring": "Repeating findings",
   "ncrAvgResolution": "Average days to close",
   "ncrUpdateStatus": "Update status",
   "ncrAddNote": "Add a note",
-
   "staffTitle": "Staff and training",
   "staffMembers": "Staff members",
   "staffAdd": "Add staff member",
@@ -266,9 +310,21 @@
   "staffExpired": "Expired",
   "staffMissing": "Not recorded",
   "staffExpiresInDays": "{days, plural, =0{Expires today} =1{Expires tomorrow} other{Expires in {days} days}}",
-  "@staffExpiresInDays": { "placeholders": { "days": { "type": "int" } } },
+  "@staffExpiresInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "staffExpiredDaysAgo": "{days, plural, =1{Expired yesterday} other{Expired {days} days ago}}",
-  "@staffExpiredDaysAgo": { "placeholders": { "days": { "type": "int" } } },
+  "@staffExpiredDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "drillsTitle": "Emergency drills",
   "drillAdd": "Record a drill",
   "drillType": "Type of drill",
@@ -276,14 +332,22 @@
   "drillParticipants": "Number of participants",
   "drillFindings": "What we learned",
   "drillFollowUp": "Follow-up actions",
-
   "surveyTitle": "Patient experience",
   "surveyStart": "Start",
   "surveyChooseLanguage": "Choose your language",
   "surveyConsentTitle": "Before you begin",
   "surveyConsentAgree": "I understand and would like to continue",
   "surveyQuestionOf": "Question {current} of {total}",
-  "@surveyQuestionOf": { "placeholders": { "current": { "type": "int" }, "total": { "type": "int" } } },
+  "@surveyQuestionOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "surveyThanks": "Thank you",
   "surveyThanksBody": "Your feedback helps us improve the service.",
   "surveyAlreadySubmitted": "You have already answered recently. Thank you.",
@@ -293,7 +357,13 @@
   "surveyQrTitle": "Survey QR code",
   "surveyQrHint": "Print this code and display it in the waiting area. Patients scan it to answer.",
   "surveyResponses": "{count, plural, =0{No responses} =1{1 response} other{{count} responses}}",
-  "@surveyResponses": { "placeholders": { "count": { "type": "int" } } },
+  "@surveyResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "surveySatisfaction": "Satisfaction",
   "surveyBreakdown": "By question",
   "surveyTooFew": "Not enough responses yet to show a result.",
@@ -302,15 +372,22 @@
   "surveyEmojiOk": "Acceptable",
   "surveyEmojiGood": "Good",
   "surveyEmojiVeryGood": "Excellent",
-
   "achievementsTitle": "Achievements",
   "achievementUnlocked": "Congratulations",
   "achievementEarnedBody": "{centre} has earned {badge}",
-  "@achievementEarnedBody": { "placeholders": { "centre": { "type": "String" }, "badge": { "type": "String" } } },
+  "@achievementEarnedBody": {
+    "placeholders": {
+      "centre": {
+        "type": "String"
+      },
+      "badge": {
+        "type": "String"
+      }
+    }
+  },
   "achievementNone": "No badges yet. Keep going.",
   "achievementPublic": "Shown publicly",
   "achievementPrivate": "Internal only",
-
   "adminTitle": "Setup",
   "adminTemplate": "Checklist",
   "adminDomains": "Main areas",
@@ -336,12 +413,23 @@
   "adminExcludeFromTotal": "Do not count toward the total",
   "adminThresholds": "Thresholds",
   "adminTotalItems": "{count} items",
-  "@adminTotalItems": { "placeholders": { "count": { "type": "int" } } },
+  "@adminTotalItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminTotalPoints": "{points} points maximum",
-  "@adminTotalPoints": { "placeholders": { "points": { "type": "int" } } },
+  "@adminTotalPoints": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "adminClinicalTerm": "Clinical term",
   "adminPublicLabel": "Plain-language label",
-
   "reportTitle": "Report",
   "reportGenerate": "Generate report",
   "reportPdf": "PDF report",
@@ -350,7 +438,6 @@
   "reportReady": "Report ready",
   "reportIncludeEvidence": "Include evidence list",
   "reportLanguage": "Report language",
-
   "settingsTitle": "Settings",
   "settingsLanguage": "Language",
   "settingsLanguageEnglish": "English",
@@ -364,11 +451,22 @@
   "settingsAbout": "About Kafa'a",
   "settingsPrivacy": "Privacy notice",
   "settingsVersion": "Version {version}",
-  "@settingsVersion": { "placeholders": { "version": { "type": "String" } } },
+  "@settingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "settingsSignOutConfirm": "Sign out of Kafa'a?",
   "settingsPendingChanges": "{count, plural, =0{Everything is synced} =1{1 change waiting to sync} other{{count} changes waiting to sync}}",
-  "@settingsPendingChanges": { "placeholders": { "count": { "type": "int" } } },
-
+  "@settingsPendingChanges": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "statusOnline": "Online",
   "statusOffline": "Offline",
   "statusSyncing": "Syncing…",
@@ -376,7 +474,6 @@
   "statusSyncFailed": "Some changes could not be saved",
   "statusWorkingOffline": "You are offline. Your work is saved on this device and will sync automatically.",
   "statusSyncNow": "Sync now",
-
   "emptyTitle": "Nothing here yet",
   "emptyAudits": "No assessments yet. Start one to begin scoring.",
   "emptyCentres": "No centres have been added yet.",
@@ -389,15 +486,12 @@
   "errorPermission": "You do not have permission to do that.",
   "errorNotFound": "We could not find what you were looking for.",
   "loading": "Loading…",
-
   "privacyNoticeTitle": "How we handle information",
   "privacyNoticeBody": "Kafa'a stores assessment results, evidence documents and staff certificates. Patient records are referenced only by anonymised codes — never by name. Survey answers are anonymous and cannot be traced back to an individual. Access is limited by role and every sensitive action is logged.",
-
   "confirmDeleteTitle": "Delete this?",
   "confirmDeleteBody": "This cannot be undone.",
   "unsavedChangesTitle": "Leave without saving?",
   "unsavedChangesBody": "Your changes on this screen will be lost.",
-
   "filterAll": "All",
   "filterCentre": "Centre",
   "filterDateRange": "Date range",
@@ -409,7 +503,6 @@
   "filterPeriod": "Period",
   "filterAllPeriods": "All periods",
   "filterClearAll": "Clear filters",
-
   "periodMonthly": "Monthly",
   "periodQuarterly": "Quarterly",
   "periodSemiannual": "Every 6 months",
@@ -419,7 +512,6 @@
   "periodCovered": "Period covered",
   "periodChoose": "Choose a period",
   "periodYear": "Year",
-
   "structureTitle": "Scoring structure",
   "structureSubtitle": "Main areas, sections and the points scored under them",
   "structureIntro": "An assessment is scored against the points below. Group related points under a section, and group sections under a main area — the totals and charts follow automatically.",
@@ -437,7 +529,16 @@
   "structureNoDomains": "No main areas yet. Add one to begin.",
   "structureUngrouped": "Not yet in a main area",
   "structurePointsSummary": "{items} points · {max} max",
-  "@structurePointsSummary": { "placeholders": { "items": { "type": "int" }, "max": { "type": "int" } } },
+  "@structurePointsSummary": {
+    "placeholders": {
+      "items": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "structureMoveUp": "Move up",
   "structureMoveDown": "Move down",
   "structureArchive": "Archive",
@@ -454,12 +555,23 @@
   "structureIcon": "Icon",
   "structureSourceGroup": "Source table",
   "structureBelongsTo": "Belongs to",
-
   "scoringTitle": "Scoring",
   "scoringEdit": "Edit scoring",
   "scoringInherited": "Using the default scale",
   "scoringInheritedHint": "This point scores {points} / {partial} / {notMet} with no measurable threshold. Set your own to match the checklist wording.",
-  "@scoringInheritedHint": { "placeholders": { "points": { "type": "int" }, "partial": { "type": "int" }, "notMet": { "type": "int" } } },
+  "@scoringInheritedHint": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "notMet": {
+        "type": "int"
+      }
+    }
+  },
   "scoringCustomise": "Set custom thresholds",
   "scoringUseDefault": "Use the default scale",
   "scoringChoice": "Choice",
@@ -468,8 +580,43 @@
   "scoringPoints": "Points",
   "scoringTriggersAction": "Raises a corrective action",
   "scoringMaxPointsNote": "The highest choice sets this point's maximum: {max}",
-  "@scoringMaxPointsNote": { "placeholders": { "max": { "type": "int" } } },
+  "@scoringMaxPointsNote": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "scoringSaved": "Scoring updated",
   "scoringValidationPoints": "Points must be 0 or more",
-  "scoringValidationOrder": "Met must score at least as much as Partially Met, which must score at least as much as Not Met"
+  "scoringValidationOrder": "Met must score at least as much as Partially Met, which must score at least as much as Not Met",
+  "structuresTitle": "Audit Structures",
+  "structuresNew": "New version",
+  "structuresVersion": "Version number (for example, 1.01)",
+  "structuresVersionInvalid": "Enter a unique version such as 1.01",
+  "structuresScratch": "Build from scratch",
+  "structuresCopy": "Select from a previous version",
+  "structuresSource": "Previous version",
+  "structuresCreate": "Create draft",
+  "structuresDraft": "Draft",
+  "structuresSaved": "Saved",
+  "structuresSave": "Save version",
+  "structuresLocked": "This saved version is locked. Create a new version to make changes.",
+  "structuresDraftHint": "Changes are saved to this draft. Save the version when it is ready for new assessments.",
+  "structuresImport": "Import items",
+  "structuresSelect": "Select main areas, sections, or individual items to copy. Their scoring and translations are preserved.",
+  "structuresChoose": "Audit Structure",
+  "structuresDefault": "Default for new assessments",
+  "structuresDelete": "Delete draft?",
+  "structuresDeleteHint": "This draft and all its items will be deleted.",
+  "structuresDeleteItem": "Delete item?",
+  "structuresDeleteItemHint": "This item and its sub-items will be removed from this draft.",
+  "structuresNone": "No saved Audit Structures are available.",
+  "structuresSelectionRequired": "Select at least one item to import.",
+  "structuresScoringHint": "The current scoring scale and rating bands are copied as a starting point. Review them before saving.",
+  "structuresEmpty": "Add at least one scored item before saving the version.",
+  "structuresScaleInvalid": "Review the scoring choices. Each item needs Met, Partially Met and Not Met, and its maximum must match the highest choice.",
+  "structuresDuplicate": "This version number or item code already exists. Choose a different number or unselect items already imported.",
+  "structureDuplicateCode": "This reference code is already used in this Audit Structure. Enter a different code.",
+  "structureCodeHelp": "Unique within this version, for example GOV or GOV-2."
 }

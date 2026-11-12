@@ -1,0 +1,5 @@
+# Applies to this trusted workspace. Do not copy into the global Codex config.
+# OAuth credentials are managed by Codex, separately from this source file.
+[mcp_servers.kafaa_db]
+url = "https://mcp.supabase.com/mcp?project_ref=onzmwoajiyennqtjcjez&read_only=true&features=database,debugging,development,docs"
+enabled = true

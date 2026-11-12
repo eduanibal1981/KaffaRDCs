@@ -28,6 +28,17 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final session = ref.watch(sessionProvider);
+    if (!session.hasValue) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.appName)),
+        body: session.hasError
+            ? ErrorView(
+                error: session.error!,
+                onRetry: () => ref.invalidate(sessionProvider),
+              )
+            : const LoadingView(),
+      );
+    }
     final perms = ref.watch(permissionsProvider);
     final notifications = ref.watch(notificationsProvider);
     final unread =
@@ -62,10 +73,20 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
+          ref.invalidate(sessionProvider);
+          ref.invalidate(centersProvider);
           ref.invalidate(rankingProvider);
           ref.invalidate(ncrDashboardProvider);
           ref.invalidate(notificationsProvider);
           ref.invalidate(satisfactionProvider);
+          await Future.wait([
+            ref.read(sessionProvider.future),
+            ref.read(centersProvider.future),
+            ref.read(rankingProvider.future),
+            ref.read(ncrDashboardProvider.future),
+            ref.read(notificationsProvider.future),
+            ref.read(satisfactionProvider.future),
+          ]);
         },
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -112,12 +133,21 @@ class _DirectorateOverview extends ConsumerWidget {
     final ncr = ref.watch(ncrDashboardProvider);
     final centres = ref.watch(centersProvider);
 
+    if (centres.hasError) {
+      return ErrorView(
+        error: centres.error!,
+        onRetry: () => ref.invalidate(centersProvider),
+      );
+    }
+    if (!centres.hasValue) {
+      return const SizedBox(height: 140, child: LoadingView());
+    }
+
     return AsyncView(
       value: ranking,
       onRetry: () => ref.invalidate(rankingProvider),
       loading: const SizedBox(height: 140, child: LoadingView()),
       builder: (rows) {
-        final assessed = rows.length;
         final avg = rows.isEmpty
             ? 0.0
             : rows.map((r) => r.summary.percent).reduce((a, b) => a + b) /
@@ -126,7 +156,7 @@ class _DirectorateOverview extends ConsumerWidget {
             rows.where((r) => r.summary.gradeCode == 'EXCELLENT').length;
         final openActions = (ncr.valueOrNull?.values ?? const <NcrDashboard>[])
             .fold<int>(0, (sum, d) => sum + d.openTotal);
-        final totalCentres = centres.valueOrNull?.length ?? assessed;
+        final totalCentres = centres.requireValue.length;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,7 +241,9 @@ class _MovementCard extends ConsumerWidget {
         if (!snapshot.hasData) return const SizedBox.shrink();
         final improved = snapshot.data![0];
         final declined = snapshot.data![1];
-        if (improved == null && declined == null) return const SizedBox.shrink();
+        if (improved == null && declined == null) {
+          return const SizedBox.shrink();
+        }
 
         Widget row(ScoreTrendPoint point, bool positive) {
           final delta = point.deltaPercent ?? 0;
@@ -235,7 +267,8 @@ class _MovementCard extends ConsumerWidget {
                   : l10n.compareDeclinedBy(delta.abs().toStringAsFixed(1)),
             ),
             trailing: StatusPill(
-              label: positive ? l10n.compareMostImproved : l10n.compareDeclining,
+              label:
+                  positive ? l10n.compareMostImproved : l10n.compareDeclining,
               color: color,
               dense: true,
             ),
@@ -585,14 +618,12 @@ class _OpenActionsCard extends ConsumerWidget {
                                   context.pick(n.titleEn, n.titleAr),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style:
-                                      Theme.of(context).textTheme.bodyMedium,
+                                  style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
                                   n.code,
-                                  style:
-                                      Theme.of(context).textTheme.bodySmall,
+                                  style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ],
                             ),

@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Kafaa (dev)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}/kafaa_app",
+      "program": "${workspaceFolder}/kafaa_app/lib/main.dart",
+      "templateFor": "",
+      "toolArgs": [
+        "--dart-define-from-file=${workspaceFolder}/kafaa_app/env/dev.json"
+      ]
+    },
+    {
+      "name": "Kafaa (dev, profile)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}/kafaa_app",
+      "program": "${workspaceFolder}/kafaa_app/lib/main.dart",
+      "flutterMode": "profile",
+      "toolArgs": [
+        "--dart-define-from-file=${workspaceFolder}/kafaa_app/env/dev.json"
+      ]
+    }
+  ]
+}

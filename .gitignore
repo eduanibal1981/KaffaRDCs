@@ -5,7 +5,8 @@ desktop.ini
 
 # IDE & Editor files
 .idea/
-.vscode/
+.vscode/*
+!.vscode/launch.json
 *.iml
 *.iws
 *.ipr
@@ -14,6 +15,8 @@ desktop.ini
 *.log
 *.tmp
 *.bak
+__pycache__/
+*.pyc
 
 # Kafaa app build artifacts (in case not caught by inner .gitignore)
 kafaa_app/build/

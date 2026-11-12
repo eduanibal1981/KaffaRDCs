@@ -1,0 +1,155 @@
+00:00 +0: loading /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart
+00:00 +0: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period boundaries monthly snaps to the containing calendar month
+00:00 +1: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period boundaries monthly handles February in a leap year
+00:00 +2: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period boundaries monthly handles December without rolling the year
+00:00 +3: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period boundaries quarterly snaps to the containing quarter
+00:00 +4: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period boundaries half-yearly splits the year at July
+00:00 +5: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period boundaries annual snaps to the calendar year
+00:00 +6: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period boundaries every period ends the day before the next one starts
+00:00 +7: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Grouping keys match the format the database stores
+00:00 +8: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Grouping keys single-digit months are zero padded so keys sort correctly
+00:00 +9: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Grouping keys any day inside a period yields the same key
+00:00 +10: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Grouping keys the wire values round-trip
+00:00 +11: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period labels read naturally in English
+00:00 +12: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period labels read naturally in English
+00:00 +13: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period labels read naturally in English
+00:00 +14: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period labels read naturally in English
+00:00 +15: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/period_test.dart: Period labels read naturally in English
+00:00 +16: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/localization_test.dart: Localisation English resolves and lays out left to right
+00:00 +17: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/localization_test.dart: Localisation English resolves and lays out left to right
+00:00 +18: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/localization_test.dart: Localisation English resolves and lays out left to right
+00:00 +19: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: new assessment switches blueprint with its selected version
+00:00 +20: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: new assessment switches blueprint with its selected version
+00:00 +21: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: new assessment switches blueprint with its selected version
+00:00 +22: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: new assessment switches blueprint with its selected version
+00:00 +23: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: new assessment switches blueprint with its selected version
+00:00 +24: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: new assessment switches blueprint with its selected version
+00:00 +25: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: new assessment switches blueprint with its selected version
+00:00 +26: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: new assessment switches blueprint with its selected version
+00:00 +27: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: new assessment switches blueprint with its selected version
+00:00 +28: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: new assessment switches blueprint with its selected version
+00:00 +29: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: new assessment switches blueprint with its selected version
+00:01 +30: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:01 +31: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:01 +32: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:01 +33: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:01 +34: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:03 +35: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:03 +36: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:03 +37: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:03 +38: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:03 +39: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:03 +40: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:03 +41: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:03 +42: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:03 +43: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +44: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +45: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +46: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +47: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +48: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +49: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +50: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +51: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +52: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +53: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +54: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +55: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +56: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +57: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +58: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +59: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +60: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +61: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +62: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +63: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +64: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +65: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +66: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +67: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +68: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +69: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +70: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +71: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +72: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +73: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +74: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +75: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +76: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +77: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +78: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:04 +79: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +80: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +81: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +82: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +83: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +84: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +85: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +86: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +87: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +88: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +89: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +90: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +91: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +92: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +93: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +94: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +95: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +96: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +97: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +98: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +99: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +100: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +101: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +102: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +103: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +104: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +105: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +106: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +107: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +108: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +109: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +110: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +111: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +112: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +113: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +114: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +115: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +116: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +117: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +118: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +119: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +120: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +121: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +122: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +123: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +124: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +125: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +126: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +127: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +128: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +129: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +130: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +131: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +132: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +133: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +134: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:05 +135: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: legacy period filtering pages past newer audits and caches matches
+00:07 +136: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: structure lists are filtered and cached for offline selection
+00:07 +137: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: structure lists are filtered and cached for offline selection
+00:07 +138: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_structure_versions_test.dart: structure lists are filtered and cached for offline selection
+00:08 +139: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: offline caches do not mix cycle labels or list limits
+00:08 +140: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: offline caches do not mix cycle labels or list limits
+00:08 +141: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: offline caches do not mix cycle labels or list limits
+00:08 +142: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: offline caches do not mix cycle labels or list limits
+00:21 +143: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: saves the selected frequency and uses a stable primary key
+00:21 +144: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: an offline draft opens and appears in the matching audit list
+00:49 +145: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: reopening an offline response retains the latest score and level
+00:56 +146: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: only the target audit blocks submission when offline
+00:56 +147: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: submission waits for an existing sync pass
+00:56 +148: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: an old request cannot acknowledge a newer edit of the same criterion
+00:56 +149: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: a failed update keeps its ID intact and retries once on the next flush
+00:56 +150: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: exhausted entries cannot starve later queued writes
+00:56 +151: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: replaying a sample after a lost acknowledgement uses the same ID
+00:56 +152: /Users/thehonest/Work/Kafaa Project/kafaa_app/test/audit_repository_test.dart: the runner loads the audit template even when another template is active
+00:56 +153: All tests passed!

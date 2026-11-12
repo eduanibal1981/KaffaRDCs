@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Kafaa uses the camera to attach evidence to assessments and corrective actions.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Kafaa lets you select photos as evidence for assessments and corrective actions.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

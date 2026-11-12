@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/l10n/l10n_extensions.dart';
-import '../../core/offline/local_store.dart';
 import '../../core/offline/sync_service.dart';
 import '../../core/preferences/app_preferences.dart';
 import '../../core/routing/app_router.dart';
@@ -192,9 +191,6 @@ class SettingsScreen extends ConsumerWidget {
               );
               if (confirmed != true) return;
 
-              // Clear the cached copies of centre data on the way out so
-              // the device holds nothing after the session ends.
-              await ref.read(localStoreProvider).clearCache();
               await ref.read(authControllerProvider.notifier).signOut();
               if (context.mounted) context.go(Routes.signIn);
             },

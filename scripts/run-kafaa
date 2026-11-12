@@ -1,0 +1,16 @@
+#!/bin/sh
+# Run from any directory with Kafaa's existing local build configuration.
+set -eu
+
+kafaa_script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+kafaa_app_dir=$(CDPATH= cd -- "$kafaa_script_dir/../kafaa_app" && pwd)
+kafaa_config_file="$kafaa_app_dir/env/dev.json"
+
+if [ ! -r "$kafaa_config_file" ]; then
+  echo 'Kafaa configuration is missing: kafaa_app/env/dev.json' >&2
+  echo 'Copy env/dev.example.json to env/dev.json and add the kaffaDB public API key.' >&2
+  exit 1
+fi
+
+cd "$kafaa_app_dir"
+exec flutter run --dart-define-from-file="$kafaa_config_file" "$@"

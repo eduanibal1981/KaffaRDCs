@@ -2610,6 +2610,180 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Met must score at least as much as Partially Met, which must score at least as much as Not Met'**
   String get scoringValidationOrder;
+
+  /// No description provided for @structuresTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit Structures'**
+  String get structuresTitle;
+
+  /// No description provided for @structuresNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New version'**
+  String get structuresNew;
+
+  /// No description provided for @structuresVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version number (for example, 1.01)'**
+  String get structuresVersion;
+
+  /// No description provided for @structuresVersionInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a unique version such as 1.01'**
+  String get structuresVersionInvalid;
+
+  /// No description provided for @structuresScratch.
+  ///
+  /// In en, this message translates to:
+  /// **'Build from scratch'**
+  String get structuresScratch;
+
+  /// No description provided for @structuresCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Select from a previous version'**
+  String get structuresCopy;
+
+  /// No description provided for @structuresSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous version'**
+  String get structuresSource;
+
+  /// No description provided for @structuresCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create draft'**
+  String get structuresCreate;
+
+  /// No description provided for @structuresDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get structuresDraft;
+
+  /// No description provided for @structuresSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get structuresSaved;
+
+  /// No description provided for @structuresSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save version'**
+  String get structuresSave;
+
+  /// No description provided for @structuresLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This saved version is locked. Create a new version to make changes.'**
+  String get structuresLocked;
+
+  /// No description provided for @structuresDraftHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes are saved to this draft. Save the version when it is ready for new assessments.'**
+  String get structuresDraftHint;
+
+  /// No description provided for @structuresImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import items'**
+  String get structuresImport;
+
+  /// No description provided for @structuresSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select main areas, sections, or individual items to copy. Their scoring and translations are preserved.'**
+  String get structuresSelect;
+
+  /// No description provided for @structuresChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit Structure'**
+  String get structuresChoose;
+
+  /// No description provided for @structuresDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default for new assessments'**
+  String get structuresDefault;
+
+  /// No description provided for @structuresDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete draft?'**
+  String get structuresDelete;
+
+  /// No description provided for @structuresDeleteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This draft and all its items will be deleted.'**
+  String get structuresDeleteHint;
+
+  /// No description provided for @structuresDeleteItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete item?'**
+  String get structuresDeleteItem;
+
+  /// No description provided for @structuresDeleteItemHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This item and its sub-items will be removed from this draft.'**
+  String get structuresDeleteItemHint;
+
+  /// No description provided for @structuresNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved Audit Structures are available.'**
+  String get structuresNone;
+
+  /// No description provided for @structuresSelectionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least one item to import.'**
+  String get structuresSelectionRequired;
+
+  /// No description provided for @structuresScoringHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The current scoring scale and rating bands are copied as a starting point. Review them before saving.'**
+  String get structuresScoringHint;
+
+  /// No description provided for @structuresEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one scored item before saving the version.'**
+  String get structuresEmpty;
+
+  /// No description provided for @structuresScaleInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the scoring choices. Each item needs Met, Partially Met and Not Met, and its maximum must match the highest choice.'**
+  String get structuresScaleInvalid;
+
+  /// No description provided for @structuresDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'This version number or item code already exists. Choose a different number or unselect items already imported.'**
+  String get structuresDuplicate;
+
+  /// No description provided for @structureDuplicateCode.
+  ///
+  /// In en, this message translates to:
+  /// **'This reference code is already used in this Audit Structure. Enter a different code.'**
+  String get structureDuplicateCode;
+
+  /// No description provided for @structureCodeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Unique within this version, for example GOV or GOV-2.'**
+  String get structureCodeHelp;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

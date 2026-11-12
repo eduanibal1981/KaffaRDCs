@@ -122,7 +122,7 @@ abstract final class KafaaTheme {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSmall + 2),
-          borderSide: BorderSide(color: KafaaColors.neutral300),
+          borderSide: const BorderSide(color: KafaaColors.neutral300),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSmall + 2),

@@ -131,8 +131,7 @@ class _CriterionSheetState extends ConsumerState<_CriterionSheet> {
           child: Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
@@ -304,8 +303,7 @@ class _CriterionSheetState extends ConsumerState<_CriterionSheet> {
                 enabled: widget.canEdit,
                 maxLines: 4,
                 minLines: 2,
-                decoration:
-                    InputDecoration(labelText: l10n.criterionComment),
+                decoration: InputDecoration(labelText: l10n.criterionComment),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -534,8 +532,7 @@ class _SamplingSectionState extends ConsumerState<_SamplingSection> {
           ),
           if (_result != null) ...[
             const SizedBox(height: 12),
-            Text(l10n.criterionSampleResult,
-                style: theme.textTheme.labelLarge),
+            Text(l10n.criterionSampleResult, style: theme.textTheme.labelLarge),
             const SizedBox(height: 6),
             Wrap(
               spacing: 6,
@@ -581,12 +578,14 @@ class _EvidenceSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(l10n.criterionEvidence,
                 style: Theme.of(context).textTheme.labelLarge),
             if (criterion.evidenceRequired) ...[
-              const SizedBox(width: 8),
               StatusPill(
                 label: l10n.criterionEvidenceRequired,
                 color: KafaaColors.warning,

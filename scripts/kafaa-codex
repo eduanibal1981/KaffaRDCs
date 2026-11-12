@@ -1,0 +1,12 @@
+#!/bin/sh
+# Supply the dedicated MCP explicitly: some Codex MCP management commands
+# do not discover workspace configuration, even when run in the workspace.
+set -eu
+
+kafaa_script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+kafaa_project_root=$(CDPATH= cd -- "$kafaa_script_dir/.." && pwd)
+kafaa_mcp_url='https://mcp.supabase.com/mcp?project_ref=onzmwoajiyennqtjcjez&read_only=true&features=database,debugging,development,docs'
+
+cd "$kafaa_project_root"
+exec codex -C "$kafaa_project_root" \
+  -c "mcp_servers.kafaa_db.url=\"$kafaa_mcp_url\"" "$@"

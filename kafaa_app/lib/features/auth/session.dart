@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/offline/local_store.dart';
 import '../../data/models/center.dart';
 import '../../data/models/primitives.dart';
 import '../../data/supabase/supabase_providers.dart';
@@ -55,8 +56,8 @@ class Permissions {
           g.role == AppRole.auditor &&
           (g.centerId == null || g.centerId == centerId));
 
-  bool managesCenter(String centerId) => grants.any(
-      (g) => g.role == AppRole.centerManager && g.centerId == centerId);
+  bool managesCenter(String centerId) => grants
+      .any((g) => g.role == AppRole.centerManager && g.centerId == centerId);
 
   bool get canRunAudits => isAuditor || isDirectorate;
   bool get canApproveAudits => isDirectorate;
@@ -148,6 +149,9 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         email: email.trim(),
         password: password,
       );
+      // Auth stream notifications may reach Riverpod after this future.
+      // Resolve the SDK's new user before loading their profile/permissions.
+      _ref.invalidate(currentUserProvider);
       _ref.invalidate(sessionProvider);
       state = const AsyncValue.data(null);
     } catch (error, stack) {
@@ -160,7 +164,10 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
       _client.auth.resetPasswordForEmail(email.trim());
 
   Future<void> signOut() async {
+    final store = _ref.read(localStoreProvider);
     await _client.auth.signOut();
+    _ref.invalidate(currentUserProvider);
+    await store.clearCache();
     _ref.invalidate(sessionProvider);
   }
 }

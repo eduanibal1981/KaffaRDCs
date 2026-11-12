@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$base = "G:\Kafaa Project\supabase"
+$base = $PSScriptRoot
 
 $files = @(
   "migrations\0001_foundation.sql",
@@ -17,7 +17,8 @@ $files = @(
   "seed\0001_template_kafaa_2025_2026.sql",
   "seed\0002_criteria_79_items.sql",
   "seed\0003_reference_data.sql",
-  "seed\0005_bootstrap_users.sql"
+  "seed\0005_bootstrap_users.sql",
+  "migrations\20261112090000_audit_structure_versions.sql"
 )
 
 $sb = New-Object System.Text.StringBuilder

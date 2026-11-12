@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/achievements/achievements_screen.dart';
 import '../../features/admin/admin_screen.dart';
-import '../../features/admin/criteria_editor_screen.dart';
+import '../../features/admin/audit_structures_screen.dart';
+import '../../data/repositories/assessment_repository.dart';
 import '../../features/admin/structure_editor_screen.dart';
 import '../../features/admin/terminology_screen.dart';
 import '../../features/analytics/compare_screen.dart';
@@ -133,12 +134,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/more/admin/criteria',
         parentNavigatorKey: _rootKey,
-        builder: (_, __) => const CriteriaEditorScreen(),
+        builder: (_, __) => const AuditStructuresScreen(),
       ),
       GoRoute(
         path: '/more/admin/structure',
         parentNavigatorKey: _rootKey,
-        builder: (_, __) => const StructureEditorScreen(),
+        builder: (_, __) => const AuditStructuresScreen(),
+      ),
+      GoRoute(
+        path: '/more/admin/structure/:templateId',
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => ProviderScope(overrides: [
+          blueprintProvider.overrideWith((ref) => ref
+              .watch(assessmentRepositoryProvider)
+              .loadBlueprint(state.pathParameters['templateId']!,
+                  forceRefresh: true)),
+        ], child: const StructureEditorScreen()),
       ),
       GoRoute(
         path: '/more/admin/terminology',

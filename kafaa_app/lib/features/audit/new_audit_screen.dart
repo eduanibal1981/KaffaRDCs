@@ -32,6 +32,7 @@ class _NewAuditScreenState extends ConsumerState<NewAuditScreen> {
   final _beds = TextEditingController();
 
   String? _centerId;
+  String? _templateId;
   DateTime _evaluationDate = DateTime.now();
 
   /// The assessment covers a period — a month, quarter, half-year or year —
@@ -111,153 +112,188 @@ class _NewAuditScreenState extends ConsumerState<NewAuditScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final blueprint = ref.watch(blueprintProvider);
+    final structures = ref.watch(auditStructuresProvider);
     final centres = ref.watch(centersProvider);
     final perms = ref.watch(permissionsProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.auditNew)),
       body: AsyncView(
-        value: blueprint,
-        onRetry: () => ref.invalidate(blueprintProvider),
-        builder: (bp) => AsyncView(
-          value: centres,
-          onRetry: () => ref.invalidate(centersProvider),
-          builder: (allCentres) {
-            final selectable = allCentres
-                .where((c) => perms.canAuditCenter(c.id))
-                .toList();
+        value: structures,
+        onRetry: () => ref.invalidate(auditStructuresProvider),
+        builder: (versions) {
+          if (versions.isEmpty) return EmptyView(message: l10n.structuresNone);
+          final id = _templateId ??
+              versions
+                  .firstWhere((v) => v.isDefault, orElse: () => versions.first)
+                  .id;
+          return AsyncView(
+              value: ref.watch(structureBlueprintProvider(id)),
+              onRetry: () => ref.invalidate(structureBlueprintProvider(id)),
+              builder: (bp) => AsyncView(
+                    value: centres,
+                    onRetry: () => ref.invalidate(centersProvider),
+                    builder: (allCentres) {
+                      final selectable = allCentres
+                          .where((c) => perms.canAuditCenter(c.id))
+                          .toList();
 
-            return Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                children: [
-                  KafaaCard(
-                    title: bp.template.nameEn,
-                    subtitle:
-                        '${l10n.adminTotalItems(bp.itemCount)} · '
-                        '${l10n.adminTotalPoints(bp.maxPoints)}',
-                    child: Text(
-                      context.pick(
-                          bp.template.descriptionEn, bp.template.descriptionAr),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    initialValue: _centerId,
-                    isExpanded: true,
-                    decoration: InputDecoration(labelText: l10n.filterCentre),
-                    items: [
-                      for (final c in selectable)
-                        DropdownMenuItem(
-                          value: c.id,
-                          child: Text(
-                            context.pick(c.nameEn, c.nameAr),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                      return Form(
+                        key: _formKey,
+                        child: ListView(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                          children: [
+                            DropdownButtonFormField<String>(
+                                key: ValueKey('structure-$id'),
+                                initialValue: id,
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                    labelText: l10n.structuresChoose),
+                                items: [
+                                  for (final v in versions)
+                                    DropdownMenuItem(
+                                        value: v.id,
+                                        child: Text(
+                                            context.pick(v.nameEn, v.nameAr),
+                                            overflow: TextOverflow.ellipsis))
+                                ],
+                                onChanged: _busy
+                                    ? null
+                                    : (v) => setState(() => _templateId = v)),
+                            const SizedBox(height: 16),
+                            KafaaCard(
+                              title: context.pick(
+                                  bp.template.nameEn, bp.template.nameAr),
+                              subtitle:
+                                  '${l10n.adminTotalItems(bp.itemCount)} · '
+                                  '${l10n.adminTotalPoints(bp.maxPoints)}',
+                              child: Text(
+                                context.pick(bp.template.descriptionEn,
+                                    bp.template.descriptionAr),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            DropdownButtonFormField<String>(
+                              initialValue: _centerId,
+                              isExpanded: true,
+                              decoration:
+                                  InputDecoration(labelText: l10n.filterCentre),
+                              items: [
+                                for (final c in selectable)
+                                  DropdownMenuItem(
+                                    value: c.id,
+                                    child: Text(
+                                      context.pick(c.nameEn, c.nameAr),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                              ],
+                              onChanged: (v) {
+                                setState(() => _centerId = v);
+                                final centre = selectable
+                                    .where((c) => c.id == v)
+                                    .firstOrNull;
+                                if (centre != null) _prefillFromCentre(centre);
+                              },
+                              validator: (v) =>
+                                  v == null ? l10n.validationRequired : null,
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              initialValue: _cycle,
+                              decoration:
+                                  InputDecoration(labelText: l10n.auditCycle),
+                              onChanged: (v) => _cycle = v.trim(),
+                              validator: (v) => (v ?? '').trim().isEmpty
+                                  ? l10n.validationRequired
+                                  : null,
+                            ),
+                            const SizedBox(height: 20),
+                            Text(l10n.periodHowOften,
+                                style: Theme.of(context).textTheme.labelLarge),
+                            const SizedBox(height: 8),
+                            SegmentedButton<PeriodFrequency>(
+                              showSelectedIcon: false,
+                              style: const ButtonStyle(
+                                  visualDensity: VisualDensity.compact),
+                              segments: [
+                                for (final f in const [
+                                  PeriodFrequency.monthly,
+                                  PeriodFrequency.quarterly,
+                                  PeriodFrequency.semiannual,
+                                  PeriodFrequency.annual,
+                                ])
+                                  ButtonSegment(
+                                    value: f,
+                                    label: Text(formatFrequency(context, f)),
+                                  ),
+                              ],
+                              selected: {_frequency},
+                              onSelectionChanged: (s) =>
+                                  setState(() => _frequency = s.first),
+                            ),
+                            const SizedBox(height: 16),
+                            PeriodPickerField(
+                              frequency: _frequency,
+                              anchor: _periodAnchor,
+                              onChanged: (d) =>
+                                  setState(() => _periodAnchor = d),
+                            ),
+                            const SizedBox(height: 16),
+                            _DateField(
+                              label: l10n.auditEvaluationDate,
+                              value: _evaluationDate,
+                              onChanged: (d) =>
+                                  setState(() => _evaluationDate = d),
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _evaluator,
+                              decoration: InputDecoration(
+                                  labelText: l10n.auditEvaluator),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _patients,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                        labelText: l10n.centrePatients),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _beds,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                        labelText: l10n.centreBeds),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 28),
+                            FilledButton.icon(
+                              onPressed: _busy ? null : () => _create(bp),
+                              icon: _busy
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2, color: Colors.white),
+                                    )
+                                  : const Icon(Icons.play_arrow),
+                              label: Text(l10n.homeStartAudit),
+                            ),
+                          ],
                         ),
-                    ],
-                    onChanged: (v) {
-                      setState(() => _centerId = v);
-                      final centre =
-                          selectable.where((c) => c.id == v).firstOrNull;
-                      if (centre != null) _prefillFromCentre(centre);
+                      );
                     },
-                    validator: (v) =>
-                        v == null ? l10n.validationRequired : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    initialValue: _cycle,
-                    decoration: InputDecoration(labelText: l10n.auditCycle),
-                    onChanged: (v) => _cycle = v.trim(),
-                    validator: (v) =>
-                        (v ?? '').trim().isEmpty ? l10n.validationRequired : null,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(l10n.periodHowOften,
-                      style: Theme.of(context).textTheme.labelLarge),
-                  const SizedBox(height: 8),
-                  SegmentedButton<PeriodFrequency>(
-                    showSelectedIcon: false,
-                    style: const ButtonStyle(
-                        visualDensity: VisualDensity.compact),
-                    segments: [
-                      for (final f in const [
-                        PeriodFrequency.monthly,
-                        PeriodFrequency.quarterly,
-                        PeriodFrequency.semiannual,
-                        PeriodFrequency.annual,
-                      ])
-                        ButtonSegment(
-                          value: f,
-                          label: Text(formatFrequency(context, f)),
-                        ),
-                    ],
-                    selected: {_frequency},
-                    onSelectionChanged: (s) =>
-                        setState(() => _frequency = s.first),
-                  ),
-                  const SizedBox(height: 16),
-                  PeriodPickerField(
-                    frequency: _frequency,
-                    anchor: _periodAnchor,
-                    onChanged: (d) => setState(() => _periodAnchor = d),
-                  ),
-                  const SizedBox(height: 16),
-                  _DateField(
-                    label: l10n.auditEvaluationDate,
-                    value: _evaluationDate,
-                    onChanged: (d) => setState(() => _evaluationDate = d),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _evaluator,
-                    decoration:
-                        InputDecoration(labelText: l10n.auditEvaluator),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _patients,
-                          keyboardType: TextInputType.number,
-                          decoration:
-                              InputDecoration(labelText: l10n.centrePatients),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _beds,
-                          keyboardType: TextInputType.number,
-                          decoration:
-                              InputDecoration(labelText: l10n.centreBeds),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-                  FilledButton.icon(
-                    onPressed: _busy ? null : () => _create(bp),
-                    icon: _busy
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Icon(Icons.play_arrow),
-                    label: Text(l10n.homeStartAudit),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+                  ));
+        },
       ),
     );
   }

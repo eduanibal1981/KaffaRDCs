@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/l10n/l10n_extensions.dart';
 import '../../core/widgets/celebration.dart';
-import '../../core/widgets/common.dart';
 import '../../data/models/assessment.dart';
 import '../../data/repositories/assessment_repository.dart';
+import 'structure_errors.dart';
 
 /// Forms for the two grouping levels — main areas and sections. They are
 /// deliberately short: a name in both languages, a plain-language version
@@ -39,6 +40,7 @@ Future<void> showDomainForm(
   required String templateId,
   AssessmentDomain? existing,
   int nextSortOrder = 10,
+  Iterable<String> existingCodes = const [],
 }) async {
   await showModalBottomSheet<void>(
     context: context,
@@ -48,6 +50,7 @@ Future<void> showDomainForm(
       templateId: templateId,
       existing: existing,
       nextSortOrder: nextSortOrder,
+      existingCodes: existingCodes,
     ),
   );
   ref.invalidate(blueprintProvider);
@@ -61,6 +64,7 @@ Future<void> showSectionForm(
   AssessmentSection? existing,
   String? initialDomainId,
   int nextSortOrder = 10,
+  Iterable<String> existingCodes = const [],
 }) async {
   await showModalBottomSheet<void>(
     context: context,
@@ -72,6 +76,7 @@ Future<void> showSectionForm(
       existing: existing,
       initialDomainId: initialDomainId,
       nextSortOrder: nextSortOrder,
+      existingCodes: existingCodes,
     ),
   );
   ref.invalidate(blueprintProvider);
@@ -84,11 +89,13 @@ class _DomainForm extends ConsumerStatefulWidget {
     required this.templateId,
     this.existing,
     required this.nextSortOrder,
+    required this.existingCodes,
   });
 
   final String templateId;
   final AssessmentDomain? existing;
   final int nextSortOrder;
+  final Iterable<String> existingCodes;
 
   @override
   ConsumerState<_DomainForm> createState() => _DomainFormState();
@@ -107,18 +114,28 @@ class _DomainFormState extends ConsumerState<_DomainForm> {
   late String _color = widget.existing?.color ?? _paletteChoices.first;
   late String _icon = widget.existing?.icon ?? _iconChoices.first;
   bool _busy = false;
+  String? _error;
+  String? _codeError;
+  final _codeFocus = FocusNode();
+  final _codeFieldKey = GlobalKey<FormFieldState<String>>();
 
   @override
   void dispose() {
     for (final c in [_code, _nameEn, _nameAr, _publicEn, _publicAr]) {
       c.dispose();
     }
+    _codeFocus.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _busy = true);
+    if (!_validateAndReveal(_formKey)) return;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _busy = true;
+      _error = null;
+      _codeError = null;
+    });
     try {
       await ref.read(assessmentRepositoryProvider).upsertDomain({
         if (widget.existing != null) 'id': widget.existing!.id,
@@ -136,10 +153,17 @@ class _DomainFormState extends ConsumerState<_DomainForm> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        setState(() => _busy = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(describeError(context, e))),
-        );
+        setState(() {
+          _busy = false;
+          if (e is PostgrestException && e.code == '23505') {
+            _codeError = context.l10n.structureDuplicateCode;
+          } else {
+            _error = describeStructureError(context, e);
+          }
+        });
+        if (_codeError != null) {
+          _revealField(_codeFieldKey.currentContext!, focusNode: _codeFocus);
+        }
       }
     }
   }
@@ -155,20 +179,38 @@ class _DomainFormState extends ConsumerState<_DomainForm> {
       formKey: _formKey,
       busy: _busy,
       onSave: _save,
+      errorText: _error,
       children: [
         TextFormField(
+          key: _codeFieldKey,
           controller: _code,
-          enabled: widget.existing == null,
+          focusNode: _codeFocus,
+          enabled: widget.existing == null && !_busy,
+          textDirection: TextDirection.ltr,
+          hintLocales: const [Locale('en')],
+          textInputAction: TextInputAction.next,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          onChanged: (_) {
+            if (_codeError != null) setState(() => _codeError = null);
+          },
           textCapitalization: TextCapitalization.characters,
           decoration: InputDecoration(
             labelText: l10n.structureCode,
+            helperText: l10n.structureCodeHelp,
+            helperMaxLines: 2,
+            errorText: _codeError,
+            errorMaxLines: 3,
             hintText: 'GOV',
           ),
-          validator: _required(context),
+          validator: (v) => _validateCode(context, v, widget.existingCodes,
+              original: widget.existing?.code, uppercase: true),
         ),
         const SizedBox(height: 14),
         TextFormField(
           controller: _nameEn,
+          hintLocales: const [Locale('en')],
+          textDirection: TextDirection.ltr,
+          textInputAction: TextInputAction.next,
           minLines: 1,
           maxLines: 2,
           decoration: InputDecoration(labelText: l10n.structureNameEn),
@@ -177,6 +219,9 @@ class _DomainFormState extends ConsumerState<_DomainForm> {
         const SizedBox(height: 14),
         TextFormField(
           controller: _nameAr,
+          hintLocales: const [Locale('ar')],
+          textAlign: TextAlign.right,
+          textInputAction: TextInputAction.next,
           minLines: 1,
           maxLines: 2,
           textDirection: TextDirection.rtl,
@@ -186,6 +231,9 @@ class _DomainFormState extends ConsumerState<_DomainForm> {
         const SizedBox(height: 14),
         TextFormField(
           controller: _publicEn,
+          hintLocales: const [Locale('en')],
+          textDirection: TextDirection.ltr,
+          textInputAction: TextInputAction.next,
           decoration: InputDecoration(
             labelText: l10n.structurePlainNameEn,
             helperText: l10n.adminPublicLabel,
@@ -194,6 +242,9 @@ class _DomainFormState extends ConsumerState<_DomainForm> {
         const SizedBox(height: 14),
         TextFormField(
           controller: _publicAr,
+          hintLocales: const [Locale('ar')],
+          textAlign: TextAlign.right,
+          textInputAction: TextInputAction.next,
           textDirection: TextDirection.rtl,
           decoration: InputDecoration(labelText: l10n.structurePlainNameAr),
         ),
@@ -275,6 +326,7 @@ class _SectionForm extends ConsumerStatefulWidget {
     this.existing,
     this.initialDomainId,
     required this.nextSortOrder,
+    required this.existingCodes,
   });
 
   final String templateId;
@@ -282,6 +334,7 @@ class _SectionForm extends ConsumerStatefulWidget {
   final AssessmentSection? existing;
   final String? initialDomainId;
   final int nextSortOrder;
+  final Iterable<String> existingCodes;
 
   @override
   ConsumerState<_SectionForm> createState() => _SectionFormState();
@@ -303,6 +356,10 @@ class _SectionFormState extends ConsumerState<_SectionForm> {
 
   late String? _domainId = widget.existing?.domainId ?? widget.initialDomainId;
   bool _busy = false;
+  String? _error;
+  String? _codeError;
+  final _codeFocus = FocusNode();
+  final _codeFieldKey = GlobalKey<FormFieldState<String>>();
 
   @override
   void dispose() {
@@ -317,12 +374,18 @@ class _SectionFormState extends ConsumerState<_SectionForm> {
     ]) {
       c.dispose();
     }
+    _codeFocus.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _busy = true);
+    if (!_validateAndReveal(_formKey)) return;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _busy = true;
+      _error = null;
+      _codeError = null;
+    });
     try {
       await ref.read(assessmentRepositoryProvider).upsertSection({
         if (widget.existing != null) 'id': widget.existing!.id,
@@ -341,10 +404,17 @@ class _SectionFormState extends ConsumerState<_SectionForm> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        setState(() => _busy = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(describeError(context, e))),
-        );
+        setState(() {
+          _busy = false;
+          if (e is PostgrestException && e.code == '23505') {
+            _codeError = context.l10n.structureDuplicateCode;
+          } else {
+            _error = describeStructureError(context, e);
+          }
+        });
+        if (_codeError != null) {
+          _revealField(_codeFieldKey.currentContext!, focusNode: _codeFocus);
+        }
       }
     }
   }
@@ -360,6 +430,7 @@ class _SectionFormState extends ConsumerState<_SectionForm> {
       formKey: _formKey,
       busy: _busy,
       onSave: _save,
+      errorText: _error,
       children: [
         DropdownButtonFormField<String?>(
           initialValue: _domainId,
@@ -398,17 +469,34 @@ class _SectionFormState extends ConsumerState<_SectionForm> {
         ),
         const SizedBox(height: 14),
         TextFormField(
+          key: _codeFieldKey,
           controller: _code,
-          enabled: widget.existing == null,
+          focusNode: _codeFocus,
+          enabled: widget.existing == null && !_busy,
+          textDirection: TextDirection.ltr,
+          hintLocales: const [Locale('en')],
+          textInputAction: TextInputAction.next,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          onChanged: (_) {
+            if (_codeError != null) setState(() => _codeError = null);
+          },
           decoration: InputDecoration(
             labelText: l10n.structureCode,
+            helperText: l10n.structureCodeHelp,
+            helperMaxLines: 2,
+            errorText: _codeError,
+            errorMaxLines: 3,
             hintText: 'T1-S2',
           ),
-          validator: _required(context),
+          validator: (v) => _validateCode(context, v, widget.existingCodes,
+              original: widget.existing?.code),
         ),
         const SizedBox(height: 14),
         TextFormField(
           controller: _nameEn,
+          hintLocales: const [Locale('en')],
+          textDirection: TextDirection.ltr,
+          textInputAction: TextInputAction.next,
           minLines: 1,
           maxLines: 2,
           decoration: InputDecoration(labelText: l10n.structureNameEn),
@@ -417,6 +505,9 @@ class _SectionFormState extends ConsumerState<_SectionForm> {
         const SizedBox(height: 14),
         TextFormField(
           controller: _nameAr,
+          hintLocales: const [Locale('ar')],
+          textAlign: TextAlign.right,
+          textInputAction: TextInputAction.next,
           minLines: 1,
           maxLines: 2,
           textDirection: TextDirection.rtl,
@@ -426,11 +517,17 @@ class _SectionFormState extends ConsumerState<_SectionForm> {
         const SizedBox(height: 14),
         TextFormField(
           controller: _publicEn,
+          hintLocales: const [Locale('en')],
+          textDirection: TextDirection.ltr,
+          textInputAction: TextInputAction.next,
           decoration: InputDecoration(labelText: l10n.structurePlainNameEn),
         ),
         const SizedBox(height: 14),
         TextFormField(
           controller: _publicAr,
+          hintLocales: const [Locale('ar')],
+          textAlign: TextAlign.right,
+          textInputAction: TextInputAction.next,
           textDirection: TextDirection.rtl,
           decoration: InputDecoration(labelText: l10n.structurePlainNameAr),
         ),
@@ -442,6 +539,9 @@ class _SectionFormState extends ConsumerState<_SectionForm> {
             Expanded(
               child: TextFormField(
                 controller: _sourceEn,
+                hintLocales: const [Locale('en')],
+                textDirection: TextDirection.ltr,
+                textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
                   labelText: '${l10n.structureSourceGroup} (EN)',
                   hintText: 'Table 1',
@@ -453,6 +553,9 @@ class _SectionFormState extends ConsumerState<_SectionForm> {
             Expanded(
               child: TextFormField(
                 controller: _sourceAr,
+                hintLocales: const [Locale('ar')],
+                textAlign: TextAlign.right,
+                textInputAction: TextInputAction.next,
                 textDirection: TextDirection.rtl,
                 decoration: InputDecoration(
                   labelText: '${l10n.structureSourceGroup} (AR)',
@@ -477,6 +580,7 @@ class _FormShell extends StatelessWidget {
     required this.busy,
     required this.onSave,
     required this.children,
+    this.errorText,
   });
 
   final String title;
@@ -484,6 +588,7 @@ class _FormShell extends StatelessWidget {
   final bool busy;
   final Future<void> Function() onSave;
   final List<Widget> children;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -492,6 +597,7 @@ class _FormShell extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(20),
         child: Form(
           key: formKey,
@@ -514,6 +620,14 @@ class _FormShell extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               ...children,
+              if (errorText != null) ...[
+                const SizedBox(height: 16),
+                Semantics(
+                    liveRegion: true,
+                    child: Text(errorText!,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.error))),
+              ],
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: busy ? null : onSave,
@@ -540,3 +654,33 @@ String? Function(String?) _required(BuildContext context) =>
 
 String? _blankToNull(String value) =>
     value.trim().isEmpty ? null : value.trim();
+
+String? _validateCode(
+    BuildContext context, String? value, Iterable<String> existing,
+    {String? original, bool uppercase = false}) {
+  final code = (value ?? '').trim();
+  if (code.isEmpty) return context.l10n.validationRequired;
+  String normalize(String v) => uppercase ? v.trim().toUpperCase() : v.trim();
+  if (normalize(code) != normalize(original ?? '') &&
+      existing.any((v) => normalize(v) == normalize(code))) {
+    return context.l10n.structureDuplicateCode;
+  }
+  return null;
+}
+
+bool _validateAndReveal(GlobalKey<FormState> key) {
+  final invalid = key.currentState!.validateGranularly();
+  if (invalid.isEmpty) return true;
+  _revealField(invalid.first.context);
+  return false;
+}
+
+void _revealField(BuildContext context, {FocusNode? focusNode}) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (context.mounted) {
+      focusNode?.requestFocus();
+      Scrollable.ensureVisible(context,
+          alignment: 0.2, duration: const Duration(milliseconds: 200));
+    }
+  });
+}

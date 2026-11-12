@@ -17,3 +17,10 @@ final currentUserProvider = Provider<User?>((ref) {
   ref.watch(authStateChangesProvider);
   return ref.watch(supabaseProvider).auth.currentUser;
 });
+
+/// Recreate repositories at account boundaries so their dependent providers
+/// cannot retain the previous user's results on a shared device.
+SupabaseClient watchSessionClient(Ref ref) {
+  ref.watch(currentUserProvider.select((user) => user?.id));
+  return ref.watch(supabaseProvider);
+}

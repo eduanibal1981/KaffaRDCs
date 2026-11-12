@@ -42,7 +42,8 @@ class ReportService {
     _fontsResolved = true;
 
     try {
-      _regular = pw.Font.ttf(await rootBundle.load('assets/fonts/Cairo-Regular.ttf'));
+      _regular =
+          pw.Font.ttf(await rootBundle.load('assets/fonts/Cairo-Regular.ttf'));
       _bold = pw.Font.ttf(await rootBundle.load('assets/fonts/Cairo-Bold.ttf'));
       return;
     } catch (_) {
@@ -91,7 +92,8 @@ class ReportService {
     );
 
     final findings = criteria
-        .where((c) => c.level == ScoreLevel.partiallyMet || c.level == ScoreLevel.notMet)
+        .where((c) =>
+            c.level == ScoreLevel.partiallyMet || c.level == ScoreLevel.notMet)
         .toList();
 
     doc.addPage(
@@ -106,7 +108,7 @@ class ReportService {
                 margin: const pw.EdgeInsets.only(bottom: 12),
                 child: pw.Text(
                   '${t("Kafa'a Initiative", 'مبادرة كفاءة')} — $centreName',
-                  style: pw.TextStyle(fontSize: 9, color: _grey),
+                  style: const pw.TextStyle(fontSize: 9, color: _grey),
                 ),
               ),
         footer: (context) => pw.Container(
@@ -115,7 +117,7 @@ class ReportService {
           child: pw.Text(
             '${t("Directorate General of Health Services, Muscat Governorate", "المديرية العامة للخدمات الصحية بمحافظة مسقط")}'
             '   ·   ${context.pageNumber} / ${context.pagesCount}',
-            style: pw.TextStyle(fontSize: 8, color: _grey),
+            style: const pw.TextStyle(fontSize: 8, color: _grey),
           ),
         ),
         build: (context) => [
@@ -124,7 +126,8 @@ class ReportService {
           _pdfScoreBlock(t, summary, arabic),
           pw.SizedBox(height: 18),
           pw.Text(t('Scores by main area', 'النتائج حسب المجال الرئيسي'),
-              style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
+              style:
+                  pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 8),
           _pdfDomainTable(t, domains, arabic),
           pw.SizedBox(height: 18),
@@ -132,15 +135,15 @@ class ReportService {
             pw.Text(
               t('Findings requiring action (${findings.length})',
                   'الملاحظات التي تتطلب إجراءً (${findings.length})'),
-              style:
-                  pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 8),
             _pdfFindingsTable(t, findings, arabic),
             pw.SizedBox(height: 18),
           ],
           pw.Text(t('Full checklist', 'قائمة التقييم الكاملة'),
-              style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
+              style:
+                  pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 8),
           _pdfCriteriaTable(t, criteria, arabic, includeEvidenceList),
         ],
@@ -168,13 +171,15 @@ class ReportService {
           pw.Text(
             t("Kafa'a Initiative", 'مبادرة كفاءة'),
             style: pw.TextStyle(
-                fontSize: 20, fontWeight: pw.FontWeight.bold, color: _brandBlue),
+                fontSize: 20,
+                fontWeight: pw.FontWeight.bold,
+                color: _brandBlue),
           ),
           pw.SizedBox(height: 2),
           pw.Text(
             t('Renal Dialysis Centre Evaluation',
                 'تقييم أداء مراكز غسيل الكلى'),
-            style: pw.TextStyle(fontSize: 11, color: _grey),
+            style: const pw.TextStyle(fontSize: 11, color: _grey),
           ),
           pw.SizedBox(height: 12),
           pw.Text(centreName,
@@ -197,7 +202,7 @@ class ReportService {
   pw.Widget _kv(String label, String value) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(label, style: pw.TextStyle(fontSize: 8, color: _grey)),
+          pw.Text(label, style: const pw.TextStyle(fontSize: 8, color: _grey)),
           pw.Text(value, style: const pw.TextStyle(fontSize: 10)),
         ],
       );
@@ -222,8 +227,8 @@ class ReportService {
         ),
         pw.SizedBox(width: 10),
         pw.Expanded(
-          child: _scoreBox(t('Rating', 'التقدير'), grade.isEmpty ? '—' : grade,
-              _brandBlue),
+          child: _scoreBox(
+              t('Rating', 'التقدير'), grade.isEmpty ? '—' : grade, _brandBlue),
         ),
       ],
     );
@@ -239,7 +244,8 @@ class ReportService {
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text(label, style: pw.TextStyle(fontSize: 8, color: _grey)),
+            pw.Text(label,
+                style: const pw.TextStyle(fontSize: 8, color: _grey)),
             pw.SizedBox(height: 4),
             pw.Text(value,
                 style: pw.TextStyle(
@@ -262,7 +268,8 @@ class ReportService {
       headerStyle: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
       headerDecoration: const pw.BoxDecoration(color: _lightGrey),
       cellStyle: const pw.TextStyle(fontSize: 9),
-      cellAlignment: arabic ? pw.Alignment.centerRight : pw.Alignment.centerLeft,
+      cellAlignment:
+          arabic ? pw.Alignment.centerRight : pw.Alignment.centerLeft,
       columnWidths: {
         0: const pw.FlexColumnWidth(4),
         1: const pw.FlexColumnWidth(1),
@@ -294,7 +301,8 @@ class ReportService {
       headerDecoration:
           const pw.BoxDecoration(color: PdfColor.fromInt(0xFFFDF3E1)),
       cellStyle: const pw.TextStyle(fontSize: 8.5),
-      cellAlignment: arabic ? pw.Alignment.centerRight : pw.Alignment.centerLeft,
+      cellAlignment:
+          arabic ? pw.Alignment.centerRight : pw.Alignment.centerLeft,
       columnWidths: {
         0: const pw.FlexColumnWidth(1),
         1: const pw.FlexColumnWidth(5),
@@ -317,9 +325,12 @@ class ReportService {
       List<CriterionDetail> criteria, bool arabic, bool includeEvidence) {
     final grouped = <String, List<CriterionDetail>>{};
     for (final c in criteria) {
-      grouped.putIfAbsent(
-          pickForLocale(arabic ? 'ar' : 'en', c.sectionNameEn, c.sectionNameAr),
-          () => []).add(c);
+      grouped
+          .putIfAbsent(
+              pickForLocale(
+                  arabic ? 'ar' : 'en', c.sectionNameEn, c.sectionNameAr),
+              () => [])
+          .add(c);
     }
 
     return pw.Column(
@@ -329,7 +340,9 @@ class ReportService {
           pw.SizedBox(height: 10),
           pw.Text(entry.key,
               style: pw.TextStyle(
-                  fontSize: 10, fontWeight: pw.FontWeight.bold, color: _brandBlue)),
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                  color: _brandBlue)),
           pw.SizedBox(height: 4),
           pw.TableHelper.fromTextArray(
             headers: [

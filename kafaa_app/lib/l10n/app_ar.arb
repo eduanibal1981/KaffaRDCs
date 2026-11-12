@@ -1,10 +1,8 @@
 {
   "@@locale": "ar",
-
   "appName": "كفاءة",
   "appTagline": "جودة مراكز غسيل الكلى",
   "appSubtitle": "المديرية العامة للخدمات الصحية — مسقط",
-
   "actionContinue": "متابعة",
   "actionBack": "رجوع",
   "actionNext": "التالي",
@@ -31,7 +29,6 @@
   "actionReject": "إعادة للمراجعة",
   "actionSignIn": "تسجيل الدخول",
   "actionSignOut": "تسجيل الخروج",
-
   "onboardingTitle1": "صورة واضحة عن كل مركز",
   "onboardingBody1": "تجمع كفاءة تقييم جودة كل مركز لغسيل الكلى في مكان واحد، لتظهر نقاط القوة والفجوات بوضوح.",
   "onboardingTitle2": "تقييم بثقة",
@@ -39,7 +36,6 @@
   "onboardingTitle3": "قارن، حسّن، واحتفِ بالإنجاز",
   "onboardingBody3": "قارن المراكز جنباً إلى جنب، وتابع ما يحتاج إلى معالجة، وكرّم الفرق المتميزة.",
   "onboardingGetStarted": "لنبدأ",
-
   "signInTitle": "أهلاً بعودتك",
   "signInSubtitle": "سجّل الدخول للمتابعة",
   "emailLabel": "البريد الإلكتروني",
@@ -52,12 +48,13 @@
   "validationRequired": "هذا الحقل مطلوب",
   "validationEmail": "أدخل بريداً إلكترونياً صحيحاً",
   "validationPasswordShort": "استخدم 8 أحرف على الأقل",
-
   "navHome": "الرئيسية",
   "navCentres": "المراكز",
   "navCompare": "المقارنة",
   "navAudits": "التقييم",
-  "@navAudits": { "description": "Bottom-bar label. Kept short so it never wraps; screen titles use auditsTitle." },
+  "@navAudits": {
+    "description": "Bottom-bar label. Kept short so it never wraps; screen titles use auditsTitle."
+  },
   "drilldownEditHint": "اضغط على أحد الخيارات لتقييم البند أو تعديله",
   "navActions": "الإجراءات",
   "navStaff": "الطاقم",
@@ -65,15 +62,19 @@
   "navSettings": "الإعدادات",
   "navAdmin": "الإعداد",
   "navNotifications": "التنبيهات",
-
   "roleSuperAdmin": "مسؤول النظام",
   "roleDirectorate": "المديرية",
   "roleAuditor": "مدقق",
   "roleCenterManager": "مدير المركز",
   "roleViewer": "مطّلع",
-
   "homeGreeting": "مرحباً، {name}",
-  "@homeGreeting": { "placeholders": { "name": { "type": "String" } } },
+  "@homeGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "homeOverview": "نظرة عامة",
   "homeYourCentre": "مركزك",
   "homeQuickActions": "إجراءات سريعة",
@@ -83,7 +84,6 @@
   "homeRecentAudits": "أحدث التقييمات",
   "homeTopCentres": "المراكز المتصدرة",
   "homeNoData": "لا يوجد ما يُعرض بعد",
-
   "centresTitle": "مراكز غسيل الكلى",
   "centresSearchHint": "ابحث بالاسم أو الولاية",
   "centreDetails": "بيانات المركز",
@@ -97,10 +97,18 @@
   "centreNameEn": "الاسم (بالإنجليزية)",
   "centreNameAr": "الاسم (بالعربية)",
   "centreCode": "رمز المركز",
-
   "scoreTitle": "النتيجة",
   "scoreOutOf": "{points} من {max}",
-  "@scoreOutOf": { "placeholders": { "points": { "type": "String" }, "max": { "type": "String" } } },
+  "@scoreOutOf": {
+    "placeholders": {
+      "points": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "scoreOverall": "النتيجة الإجمالية",
   "scorePercent": "النسبة المئوية",
   "scoreGrade": "التقدير",
@@ -110,17 +118,14 @@
   "scoreStrengths": "نقاط القوة",
   "scoreWeaknesses": "مجالات التحسين",
   "scoreNoStrengths": "لم تُقيَّم بنود كافية بعد لتحديد نقاط القوة.",
-
   "gradeExcellent": "ممتاز",
   "gradeVeryGood": "جيد جداً",
   "gradeGood": "جيد",
   "gradeNeedsImprovement": "يحتاج إلى تحسين",
-
   "levelMet": "مستوفى",
   "levelPartiallyMet": "مستوفى جزئياً",
   "levelNotMet": "غير مستوفى",
   "levelNotApplicable": "لا ينطبق",
-
   "compareTitle": "مقارنة المراكز",
   "compareRanking": "الترتيب",
   "compareByArea": "حسب المجال الرئيسي",
@@ -132,11 +137,22 @@
   "compareMostImproved": "الأكثر تحسناً",
   "compareDeclining": "يحتاج إلى انتباه",
   "compareImprovedBy": "ارتفاع بمقدار {value} نقطة عن الدورة السابقة",
-  "@compareImprovedBy": { "placeholders": { "value": { "type": "String" } } },
+  "@compareImprovedBy": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "compareDeclinedBy": "انخفاض بمقدار {value} نقطة عن الدورة السابقة",
-  "@compareDeclinedBy": { "placeholders": { "value": { "type": "String" } } },
+  "@compareDeclinedBy": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "compareNeedTwo": "اختر مركزين على الأقل للمقارنة.",
-
   "auditsTitle": "التقييمات",
   "auditNew": "تقييم جديد",
   "auditDraft": "مسودة",
@@ -151,7 +167,16 @@
   "auditEvaluator": "المُقيِّم",
   "auditTemplate": "قائمة التقييم",
   "auditProgress": "تم تقييم {done} من {total} بنداً",
-  "@auditProgress": { "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } } },
+  "@auditProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "auditContinue": "متابعة التقييم",
   "auditContinueScoring": "متابعة إدخال النتائج",
   "auditStartScoring": "بدء إدخال النتائج",
@@ -163,9 +188,21 @@
   "auditSubmitConfirmTitle": "إرسال هذا التقييم؟",
   "auditSubmitConfirmBody": "بعد الإرسال ستتولى المديرية مراجعته، ولن تتمكن من تعديل النتائج ما لم يُعَد إليك.",
   "auditSubmitIncomplete": "ما زال {count} بنداً دون تقييم.",
-  "@auditSubmitIncomplete": { "placeholders": { "count": { "type": "int" } } },
+  "@auditSubmitIncomplete": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "auditMissingEvidence": "يحتاج {count} بنداً إلى دليل قبل الإرسال.",
-  "@auditMissingEvidence": { "placeholders": { "count": { "type": "int" } } },
+  "@auditMissingEvidence": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "auditSubmitted_success": "تم إرسال التقييم للمراجعة.",
   "auditApprovedSuccess": "تم اعتماد التقييم.",
   "auditRejectedSuccess": "أُعيد التقييم إلى المدقق.",
@@ -178,7 +215,6 @@
   "auditDeleteDraftTitle": "حذف مسودة التقييم؟",
   "auditDeleteDraftConfirm": "هل أنت متأكد من رغبتك في حذف مسودة التقييم هذه؟ لا يمكن التراجع عن هذا الإجراء.",
   "auditDraftDeleted": "تم حذف مسودة التقييم بنجاح.",
-
   "criterionComment": "تعليق",
   "criterionRecommendation": "توصية",
   "criterionEvidence": "الأدلة",
@@ -201,20 +237,23 @@
   "criterionShowPlain": "عرض الصياغة المبسطة",
   "criterionSuppressNcr": "عدم فتح إجراء تصحيحي",
   "criterionSuppressReason": "سبب عدم فتح إجراء",
-
   "methodObservation": "ملاحظة ميدانية",
   "methodInterview": "مقابلة",
   "methodDocumentReview": "مراجعة مستندات",
   "methodOther": "أخرى",
-
   "evidenceFromCamera": "التقاط صورة",
   "evidenceFromGallery": "اختيار صورة",
   "evidenceFromFiles": "اختيار مستند",
   "evidenceUploading": "جارٍ الرفع…",
   "evidencePendingUpload": "في انتظار الرفع",
   "evidenceCount": "{count, plural, =0{لا توجد أدلة} =1{ملف واحد} =2{ملفان} few{{count} ملفات} other{{count} ملفاً}}",
-  "@evidenceCount": { "placeholders": { "count": { "type": "int" } } },
-
+  "@evidenceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "ncrTitle": "الإجراءات التصحيحية",
   "ncrSingular": "إجراء تصحيحي",
   "ncrOpen": "مفتوح",
@@ -236,12 +275,17 @@
   "ncrRaisedFrom": "نشأ من",
   "ncrNoneOpen": "لا توجد إجراءات تصحيحية مفتوحة. أحسنتم.",
   "ncrOverdueCount": "{count, plural, =0{لا يوجد متأخر} =1{إجراء متأخر واحد} =2{إجراءان متأخران} few{{count} إجراءات متأخرة} other{{count} إجراءً متأخراً}}",
-  "@ncrOverdueCount": { "placeholders": { "count": { "type": "int" } } },
+  "@ncrOverdueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "ncrRecurring": "ملاحظات متكررة",
   "ncrAvgResolution": "متوسط أيام الإغلاق",
   "ncrUpdateStatus": "تحديث الحالة",
   "ncrAddNote": "إضافة ملاحظة",
-
   "staffTitle": "الطاقم والتدريب",
   "staffMembers": "أعضاء الطاقم",
   "staffAdd": "إضافة عضو",
@@ -266,9 +310,21 @@
   "staffExpired": "منتهية",
   "staffMissing": "غير مسجلة",
   "staffExpiresInDays": "{days, plural, =0{تنتهي اليوم} =1{تنتهي غداً} =2{تنتهي بعد يومين} few{تنتهي خلال {days} أيام} other{تنتهي خلال {days} يوماً}}",
-  "@staffExpiresInDays": { "placeholders": { "days": { "type": "int" } } },
+  "@staffExpiresInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "staffExpiredDaysAgo": "{days, plural, =1{انتهت أمس} =2{انتهت قبل يومين} few{انتهت قبل {days} أيام} other{انتهت قبل {days} يوماً}}",
-  "@staffExpiredDaysAgo": { "placeholders": { "days": { "type": "int" } } },
+  "@staffExpiredDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "drillsTitle": "تمارين الطوارئ",
   "drillAdd": "تسجيل تمرين",
   "drillType": "نوع التمرين",
@@ -276,14 +332,22 @@
   "drillParticipants": "عدد المشاركين",
   "drillFindings": "ما تم استخلاصه",
   "drillFollowUp": "إجراءات المتابعة",
-
   "surveyTitle": "تجربة المريض",
   "surveyStart": "ابدأ",
   "surveyChooseLanguage": "اختر لغتك",
   "surveyConsentTitle": "قبل أن تبدأ",
   "surveyConsentAgree": "أوافق وأرغب في المتابعة",
   "surveyQuestionOf": "السؤال {current} من {total}",
-  "@surveyQuestionOf": { "placeholders": { "current": { "type": "int" }, "total": { "type": "int" } } },
+  "@surveyQuestionOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "surveyThanks": "شكراً لك",
   "surveyThanksBody": "ملاحظاتك تساعدنا على تحسين الخدمة.",
   "surveyAlreadySubmitted": "لقد أجبت مؤخراً. شكراً لك.",
@@ -293,7 +357,13 @@
   "surveyQrTitle": "رمز الاستبيان",
   "surveyQrHint": "اطبع هذا الرمز واعرضه في منطقة الانتظار ليتمكن المرضى من مسحه والإجابة.",
   "surveyResponses": "{count, plural, =0{لا توجد ردود} =1{رد واحد} =2{ردان} few{{count} ردود} other{{count} رداً}}",
-  "@surveyResponses": { "placeholders": { "count": { "type": "int" } } },
+  "@surveyResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "surveySatisfaction": "نسبة الرضا",
   "surveyBreakdown": "حسب السؤال",
   "surveyTooFew": "عدد الردود غير كافٍ لعرض نتيجة بعد.",
@@ -302,15 +372,22 @@
   "surveyEmojiOk": "مقبول",
   "surveyEmojiGood": "جيد",
   "surveyEmojiVeryGood": "ممتاز",
-
   "achievementsTitle": "الإنجازات",
   "achievementUnlocked": "تهانينا",
   "achievementEarnedBody": "حصل {centre} على {badge}",
-  "@achievementEarnedBody": { "placeholders": { "centre": { "type": "String" }, "badge": { "type": "String" } } },
+  "@achievementEarnedBody": {
+    "placeholders": {
+      "centre": {
+        "type": "String"
+      },
+      "badge": {
+        "type": "String"
+      }
+    }
+  },
   "achievementNone": "لا توجد أوسمة بعد. واصلوا التقدم.",
   "achievementPublic": "معروض للعامة",
   "achievementPrivate": "داخلي فقط",
-
   "adminTitle": "الإعداد",
   "adminTemplate": "قائمة التقييم",
   "adminDomains": "المجالات الرئيسية",
@@ -336,12 +413,23 @@
   "adminExcludeFromTotal": "عدم احتسابه ضمن المجموع",
   "adminThresholds": "الحدود",
   "adminTotalItems": "{count} بنداً",
-  "@adminTotalItems": { "placeholders": { "count": { "type": "int" } } },
+  "@adminTotalItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminTotalPoints": "بحد أقصى {points} نقطة",
-  "@adminTotalPoints": { "placeholders": { "points": { "type": "int" } } },
+  "@adminTotalPoints": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "adminClinicalTerm": "المصطلح الطبي",
   "adminPublicLabel": "التسمية المبسطة",
-
   "reportTitle": "التقرير",
   "reportGenerate": "إنشاء تقرير",
   "reportPdf": "تقرير PDF",
@@ -350,7 +438,6 @@
   "reportReady": "التقرير جاهز",
   "reportIncludeEvidence": "تضمين قائمة الأدلة",
   "reportLanguage": "لغة التقرير",
-
   "settingsTitle": "الإعدادات",
   "settingsLanguage": "اللغة",
   "settingsLanguageEnglish": "English",
@@ -364,11 +451,22 @@
   "settingsAbout": "عن كفاءة",
   "settingsPrivacy": "إشعار الخصوصية",
   "settingsVersion": "الإصدار {version}",
-  "@settingsVersion": { "placeholders": { "version": { "type": "String" } } },
+  "@settingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "settingsSignOutConfirm": "تسجيل الخروج من كفاءة؟",
   "settingsPendingChanges": "{count, plural, =0{كل التغييرات محفوظة} =1{تغيير واحد بانتظار المزامنة} =2{تغييران بانتظار المزامنة} few{{count} تغييرات بانتظار المزامنة} other{{count} تغييراً بانتظار المزامنة}}",
-  "@settingsPendingChanges": { "placeholders": { "count": { "type": "int" } } },
-
+  "@settingsPendingChanges": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "statusOnline": "متصل",
   "statusOffline": "غير متصل",
   "statusSyncing": "جارٍ المزامنة…",
@@ -376,7 +474,6 @@
   "statusSyncFailed": "تعذّر حفظ بعض التغييرات",
   "statusWorkingOffline": "أنت غير متصل. عملك محفوظ على هذا الجهاز وستتم مزامنته تلقائياً.",
   "statusSyncNow": "مزامنة الآن",
-
   "emptyTitle": "لا يوجد شيء هنا بعد",
   "emptyAudits": "لا توجد تقييمات بعد. ابدأ تقييماً جديداً.",
   "emptyCentres": "لم تتم إضافة أي مركز بعد.",
@@ -389,15 +486,12 @@
   "errorPermission": "لا تملك صلاحية للقيام بذلك.",
   "errorNotFound": "لم نعثر على ما تبحث عنه.",
   "loading": "جارٍ التحميل…",
-
   "privacyNoticeTitle": "كيف نتعامل مع المعلومات",
   "privacyNoticeBody": "تحفظ كفاءة نتائج التقييم ومستندات الأدلة وشهادات الطاقم. ويُشار إلى سجلات المرضى برموز مجهولة الهوية فقط دون أي أسماء. أما إجابات الاستبيان فهي مجهولة تماماً ولا يمكن ربطها بشخص معين. والوصول محدود بحسب الصلاحية، وتُسجَّل جميع الإجراءات الحساسة.",
-
   "confirmDeleteTitle": "هل تريد الحذف؟",
   "confirmDeleteBody": "لا يمكن التراجع عن هذا الإجراء.",
   "unsavedChangesTitle": "المغادرة دون حفظ؟",
   "unsavedChangesBody": "ستفقد التغييرات التي أجريتها في هذه الشاشة.",
-
   "filterAll": "الكل",
   "filterCentre": "المركز",
   "filterDateRange": "الفترة الزمنية",
@@ -409,7 +503,6 @@
   "filterPeriod": "الفترة",
   "filterAllPeriods": "كل الفترات",
   "filterClearAll": "مسح عوامل التصفية",
-
   "periodMonthly": "شهري",
   "periodQuarterly": "ربع سنوي",
   "periodSemiannual": "كل ستة أشهر",
@@ -419,7 +512,6 @@
   "periodCovered": "الفترة المشمولة",
   "periodChoose": "اختر الفترة",
   "periodYear": "السنة",
-
   "structureTitle": "هيكل التقييم",
   "structureSubtitle": "المجالات الرئيسية والأقسام والبنود المقيَّمة ضمنها",
   "structureIntro": "يُقيَّم الأداء وفق البنود أدناه. اجمع البنود المترابطة تحت قسم، واجمع الأقسام تحت مجال رئيسي، وتتحدث المجاميع والرسوم البيانية تلقائياً.",
@@ -437,7 +529,16 @@
   "structureNoDomains": "لا توجد مجالات رئيسية بعد. أضف مجالاً للبدء.",
   "structureUngrouped": "غير مُدرَج ضمن مجال رئيسي",
   "structurePointsSummary": "{items} بنداً · {max} حد أقصى",
-  "@structurePointsSummary": { "placeholders": { "items": { "type": "int" }, "max": { "type": "int" } } },
+  "@structurePointsSummary": {
+    "placeholders": {
+      "items": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "structureMoveUp": "تحريك لأعلى",
   "structureMoveDown": "تحريك لأسفل",
   "structureArchive": "أرشفة",
@@ -454,12 +555,23 @@
   "structureIcon": "الأيقونة",
   "structureSourceGroup": "الجدول المصدر",
   "structureBelongsTo": "يتبع",
-
   "scoringTitle": "التقييم",
   "scoringEdit": "تعديل التقييم",
   "scoringInherited": "يستخدم المقياس الافتراضي",
   "scoringInheritedHint": "يُقيَّم هذا البند بـ {points} / {partial} / {notMet} دون حدود قابلة للقياس. حدِّد حدوداً خاصة لتطابق صياغة قائمة التقييم.",
-  "@scoringInheritedHint": { "placeholders": { "points": { "type": "int" }, "partial": { "type": "int" }, "notMet": { "type": "int" } } },
+  "@scoringInheritedHint": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "notMet": {
+        "type": "int"
+      }
+    }
+  },
   "scoringCustomise": "تحديد حدود خاصة",
   "scoringUseDefault": "استخدام المقياس الافتراضي",
   "scoringChoice": "الخيار",
@@ -468,8 +580,43 @@
   "scoringPoints": "النقاط",
   "scoringTriggersAction": "يفتح إجراءً تصحيحياً",
   "scoringMaxPointsNote": "يحدد الخيار الأعلى الحد الأقصى لهذا البند: {max}",
-  "@scoringMaxPointsNote": { "placeholders": { "max": { "type": "int" } } },
+  "@scoringMaxPointsNote": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "scoringSaved": "تم تحديث التقييم",
   "scoringValidationPoints": "يجب ألا تقل النقاط عن صفر",
-  "scoringValidationOrder": "يجب ألا تقل نقاط «مستوفى» عن «مستوفى جزئياً»، وألا تقل الأخيرة عن «غير مستوفى»"
+  "scoringValidationOrder": "يجب ألا تقل نقاط «مستوفى» عن «مستوفى جزئياً»، وألا تقل الأخيرة عن «غير مستوفى»",
+  "structuresTitle": "هياكل التدقيق",
+  "structuresNew": "إصدار جديد",
+  "structuresVersion": "رقم الإصدار (مثلاً 1.01)",
+  "structuresVersionInvalid": "أدخل إصداراً فريداً مثل 1.01",
+  "structuresScratch": "إنشاء من البداية",
+  "structuresCopy": "اختيار من إصدار سابق",
+  "structuresSource": "الإصدار السابق",
+  "structuresCreate": "إنشاء مسودة",
+  "structuresDraft": "مسودة",
+  "structuresSaved": "محفوظ",
+  "structuresSave": "حفظ الإصدار",
+  "structuresLocked": "هذا الإصدار المحفوظ مقفل. أنشئ إصداراً جديداً لإجراء تغييرات.",
+  "structuresDraftHint": "تُحفظ التغييرات في هذه المسودة. احفظ الإصدار عندما يصبح جاهزاً للتقييمات الجديدة.",
+  "structuresImport": "استيراد البنود",
+  "structuresSelect": "اختر المجالات الرئيسية أو الأقسام أو البنود لنسخها مع درجاتها وترجماتها.",
+  "structuresChoose": "هيكل التدقيق",
+  "structuresDefault": "الافتراضي للتقييمات الجديدة",
+  "structuresDelete": "حذف المسودة؟",
+  "structuresDeleteHint": "سيتم حذف هذه المسودة وجميع بنودها.",
+  "structuresDeleteItem": "حذف البند؟",
+  "structuresDeleteItemHint": "سيتم حذف هذا البند وبنوده الفرعية من المسودة.",
+  "structuresNone": "لا توجد هياكل تدقيق محفوظة.",
+  "structuresSelectionRequired": "اختر بنداً واحداً على الأقل للاستيراد.",
+  "structuresScoringHint": "يتم نسخ مقياس الدرجات ونطاقات التصنيف الحالية كنقطة بداية. راجعها قبل الحفظ.",
+  "structuresEmpty": "أضف بنداً واحداً محسوباً على الأقل قبل حفظ الإصدار.",
+  "structuresScaleInvalid": "راجع خيارات الدرجات. يحتاج كل بند إلى مستوفى ومستوفى جزئياً وغير مستوفى، ويجب أن يطابق حده الأقصى أعلى درجة.",
+  "structuresDuplicate": "رقم الإصدار أو رمز البند موجود بالفعل. اختر رقماً مختلفاً أو ألغِ اختيار البنود المستوردة سابقاً.",
+  "structureDuplicateCode": "رمز المرجع مستخدم بالفعل في هيكل التدقيق هذا. أدخل رمزاً مختلفاً.",
+  "structureCodeHelp": "رمز فريد داخل هذا الإصدار، مثل GOV أو GOV-2."
 }

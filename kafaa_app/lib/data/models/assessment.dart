@@ -5,6 +5,7 @@ class AssessmentTemplate {
     required this.id,
     required this.code,
     required this.version,
+    this.structureVersion,
     required this.nameEn,
     required this.nameAr,
     this.descriptionEn,
@@ -18,6 +19,10 @@ class AssessmentTemplate {
   final String id;
   final String code;
   final int version;
+  final int? structureVersion;
+
+  String get versionLabel =>
+      ((structureVersion ?? version * 100) / 100).toStringAsFixed(2);
   final String nameEn;
   final String nameAr;
   final String? descriptionEn;
@@ -30,6 +35,7 @@ class AssessmentTemplate {
   factory AssessmentTemplate.fromMap(Map<String, dynamic> m) =>
       AssessmentTemplate(
         id: asString(m['id']),
+        structureVersion: asInt(m['structure_version']),
         code: asString(m['code']),
         version: asIntOr(m['version'], 1),
         nameEn: asString(m['name_en']),
@@ -119,7 +125,8 @@ class AssessmentSection {
   final int sortOrder;
   final bool isActive;
 
-  factory AssessmentSection.fromMap(Map<String, dynamic> m) => AssessmentSection(
+  factory AssessmentSection.fromMap(Map<String, dynamic> m) =>
+      AssessmentSection(
         id: asString(m['id']),
         templateId: asString(m['template_id']),
         domainId: asStringOrNull(m['domain_id']),

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -11,6 +12,7 @@ import '../../core/offline/sync_service.dart';
 import '../models/audit.dart';
 import '../models/primitives.dart';
 import '../supabase/supabase_providers.dart';
+import '../supabase/audit_draft_write.dart';
 
 class AuditFilter {
   const AuditFilter({
@@ -76,35 +78,114 @@ class AuditRepository {
   // -------------------------------------------------------------------
 
   Future<List<AuditSummary>> list(AuditFilter filter) async {
-    final cacheKey = 'audits.${filter.centerId ?? 'all'}'
-        '.${filter.status?.wire ?? 'any'}.${filter.periodKey ?? 'any'}';
+    final cacheKey = 'audits.${jsonEncode([
+          filter.centerId,
+          filter.status?.wire,
+          filter.cycleLabel,
+          filter.periodKey,
+          filter.limit,
+        ])}';
     try {
-      var query = _client.from('v_audit_summary').select();
-      if (filter.centerId != null) query = query.eq('center_id', filter.centerId!);
-      if (filter.status != null) query = query.eq('status', filter.status!.wire);
-      if (filter.cycleLabel != null) {
-        query = query.eq('cycle_label', filter.cycleLabel!);
+      List<Map<String, dynamic>> rows;
+      try {
+        rows = await _listQuery(filter)
+            .order('evaluation_date', ascending: false)
+            .order('audit_id', ascending: true)
+            .limit(filter.limit);
+      } on PostgrestException catch (error) {
+        // Older deployments expose period dates but not the derived key.
+        // Use the same inference as the cards and picker in that case only.
+        if (filter.periodKey == null ||
+            error.code != '42703' ||
+            !error.message.contains('v_audit_summary.period_key')) {
+          rethrow;
+        }
+        rows = await _listLegacyPeriod(filter);
       }
-      final rows =
-          await query.order('evaluation_date', ascending: false).limit(filter.limit);
       await _store.putCache(cacheKey, rows);
-      var list = rows.map(AuditSummary.fromMap).toList();
-      if (filter.periodKey != null) {
-        list = list.where((a) => a.periodKey == filter.periodKey).toList();
-      }
-      return list;
+      return await _withPendingDrafts(
+          rows.map(AuditSummary.fromMap).toList(), filter);
     } catch (_) {
       final cached = await _store.readCache<List<dynamic>>(cacheKey);
-      if (cached == null) rethrow;
-      var list = cached
+      if (cached == null &&
+          !(await _store.pending())
+              .any((entry) => entry.kind == OutboxKind.auditCreate)) {
+        rethrow;
+      }
+      final list = (cached ?? [])
           .cast<Map<String, dynamic>>()
           .map(AuditSummary.fromMap)
           .toList();
-      if (filter.periodKey != null) {
-        list = list.where((a) => a.periodKey == filter.periodKey).toList();
-      }
-      return list;
+      return _withPendingDrafts(list, filter);
     }
+  }
+
+  PostgrestFilterBuilder<List<Map<String, dynamic>>> _listQuery(
+      AuditFilter filter,
+      {bool includePeriod = true}) {
+    var query = _client.from('v_audit_summary').select();
+    if (filter.centerId != null) {
+      query = query.eq('center_id', filter.centerId!);
+    }
+    if (filter.status != null) {
+      query = query.eq('status', filter.status!.wire);
+    }
+    if (filter.cycleLabel != null) {
+      query = query.eq('cycle_label', filter.cycleLabel!);
+    }
+    if (includePeriod && filter.periodKey != null) {
+      query = query.eq('period_key', filter.periodKey!);
+    }
+    return query;
+  }
+
+  Future<List<Map<String, dynamic>>> _listLegacyPeriod(
+      AuditFilter filter) async {
+    const pageSize = 200;
+    final matches = <Map<String, dynamic>>[];
+    var offset = 0;
+    while (matches.length < filter.limit) {
+      final page = await _listQuery(filter, includePeriod: false)
+          .order('evaluation_date', ascending: false)
+          .order('audit_id', ascending: true)
+          .range(offset, offset + pageSize - 1);
+      matches.addAll(page.where(
+          (row) => AuditSummary.fromMap(row).periodKey == filter.periodKey));
+      // Advance by the received count, including when a server caps page size.
+      if (page.isEmpty) break;
+      offset += page.length;
+    }
+    return matches.take(filter.limit).toList();
+  }
+
+  Future<List<AuditSummary>> _withPendingDrafts(
+      List<AuditSummary> rows, AuditFilter filter) async {
+    final byId = {for (final row in rows) row.auditId: row};
+    for (final entry in await _store.pending()) {
+      if (entry.kind != OutboxKind.auditCreate) continue;
+      final id = entry.payload['id'] as String?;
+      if (id == null || byId.containsKey(id)) continue;
+      final cached =
+          await _store.readCache<Map<String, dynamic>>('audit.summary.$id');
+      if (cached == null) continue;
+      final draft = AuditSummary.fromMap(cached);
+      if (filter.centerId != null && draft.centerId != filter.centerId) {
+        continue;
+      }
+      if (filter.status != null && draft.status != filter.status) continue;
+      if (filter.cycleLabel != null && draft.cycleLabel != filter.cycleLabel) {
+        continue;
+      }
+      if (filter.periodKey != null && draft.periodKey != filter.periodKey) {
+        continue;
+      }
+      byId[id] = draft;
+    }
+    return (byId.values.toList()
+          ..sort((a, b) => (b.evaluationDate ?? DateTime(1900))
+              .compareTo(a.evaluationDate ?? DateTime(1900))))
+        .take(filter.limit)
+        .toList();
   }
 
   /// The periods that actually hold assessments, newest first — the
@@ -139,7 +220,8 @@ class AuditRepository {
       byKey[key] = AuditPeriod(
         key: key,
         frequency: summary.periodFrequency,
-        periodEnd: summary.periodEnd ?? summary.periodStart ?? summary.evaluationDate,
+        periodEnd:
+            summary.periodEnd ?? summary.periodStart ?? summary.evaluationDate,
         auditCount: (existing?.auditCount ?? 0) + 1,
       );
     }
@@ -158,7 +240,13 @@ class AuditRepository {
           .eq('audit_id', auditId)
           .maybeSingle();
       if (row != null) await _store.putCache(cacheKey, row);
-      return row == null ? null : AuditSummary.fromMap(row);
+      if (row != null) return AuditSummary.fromMap(row);
+      final isPending = (await _store.pending()).any((entry) =>
+          entry.kind == OutboxKind.auditCreate &&
+          entry.payload['id'] == auditId);
+      if (!isPending) return null;
+      final cached = await _store.readCache<Map<String, dynamic>>(cacheKey);
+      return cached == null ? null : AuditSummary.fromMap(cached);
     } catch (_) {
       final cached = await _store.readCache<Map<String, dynamic>>(cacheKey);
       if (cached == null) rethrow;
@@ -196,21 +284,22 @@ class AuditRepository {
     }
 
     // Unsynced local edits win over the server copy.
-    for (final entry in await _store.pending(limit: 500)) {
+    for (final entry in await _store.pending()) {
       if (entry.kind != OutboxKind.responseUpsert) continue;
       if (entry.payload['audit_id'] != auditId) continue;
-      final pending = AuditResponse.fromMap(entry.payload);
+      final local = entry.payload['_local_response'] as Map<String, dynamic>?;
+      final pending = AuditResponse.fromMap({...entry.payload, ...?local});
       final existing = result[pending.criterionId];
       result[pending.criterionId] = pending.copyWith(
         id: existing?.id,
-        points: existing?.points ?? 0,
         evidenceCount: existing?.evidenceCount ?? 0,
       );
     }
     return result;
   }
 
-  Future<List<EvidenceItem>> evidence(String auditId, {String? responseId}) async {
+  Future<List<EvidenceItem>> evidence(String auditId,
+      {String? responseId}) async {
     var query = _client.from('audit_evidence').select().eq('audit_id', auditId);
     if (responseId != null) query = query.eq('response_id', responseId);
     final rows = await query.order('uploaded_at');
@@ -247,12 +336,14 @@ class AuditRepository {
   }) async {
     final clientUuid = _uuid.v4();
     final payload = {
+      'id': clientUuid,
       'client_uuid': clientUuid,
       'template_id': templateId,
       'center_id': centerId,
       'title': title,
       'cycle_label': cycleLabel,
       'evaluation_date': _date(evaluationDate),
+      'period_frequency': frequency.wire,
       // The database snaps these to the frequency's boundaries and derives
       // the grouping key, so the two can never disagree.
       'period_start': periodStart == null ? null : _date(periodStart),
@@ -264,36 +355,88 @@ class AuditRepository {
     };
 
     try {
-      final row = await _client
-          .from('audits')
-          .insert(payload)
-          .select('id')
-          .single();
-      return row['id'] as String;
+      final rows = await writeAuditDraft(_client, payload);
+      return rows.single['id'] as String;
     } on SocketException {
+      await _cacheDraft(
+          payload, frequency, evaluationDate, periodStart, periodEnd);
       await _store.enqueue(OutboxKind.auditCreate, payload,
           dedupeKey: 'audit:$clientUuid');
+      await _sync.refreshPendingCount();
       _sync.scheduleSync();
-      // The caller gets the client uuid; the audit takes that identity
-      // once the queued insert lands.
       return clientUuid;
     }
+  }
+
+  Future<void> _cacheDraft(
+      Map<String, dynamic> payload,
+      PeriodFrequency frequency,
+      DateTime evaluationDate,
+      DateTime? periodStart,
+      DateTime? periodEnd) async {
+    final id = payload['id'] as String;
+    final centers =
+        await _store.readCache<List<dynamic>>('centers.active') ?? [];
+    final center = centers
+        .cast<Map<String, dynamic>>()
+        .where((row) => row['id'] == payload['center_id'])
+        .firstOrNull;
+    final anchor = periodEnd ?? evaluationDate;
+    final period = frequency.periodFor(anchor);
+    await _store.putCache('audit.summary.$id', {
+      ...payload,
+      'audit_id': id,
+      'center_code': center?['code'],
+      'center_name_en': center?['name_en'],
+      'center_name_ar': center?['name_ar'],
+      'short_name_en': center?['short_name_en'],
+      'short_name_ar': center?['short_name_ar'],
+      'period_start': _date(frequency == PeriodFrequency.custom
+          ? periodStart ?? anchor
+          : period.start),
+      'period_end': _date(frequency == PeriodFrequency.custom
+          ? periodEnd ?? anchor
+          : period.end),
+      'period_key': frequency.keyFor(anchor),
+    });
+    await _store.putCache('audit.responses.$id', <Map<String, dynamic>>[]);
   }
 
   /// Saves a score. Written to the outbox first so it survives the app
   /// being killed, then pushed as soon as there is a connection.
   Future<void> saveResponse(AuditResponse response) async {
-    final payload = response.toUpsertMap();
+    final payload = {
+      ...response.toUpsertMap(),
+      // Retain the optimistic score when reopening offline. This metadata
+      // is stripped before sending; Postgres still owns authoritative points.
+      '_local_response': {
+        'level': response.level?.wire,
+        'points': response.points
+      },
+    };
     await _store.enqueue(
       OutboxKind.responseUpsert,
       payload,
       // One pending write per criterion, however many times it is edited.
       dedupeKey: 'response:${response.auditId}:${response.criterionId}',
     );
+    await _sync.refreshPendingCount();
     _sync.scheduleSync();
   }
 
-  Future<void> flushNow() => _sync.sync();
+  Future<void> flushNow({String? auditId}) async {
+    await _sync.sync();
+    final pending = await _store.pending();
+    if (pending.any((entry) =>
+        auditId == null ||
+        entry.payload['audit_id'] == auditId ||
+        ((entry.kind == OutboxKind.auditCreate ||
+                entry.kind == OutboxKind.auditUpdate) &&
+            entry.payload['id'] == auditId))) {
+      throw StateError(
+          'Some assessment changes have not synced. Reconnect and retry before submitting.');
+    }
+  }
 
   Future<void> updateAudit(String auditId, Map<String, dynamic> values) async {
     await _store.enqueue(
@@ -301,6 +444,7 @@ class AuditRepository {
       {...values, 'id': auditId},
       dedupeKey: 'audit-update:$auditId:${values.keys.join(",")}',
     );
+    await _sync.refreshPendingCount();
     _sync.scheduleSync(delay: Duration.zero);
   }
 
@@ -357,6 +501,7 @@ class AuditRepository {
       },
       dedupeKey: 'evidence:$storagePath',
     );
+    await _sync.refreshPendingCount();
     _sync.scheduleSync(delay: const Duration(milliseconds: 500));
   }
 
@@ -391,6 +536,7 @@ class AuditRepository {
     final selected = pickSample(pool, size, effectiveSeed);
 
     final payload = {
+      'id': _uuid.v4(),
       'audit_id': auditId,
       'criterion_id': criterionId,
       'pool_label': poolLabel,
@@ -406,9 +552,10 @@ class AuditRepository {
       return AuditSample.fromMap(row);
     } on SocketException {
       await _store.enqueue(OutboxKind.sampleInsert, payload);
+      await _sync.refreshPendingCount();
       _sync.scheduleSync();
       return AuditSample(
-        id: _uuid.v4(),
+        id: payload['id'] as String,
         auditId: auditId,
         criterionId: criterionId,
         poolLabel: poolLabel,
@@ -421,8 +568,7 @@ class AuditRepository {
     }
   }
 
-  static String _date(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}-'
+  static String _date(DateTime d) => '${d.year.toString().padLeft(4, '0')}-'
       '${d.month.toString().padLeft(2, '0')}-'
       '${d.day.toString().padLeft(2, '0')}';
 }
@@ -431,8 +577,9 @@ class AuditRepository {
 /// Kept pure so it can be unit-tested without a database.
 List<String> pickSample(List<String> pool, int size, String seed) {
   if (pool.isEmpty || size <= 0) return const [];
-  final unique = <String>{...pool.map((e) => e.trim()).where((e) => e.isNotEmpty)}
-      .toList();
+  final unique = <String>{
+    ...pool.map((e) => e.trim()).where((e) => e.isNotEmpty)
+  }.toList();
   if (unique.length <= size) return unique;
 
   final random = Random(seed.hashCode);
@@ -442,7 +589,7 @@ List<String> pickSample(List<String> pool, int size, String seed) {
 
 final auditRepositoryProvider = Provider<AuditRepository>(
   (ref) => AuditRepository(
-    ref.watch(supabaseProvider),
+    watchSessionClient(ref),
     ref.watch(localStoreProvider),
     ref.watch(syncServiceProvider.notifier),
   ),
@@ -459,8 +606,7 @@ final auditSummaryProvider = FutureProvider.family<AuditSummary?, String>(
 
 /// Periods available to filter by. Family key is the centre, or null for
 /// every centre the viewer can see.
-final auditPeriodsProvider =
-    FutureProvider.family<List<AuditPeriod>, String?>(
+final auditPeriodsProvider = FutureProvider.family<List<AuditPeriod>, String?>(
   (ref, centerId) =>
       ref.watch(auditRepositoryProvider).periods(centerId: centerId),
 );

@@ -8,6 +8,7 @@ import 'app.dart';
 import 'core/config/app_config.dart';
 import 'core/offline/local_store.dart';
 import 'core/preferences/app_preferences.dart';
+import 'data/supabase/supabase_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +41,12 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         appPreferencesProvider.overrideWithValue(prefs),
-        localStoreProvider.overrideWithValue(store),
+        localStoreProvider.overrideWith((ref) {
+          final userId =
+              ref.watch(currentUserProvider.select((user) => user?.id));
+          return store
+              .scopedTo('${AppConfig.supabaseUrl}/${userId ?? 'signed-out'}');
+        }),
       ],
       child: const KafaaApp(),
     ),
@@ -54,26 +60,26 @@ class _MisconfiguredApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(28),
+            padding: EdgeInsets.all(28),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.settings_suggest_outlined, size: 48),
-                const SizedBox(height: 16),
-                const Text(
+                Icon(Icons.settings_suggest_outlined, size: 48),
+                SizedBox(height: 16),
+                Text(
                   "Kafa'a is not configured",
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   AppConfig.missingConfigMessage,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(height: 1.5),
+                  style: TextStyle(height: 1.5),
                 ),
               ],
             ),

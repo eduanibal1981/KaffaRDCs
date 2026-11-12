@@ -26,6 +26,11 @@ Kafaa Project/
 
 **Start with [`docs/SETUP.md`](docs/SETUP.md).**
 
+Project-specific agent rules and memory are in [`AGENTS.md`](AGENTS.md) and
+[`MEMORY.md`](MEMORY.md). The dedicated **kaffaDB** connection and authorization
+instructions are in [`docs/SUPABASE_CONNECTION.md`](docs/SUPABASE_CONNECTION.md).
+Kafaa is independent of KeepSims and PairCompass.
+
 ---
 
 ## The checklist
@@ -162,9 +167,10 @@ flutter test
 flutter run --dart-define-from-file=env/dev.json
 ```
 
-47 tests cover the scoring engine, the grading bands at their exact boundaries,
-the permission matrix for all five roles, localisation and RTL direction, and
-the reproducibility of random sampling.
+143 tests cover scoring and grading boundaries, role permissions, localisation
+and RTL direction, sampling, repository queries, sync retries, account isolation,
+and the local database upgrade. See [`docs/PROJECT_REVIEW.md`](docs/PROJECT_REVIEW.md)
+for the latest fixes, verification results, and remaining work.
 
 ---
 

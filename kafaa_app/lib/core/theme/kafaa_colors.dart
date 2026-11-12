@@ -65,7 +65,7 @@ abstract final class KafaaColors {
   static Color forRisk(String risk) => switch (risk) {
         'low' => success,
         'medium' => warning,
-        'high' => Color(0xFFEA580C),
+        'high' => const Color(0xFFEA580C),
         'critical' => danger,
         _ => neutral500,
       };

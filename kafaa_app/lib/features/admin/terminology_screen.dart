@@ -161,8 +161,7 @@ class _TermFormState extends ConsumerState<_TermForm> {
       TextEditingController(text: widget.existing?.explanationEn);
   late final _explainAr =
       TextEditingController(text: widget.existing?.explanationAr);
-  late final _category =
-      TextEditingController(text: widget.existing?.category);
+  late final _category = TextEditingController(text: widget.existing?.category);
   bool _busy = false;
 
   @override
@@ -186,8 +185,7 @@ class _TermFormState extends ConsumerState<_TermForm> {
     final l10n = context.l10n;
 
     return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -218,8 +216,8 @@ class _TermFormState extends ConsumerState<_TermForm> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _publicEn,
-                decoration: InputDecoration(
-                    labelText: '${l10n.adminPublicLabel} (EN)'),
+                decoration:
+                    InputDecoration(labelText: '${l10n.adminPublicLabel} (EN)'),
                 validator: (v) =>
                     (v ?? '').trim().isEmpty ? l10n.validationRequired : null,
               ),
@@ -227,8 +225,8 @@ class _TermFormState extends ConsumerState<_TermForm> {
               TextFormField(
                 controller: _publicAr,
                 textDirection: TextDirection.rtl,
-                decoration: InputDecoration(
-                    labelText: '${l10n.adminPublicLabel} (AR)'),
+                decoration:
+                    InputDecoration(labelText: '${l10n.adminPublicLabel} (AR)'),
                 validator: (v) =>
                     (v ?? '').trim().isEmpty ? l10n.validationRequired : null,
               ),
@@ -238,7 +236,7 @@ class _TermFormState extends ConsumerState<_TermForm> {
                 minLines: 2,
                 maxLines: 3,
                 decoration:
-                    InputDecoration(labelText: 'Explanation (EN)'),
+                    const InputDecoration(labelText: 'Explanation (EN)'),
               ),
               const SizedBox(height: 12),
               TextFormField(

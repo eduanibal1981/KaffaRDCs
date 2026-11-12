@@ -76,7 +76,8 @@ class KafaaCard extends StatelessWidget {
           ? null
           : RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(KafaaTheme.radius),
-              side: BorderSide(color: accent!.withValues(alpha: 0.35), width: 1.5),
+              side: BorderSide(
+                  color: accent!.withValues(alpha: 0.35), width: 1.5),
             ),
       child: onTap == null
           ? content
@@ -156,13 +157,15 @@ class StatusPill extends StatelessWidget {
             Icon(icon, size: dense ? 13 : 15, color: color),
             const SizedBox(width: 5),
           ],
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                  fontSize: dense ? 12 : 13,
-                ),
+          Flexible(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                    fontSize: dense ? 12 : 13,
+                  ),
+            ),
           ),
         ],
       ),
@@ -342,7 +345,8 @@ class ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 44, color: KafaaColors.danger),
+            const Icon(Icons.error_outline,
+                size: 44, color: KafaaColors.danger),
             const SizedBox(height: 16),
             Text(l10n.errorTitle, style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),

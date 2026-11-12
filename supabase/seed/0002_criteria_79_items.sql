@@ -917,4 +917,15 @@ begin
   end if;
 end $$;
 
+-- Release the baseline only after all criteria and thresholds are complete.
+-- This also supports fresh databases where version locking is already installed.
+do $$ begin
+  if exists(select 1 from information_schema.columns where table_schema='public'
+    and table_name='assessment_templates' and column_name='structure_version') then
+    execute 'update public.assessment_templates set structure_version=100 where id=''11111111-1111-1111-1111-111111111111''';
+  end if;
+end $$;
+update public.assessment_templates set status='active'
+  where id='11111111-1111-1111-1111-111111111111';
+
 commit;

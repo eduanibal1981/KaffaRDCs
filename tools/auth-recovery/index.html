@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer"><title>Kafaa · Set your password</title>
+  <link rel="stylesheet" href="/style.css"><script src="/recovery.js" defer></script>
+</head>
+<body><main>
+  <p class="brand">KAFA'A</p><h1>Set your password</h1>
+  <p id="status" role="status">Checking your invitation or recovery link…</p>
+  <form id="password-form" hidden>
+    <p id="account"></p>
+    <label for="password">New password</label>
+    <input id="password" type="password" autocomplete="new-password" minlength="8" required>
+    <label for="confirm">Confirm password</label>
+    <input id="confirm" type="password" autocomplete="new-password" minlength="8" required>
+    <p>Use at least 8 characters. Your password is sent directly to Kafaa's Supabase Auth service.</p>
+    <button type="submit">Save password</button>
+  </form>
+  <p id="error" role="alert"></p>
+</main></body></html>

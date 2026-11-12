@@ -104,8 +104,10 @@ class AnalyticsRepository {
     String? sectionId,
     bool onlyFindings = false,
   }) async {
-    var query =
-        _client.from('v_audit_criterion_detail').select().eq('audit_id', auditId);
+    var query = _client
+        .from('v_audit_criterion_detail')
+        .select()
+        .eq('audit_id', auditId);
     if (domainCode != null) query = query.eq('domain_code', domainCode);
     if (sectionId != null) query = query.eq('section_id', sectionId);
     if (onlyFindings) {
@@ -123,14 +125,16 @@ class AnalyticsRepository {
     };
   }
 
-  Future<List<SatisfactionPoint>> satisfactionTrend(List<String> centerIds) async {
+  Future<List<SatisfactionPoint>> satisfactionTrend(
+      List<String> centerIds) async {
     var query = _client.from('v_center_satisfaction_monthly').select();
     if (centerIds.isNotEmpty) query = query.inFilter('center_id', centerIds);
     final rows = await query.order('period_month');
     return rows.map(SatisfactionPoint.fromMap).toList();
   }
 
-  Future<List<SurveyQuestionResult>> satisfactionBreakdown(String centerId) async {
+  Future<List<SurveyQuestionResult>> satisfactionBreakdown(
+      String centerId) async {
     final rows = await _client
         .from('v_survey_question_breakdown')
         .select()
@@ -153,7 +157,8 @@ class AnalyticsRepository {
     for (final row in rows) {
       final point = ScoreTrendPoint.fromMap(row);
       if (!seen.add(point.centerId)) continue; // keep only the latest cycle
-      if (best == null || (point.deltaPercent ?? 0) > (best.deltaPercent ?? 0)) {
+      if (best == null ||
+          (point.deltaPercent ?? 0) > (best.deltaPercent ?? 0)) {
         best = point;
       }
     }
@@ -184,7 +189,7 @@ class AnalyticsRepository {
 
 final analyticsRepositoryProvider = Provider<AnalyticsRepository>(
   (ref) => AnalyticsRepository(
-    ref.watch(supabaseProvider),
+    watchSessionClient(ref),
     ref.watch(localStoreProvider),
   ),
 );
@@ -195,20 +200,21 @@ final rankingProvider = FutureProvider<List<CenterRanking>>(
 
 final domainScoresProvider =
     FutureProvider.family<List<ScoreBreakdown>, String>(
-  (ref, auditId) => ref.watch(analyticsRepositoryProvider).domainScores(auditId),
+  (ref, auditId) =>
+      ref.watch(analyticsRepositoryProvider).domainScores(auditId),
 );
 
 final sectionScoresProvider =
     FutureProvider.family<List<ScoreBreakdown>, String>(
-  (ref, auditId) => ref.watch(analyticsRepositoryProvider).sectionScores(auditId),
+  (ref, auditId) =>
+      ref.watch(analyticsRepositoryProvider).sectionScores(auditId),
 );
 
 final insightsProvider = FutureProvider.family<List<DomainInsight>, String>(
   (ref, centerId) => ref.watch(analyticsRepositoryProvider).insights(centerId),
 );
 
-final satisfactionProvider =
-    FutureProvider<Map<String, SatisfactionSummary>>(
+final satisfactionProvider = FutureProvider<Map<String, SatisfactionSummary>>(
   (ref) => ref.watch(analyticsRepositoryProvider).satisfaction(),
 );
 

@@ -29,14 +29,14 @@ insert into public.assessment_templates
 values (
   '11111111-1111-1111-1111-111111111111',
   'KAFAA', 1,
-  'Kafa''a Initiative — Renal Dialysis Centre Evaluation',
-  'مبادرة كفاءة — تقييم أداء مراكز غسيل الكلى',
+  'Audit Structure v 1.00',
+  'هيكل التدقيق الإصدار 1.00',
   'Final audit evaluation of renal dialysis centres, Muscat Governorate. 79 criteria, maximum 237 points, six-month review period.',
   'التقييم النهائي لمراكز غسيل الكلى بمحافظة مسقط. 79 معياراً بحد أقصى 237 نقطة، ودورة مراجعة كل ستة أشهر.',
-  '2025-2026', 'active', true, 3, 6, date '2025-01-01'
+  '2025-2026', 'draft', true, 3, 6, date '2025-01-01'
 )
 on conflict (code, version) do update
-  set name_en = excluded.name_en, name_ar = excluded.name_ar, status = 'active';
+  set name_en = excluded.name_en, name_ar = excluded.name_ar, status = 'draft';
 
 -- ---------------------------------------------------------------------
 -- 2. Template-level default scale (inherited by any criterion that does

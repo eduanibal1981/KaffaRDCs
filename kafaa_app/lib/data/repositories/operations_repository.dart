@@ -38,7 +38,9 @@ class NcrRepository {
 
   Future<List<Ncr>> list(NcrFilter filter) async {
     var query = _client.from('ncrs').select();
-    if (filter.centerId != null) query = query.eq('center_id', filter.centerId!);
+    if (filter.centerId != null) {
+      query = query.eq('center_id', filter.centerId!);
+    }
     if (filter.status != null) query = query.eq('status', filter.status!.wire);
     if (filter.onlyOpen) {
       query = query.inFilter(
@@ -124,7 +126,7 @@ class NcrRepository {
 }
 
 final ncrRepositoryProvider =
-    Provider<NcrRepository>((ref) => NcrRepository(ref.watch(supabaseProvider)));
+    Provider<NcrRepository>((ref) => NcrRepository(watchSessionClient(ref)));
 
 final ncrListProvider = FutureProvider.family<List<Ncr>, NcrFilter>(
   (ref, filter) => ref.watch(ncrRepositoryProvider).list(filter),
@@ -196,8 +198,8 @@ class StaffRepository {
     required String fileName,
     String? mimeType,
   }) async {
-    final storagePath =
-        p.posix.join(centerId, staffId, '${_uuid.v4()}${p.extension(fileName)}');
+    final storagePath = p.posix
+        .join(centerId, staffId, '${_uuid.v4()}${p.extension(fileName)}');
     await _client.storage.from('certificates').upload(
           storagePath,
           file,
@@ -219,7 +221,7 @@ class StaffRepository {
 }
 
 final staffRepositoryProvider = Provider<StaffRepository>(
-  (ref) => StaffRepository(ref.watch(supabaseProvider)),
+  (ref) => StaffRepository(watchSessionClient(ref)),
 );
 
 final staffCompetenciesProvider =
@@ -232,8 +234,7 @@ final staffReadinessProvider =
   (ref, centerId) => ref.watch(staffRepositoryProvider).readiness(centerId),
 );
 
-final staffMembersProvider =
-    FutureProvider.family<List<StaffMember>, String>(
+final staffMembersProvider = FutureProvider.family<List<StaffMember>, String>(
   (ref, centerId) => ref.watch(staffRepositoryProvider).members(centerId),
 );
 
@@ -331,7 +332,7 @@ class SurveySubmitResult {
 }
 
 final surveyRepositoryProvider = Provider<SurveyRepository>(
-  (ref) => SurveyRepository(ref.watch(supabaseProvider)),
+  (ref) => SurveyRepository(watchSessionClient(ref)),
 );
 
 final surveyFormProvider = FutureProvider<SurveyForm>(
@@ -384,12 +385,12 @@ class AchievementRepository {
 }
 
 final achievementRepositoryProvider = Provider<AchievementRepository>(
-  (ref) => AchievementRepository(ref.watch(supabaseProvider)),
+  (ref) => AchievementRepository(watchSessionClient(ref)),
 );
 
-final centerBadgesProvider =
-    FutureProvider.family<List<CenterBadge>, String>(
-  (ref, centerId) => ref.watch(achievementRepositoryProvider).forCenter(centerId),
+final centerBadgesProvider = FutureProvider.family<List<CenterBadge>, String>(
+  (ref, centerId) =>
+      ref.watch(achievementRepositoryProvider).forCenter(centerId),
 );
 
 // ===========================================================================
@@ -413,14 +414,12 @@ class NotificationRepository {
       .from('notifications')
       .update({'read_at': DateTime.now().toIso8601String()}).eq('id', id);
 
-  Future<void> markAllRead() => _client
-      .from('notifications')
-      .update({'read_at': DateTime.now().toIso8601String()})
-      .isFilter('read_at', null);
+  Future<void> markAllRead() => _client.from('notifications').update(
+      {'read_at': DateTime.now().toIso8601String()}).isFilter('read_at', null);
 }
 
 final notificationRepositoryProvider = Provider<NotificationRepository>(
-  (ref) => NotificationRepository(ref.watch(supabaseProvider)),
+  (ref) => NotificationRepository(watchSessionClient(ref)),
 );
 
 final notificationsProvider = FutureProvider<List<AppNotification>>(

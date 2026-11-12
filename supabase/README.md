@@ -3,7 +3,7 @@
 ## Run order
 
 **Fastest path:** paste `kafaa_full_schema.sql` into the SQL Editor and run it.
-That is migrations 1–11 plus seeds 1, 2, 3 and 5, in order.
+That is migrations 1–12, seeds 1, 2, 3 and 5, then the Audit Structure version migration.
 
 **To review as you go**, run the numbered files individually — see
 [`../docs/SETUP.md`](../docs/SETUP.md) §2.
@@ -124,3 +124,10 @@ select center_id, full_name, competency_name_en, expiry_date, days_remaining
 
 `kafaa_full_schema.sql` is generated. Edit the numbered files, then rebuild it
 by concatenating them in the order listed at the top of that file.
+
+## Audit Structure versions
+
+The version migration is `migrations/20261112090000_audit_structure_versions.sql`.
+The original checklist is Audit Structure v 1.00; saved versions are immutable,
+and assessment references continue to point at their original template UUID.
+See `../docs/ADMIN_GUIDE.md` and `tests/audit_structure_versions.sql`.

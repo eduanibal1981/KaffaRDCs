@@ -8,6 +8,9 @@ import '../../core/widgets/common.dart';
 import '../../data/models/assessment.dart';
 import '../../data/repositories/assessment_repository.dart';
 import 'criteria_editor_screen.dart';
+import 'audit_structures_screen.dart';
+import 'structure_errors.dart';
+import '../auth/session.dart';
 import 'group_forms.dart';
 import 'scoring_editor_sheet.dart';
 
@@ -18,18 +21,108 @@ import 'scoring_editor_sheet.dart';
 /// Everything is addable, editable, reorderable and archivable here, and
 /// the running totals at each level update as you go — so an administrator
 /// can see immediately what adding a point does to the checklist maximum.
-class StructureEditorScreen extends ConsumerWidget {
+class StructureEditorScreen extends ConsumerStatefulWidget {
   const StructureEditorScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StructureEditorScreen> createState() => _StructureEditorState();
+}
+
+class _StructureEditorState extends ConsumerState<StructureEditorScreen> {
+  bool _busy = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final blueprint = ref.watch(blueprintProvider);
+    if (!ref.watch(permissionsProvider).canConfigureTemplate) {
+      return Scaffold(
+          appBar: AppBar(title: Text(l10n.structuresTitle)),
+          body: EmptyView(message: l10n.errorPermission));
+    }
+    final draft = blueprint.valueOrNull?.template.status == 'draft';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.structureTitle),
+        title: Text(blueprint.valueOrNull == null
+            ? l10n.structuresChoose
+            : context.pick(blueprint.value!.template.nameEn,
+                blueprint.value!.template.nameAr)),
         actions: [
+          if (draft)
+            IconButton(
+                tooltip: l10n.structuresImport,
+                icon: const Icon(Icons.playlist_add),
+                onPressed: _busy
+                    ? null
+                    : () async {
+                        await Navigator.of(context).push<String>(
+                            MaterialPageRoute(
+                                builder: (_) => StructureImportScreen(
+                                    targetId: blueprint.value!.template.id)));
+                        ref.invalidate(blueprintProvider);
+                      }),
+          if (draft)
+            TextButton(
+                onPressed: _busy
+                    ? null
+                    : () async {
+                        setState(() => _busy = true);
+                        try {
+                          await ref
+                              .read(assessmentRepositoryProvider)
+                              .publishStructure(blueprint.value!.template.id);
+                          ref.invalidate(adminStructuresProvider);
+                          ref.invalidate(auditStructuresProvider);
+                          ref.invalidate(blueprintProvider);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content:
+                                    Text(describeStructureError(context, e))));
+                          }
+                        } finally {
+                          if (mounted) setState(() => _busy = false);
+                        }
+                      },
+                child: Text(l10n.structuresSave)),
+          if (draft)
+            IconButton(
+                tooltip: l10n.actionDelete,
+                icon: const Icon(Icons.delete_outline),
+                onPressed: _busy
+                    ? null
+                    : () async {
+                        final yes = await showDialog<bool>(
+                            context: context,
+                            builder: (c) => AlertDialog(
+                                    title: Text(l10n.structuresDelete),
+                                    content: Text(l10n.structuresDeleteHint),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(c, false),
+                                          child: Text(l10n.actionCancel)),
+                                      FilledButton(
+                                          onPressed: () =>
+                                              Navigator.pop(c, true),
+                                          child: Text(l10n.actionDelete))
+                                    ]));
+                        if (yes != true) return;
+                        try {
+                          await ref
+                              .read(assessmentRepositoryProvider)
+                              .deleteStructure(blueprint.value!.template.id);
+                          ref.invalidate(adminStructuresProvider);
+                          if (context.mounted) Navigator.pop(context);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content:
+                                    Text(describeStructureError(context, e))));
+                          }
+                        }
+                      }),
           IconButton(
             tooltip: l10n.actionRefresh,
             icon: const Icon(Icons.refresh),
@@ -42,12 +135,13 @@ class StructureEditorScreen extends ConsumerWidget {
         onRetry: () => ref.invalidate(blueprintProvider),
         builder: (bp) => _Tree(blueprint: bp),
       ),
-      floatingActionButton: blueprint.hasValue
+      floatingActionButton: draft && !_busy
           ? FloatingActionButton.extended(
               onPressed: () => showDomainForm(
                 context,
                 ref,
                 templateId: blueprint.value!.template.id,
+                existingCodes: blueprint.value!.domains.map((d) => d.code),
                 nextSortOrder: _nextOrder(
                     blueprint.value!.domains.map((d) => d.sortOrder)),
               ),
@@ -154,7 +248,9 @@ class _Header extends StatelessWidget {
 
     return KafaaCard(
       title: context.pick(blueprint.template.nameEn, blueprint.template.nameAr),
-      subtitle: blueprint.template.cycleLabel,
+      subtitle: blueprint.template.status == 'draft'
+          ? l10n.structuresDraftHint
+          : l10n.structuresLocked,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -285,25 +381,28 @@ class _DomainNode extends ConsumerWidget {
               ],
             ),
           ),
-          trailing: _NodeMenu(
-            canMoveUp: canMoveUp,
-            canMoveDown: canMoveDown,
-            isActive: domain.isActive,
-            archiveWarning: l10n.structureArchiveDomainWarning,
-            onMove: onMove,
-            onEdit: () => showDomainForm(
-              context,
-              ref,
-              templateId: blueprint.template.id,
-              existing: domain,
-            ),
-            onToggleActive: () async {
-              await ref
-                  .read(assessmentRepositoryProvider)
-                  .setDomainActive(domain.id, !domain.isActive);
-              ref.invalidate(blueprintProvider);
-            },
-          ),
+          trailing: blueprint.template.status != 'draft'
+              ? null
+              : _NodeMenu(
+                  canMoveUp: canMoveUp,
+                  canMoveDown: canMoveDown,
+                  isActive: domain.isActive,
+                  archiveWarning: l10n.structureArchiveDomainWarning,
+                  onMove: onMove,
+                  onEdit: () => showDomainForm(
+                    context,
+                    ref,
+                    templateId: blueprint.template.id,
+                    existing: domain,
+                    existingCodes: blueprint.domains.map((d) => d.code),
+                  ),
+                  onToggleActive: () async {
+                    await ref
+                        .read(assessmentRepositoryProvider)
+                        .deleteDomain(domain.id);
+                    ref.invalidate(blueprintProvider);
+                  },
+                ),
           children: [
             if (sections.isEmpty)
               Padding(
@@ -324,22 +423,24 @@ class _DomainNode extends ConsumerWidget {
                   onMove: (delta) => _moveSection(ref, sections, i, delta),
                 ),
               ),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton.icon(
-                onPressed: () => showSectionForm(
-                  context,
-                  ref,
-                  templateId: blueprint.template.id,
-                  domains: blueprint.domains,
-                  initialDomainId: domain.id,
-                  nextSortOrder:
-                      _nextOrder(blueprint.sections.map((s) => s.sortOrder)),
+            if (blueprint.template.status == 'draft')
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  onPressed: () => showSectionForm(
+                    context,
+                    ref,
+                    templateId: blueprint.template.id,
+                    domains: blueprint.domains,
+                    initialDomainId: domain.id,
+                    existingCodes: blueprint.sections.map((s) => s.code),
+                    nextSortOrder:
+                        _nextOrder(blueprint.sections.map((s) => s.sortOrder)),
+                  ),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: Text(l10n.structureAddSection),
                 ),
-                icon: const Icon(Icons.add, size: 18),
-                label: Text(l10n.structureAddSection),
               ),
-            ),
           ],
         ),
       ),
@@ -405,112 +506,120 @@ class _SectionNode extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.dividerColor),
       ),
-      child: Theme(
-        data: theme.copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-          childrenPadding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(section.code,
-                    style: theme.textTheme.labelSmall
-                        ?.copyWith(color: theme.colorScheme.primary)),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  context.pick(section.nameEn, section.nameAr),
-                  style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15),
-                ),
-              ),
-            ],
-          ),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    l10n.structurePointsSummary(counted.length, maxPoints),
-                    style: theme.textTheme.bodySmall,
+      child: Material(
+          type: MaterialType.transparency,
+          child: Theme(
+            data: theme.copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+              childrenPadding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+              title: Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Text(section.code,
+                        style: theme.textTheme.labelSmall
+                            ?.copyWith(color: theme.colorScheme.primary)),
                   ),
-                ),
-                if (!section.isActive) ...[
                   const SizedBox(width: 8),
-                  StatusPill(
-                    label: l10n.adminArchived,
-                    color: KafaaColors.neutral500,
-                    dense: true,
+                  Expanded(
+                    child: Text(
+                      context.pick(section.nameEn, section.nameAr),
+                      style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15),
+                    ),
                   ),
                 ],
-              ],
-            ),
-          ),
-          trailing: _NodeMenu(
-            canMoveUp: canMoveUp,
-            canMoveDown: canMoveDown,
-            isActive: section.isActive,
-            archiveWarning: l10n.structureArchiveSectionWarning,
-            onMove: onMove,
-            onEdit: () => showSectionForm(
-              context,
-              ref,
-              templateId: blueprint.template.id,
-              domains: blueprint.domains,
-              existing: section,
-            ),
-            onToggleActive: () async {
-              await ref
-                  .read(assessmentRepositoryProvider)
-                  .setSectionActive(section.id, !section.isActive);
-              ref.invalidate(blueprintProvider);
-            },
-          ),
-          children: [
-            if (criteria.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Text(l10n.structureNoPoints,
-                    style: theme.textTheme.bodySmall),
               ),
-            for (var i = 0; i < criteria.length; i++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: _PointRow(
-                  blueprint: blueprint,
-                  criterion: criteria[i],
-                  canMoveUp: i > 0,
-                  canMoveDown: i < criteria.length - 1,
-                  onMove: (delta) => _movePoint(ref, criteria, i, delta),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        l10n.structurePointsSummary(counted.length, maxPoints),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                    if (!section.isActive) ...[
+                      const SizedBox(width: 8),
+                      StatusPill(
+                        label: l10n.adminArchived,
+                        color: KafaaColors.neutral500,
+                        dense: true,
+                      ),
+                    ],
+                  ],
                 ),
               ),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton.icon(
-                onPressed: () => showCriterionForm(
-                  context,
-                  blueprint,
-                  sectionId: section.id,
-                  nextSortOrder: criteria.isEmpty
-                      ? 1
-                      : criteria
-                              .map((c) => c.sortOrder)
-                              .reduce((a, b) => a > b ? a : b) +
-                          1,
-                ).then((_) => ref.invalidate(blueprintProvider)),
-                icon: const Icon(Icons.add, size: 18),
-                label: Text(l10n.structureAddPoint),
-              ),
+              trailing: blueprint.template.status != 'draft'
+                  ? null
+                  : _NodeMenu(
+                      canMoveUp: canMoveUp,
+                      canMoveDown: canMoveDown,
+                      isActive: section.isActive,
+                      archiveWarning: l10n.structureArchiveSectionWarning,
+                      onMove: onMove,
+                      onEdit: () => showSectionForm(
+                        context,
+                        ref,
+                        templateId: blueprint.template.id,
+                        domains: blueprint.domains,
+                        existing: section,
+                        existingCodes: blueprint.sections.map((s) => s.code),
+                      ),
+                      onToggleActive: () async {
+                        await ref
+                            .read(assessmentRepositoryProvider)
+                            .deleteSection(section.id);
+                        ref.invalidate(blueprintProvider);
+                      },
+                    ),
+              children: [
+                if (criteria.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(l10n.structureNoPoints,
+                        style: theme.textTheme.bodySmall),
+                  ),
+                for (var i = 0; i < criteria.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: _PointRow(
+                      blueprint: blueprint,
+                      criterion: criteria[i],
+                      canMoveUp: i > 0,
+                      canMoveDown: i < criteria.length - 1,
+                      onMove: (delta) => _movePoint(ref, criteria, i, delta),
+                    ),
+                  ),
+                if (blueprint.template.status == 'draft')
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton.icon(
+                      onPressed: () => showCriterionForm(
+                        context,
+                        blueprint,
+                        sectionId: section.id,
+                        nextSortOrder: criteria.isEmpty
+                            ? 1
+                            : criteria
+                                    .map((c) => c.sortOrder)
+                                    .reduce((a, b) => a > b ? a : b) +
+                                1,
+                      ).then((_) => ref.invalidate(blueprintProvider)),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: Text(l10n.structureAddPoint),
+                    ),
+                  ),
+              ],
             ),
-          ],
-        ),
-      ),
+          )),
     );
   }
 
@@ -591,56 +700,59 @@ class _PointRow extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              _NodeMenu(
-                canMoveUp: canMoveUp,
-                canMoveDown: canMoveDown,
-                isActive: criterion.isActive,
-                archiveWarning: l10n.structureArchivePointWarning,
-                onMove: onMove,
-                onEdit: () => showCriterionForm(
-                  context,
-                  blueprint,
-                  existing: criterion,
-                ).then((_) => ref.invalidate(blueprintProvider)),
-                onToggleActive: () async {
-                  await ref
-                      .read(assessmentRepositoryProvider)
-                      .setCriterionActive(criterion.id, !criterion.isActive);
-                  ref.invalidate(blueprintProvider);
-                },
-                extraActions: [
-                  PopupMenuItem(
-                    value: 'scoring',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.scoreboard_outlined, size: 18),
-                        const SizedBox(width: 10),
-                        Text(l10n.scoringEdit),
-                      ],
+              if (blueprint.template.status == 'draft')
+                _NodeMenu(
+                  canMoveUp: canMoveUp,
+                  canMoveDown: canMoveDown,
+                  isActive: criterion.isActive,
+                  archiveWarning: l10n.structureArchivePointWarning,
+                  onMove: onMove,
+                  onEdit: () => showCriterionForm(
+                    context,
+                    blueprint,
+                    existing: criterion,
+                  ).then((_) => ref.invalidate(blueprintProvider)),
+                  onToggleActive: () async {
+                    await ref
+                        .read(assessmentRepositoryProvider)
+                        .deleteCriterion(criterion.id);
+                    ref.invalidate(blueprintProvider);
+                  },
+                  extraActions: [
+                    PopupMenuItem(
+                      value: 'scoring',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.scoreboard_outlined, size: 18),
+                          const SizedBox(width: 10),
+                          Text(l10n.scoringEdit),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-                onExtraAction: (value) {
-                  if (value == 'scoring') {
-                    showScoringEditor(
-                      context,
-                      criterion: criterion,
-                      templateId: blueprint.template.id,
-                    );
-                  }
-                },
-              ),
+                  ],
+                  onExtraAction: (value) {
+                    if (value == 'scoring') {
+                      showScoringEditor(
+                        context,
+                        criterion: criterion,
+                        templateId: blueprint.template.id,
+                      ).then((_) => ref.invalidate(blueprintProvider));
+                    }
+                  },
+                ),
             ],
           ),
           const SizedBox(height: 8),
           // The scoring line: this is what the auditor will tap during an
           // assessment, so it is worth seeing while configuring.
           InkWell(
-            onTap: () => showScoringEditor(
-              context,
-              criterion: criterion,
-              templateId: blueprint.template.id,
-            ),
+            onTap: blueprint.template.status != 'draft'
+                ? null
+                : () => showScoringEditor(
+                      context,
+                      criterion: criterion,
+                      templateId: blueprint.template.id,
+                    ).then((_) => ref.invalidate(blueprintProvider)),
             borderRadius: BorderRadius.circular(8),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -732,9 +844,8 @@ class _NodeMenu extends StatelessWidget {
             final confirmed = await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
-                title: Text(
-                    isActive ? l10n.structureArchive : l10n.structureRestore),
-                content: isActive ? Text(archiveWarning) : null,
+                title: Text(l10n.structuresDeleteItem),
+                content: Text(l10n.structuresDeleteItemHint),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
@@ -747,7 +858,16 @@ class _NodeMenu extends StatelessWidget {
                 ],
               ),
             );
-            if (confirmed == true) await onToggleActive();
+            if (confirmed == true) {
+              try {
+                await onToggleActive();
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(describeStructureError(context, e))));
+                }
+              }
+            }
           default:
             onExtraAction?.call(value);
         }
@@ -791,13 +911,10 @@ class _NodeMenu extends StatelessWidget {
           value: 'archive',
           child: Row(
             children: [
-              Icon(
-                isActive ? Icons.archive_outlined : Icons.unarchive_outlined,
-                size: 18,
-                color: isActive ? KafaaColors.warning : KafaaColors.success,
-              ),
+              const Icon(Icons.delete_outline,
+                  size: 18, color: KafaaColors.warning),
               const SizedBox(width: 10),
-              Text(isActive ? l10n.structureArchive : l10n.structureRestore),
+              Text(l10n.actionDelete),
             ],
           ),
         ),

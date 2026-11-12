@@ -69,6 +69,30 @@ seeds 1 and 2 from the top.
 
 ## 3. Create the first accounts
 
+The intended main Kafaa account is **abdallahgoma@gmail.com**. Its invitation and
+password-recovery emails should go to that same address. Example role addresses
+below are placeholders; recovery for other users continues to use their own
+account email.
+
+On 12 November 2026, this account was invited, verified, and the user set their
+own password. The user then approved and received the global `super_admin` role.
+Sign in to the app with that email and the password chosen during setup.
+
+For local development, start the invitation/password-recovery callback before
+opening an email link that redirects to `localhost:3000`:
+
+```bash
+python3 scripts/serve-kafaa-auth.py
+```
+
+Run that command from the parent `Kafaa Project` directory. This callback handles
+Supabase dashboard invitation/recovery links containing an implicit session. It
+verifies the session against kaffaDB and sends a user-entered password directly
+to Supabase Auth. Tokens stay in page memory, are removed from browser history,
+and are not written to the local server's logs. The user must enter and submit
+their own password. The localhost page is a development tool; deployed mobile
+recovery still needs the app's callback/deep-link flow configured.
+
 Accounts are created through Supabase Auth, never with raw SQL, so password
 hashing stays under Auth's control.
 
@@ -77,7 +101,7 @@ hashing stays under Auth's control.
 3. Grant roles in the SQL Editor:
 
 ```sql
-select public.grant_kafaa_role('admin@moh.gov.om',       'super_admin');
+select public.grant_kafaa_role('abdallahgoma@gmail.com', 'super_admin'); -- main account
 select public.grant_kafaa_role('directorate@moh.gov.om', 'directorate');
 select public.grant_kafaa_role('auditor@moh.gov.om',     'auditor');              -- all centres
 select public.grant_kafaa_role('nurse.seeb@moh.gov.om',  'center_manager', 'RDC-SEB');
@@ -132,6 +156,15 @@ Keeping the keys out of source control is easier with a file. Create
 ```bash
 flutter run --dart-define-from-file=env/dev.json
 ```
+
+For this workspace, VS Code has launch profiles both in the parent `Kafaa
+Project` folder and in `kafaa_app`. Select **Kafaa (dev)** from the parent folder,
+or **kafaa_app (dev)** when the app folder is open, then press F5. The profiles
+also supply configuration to the Run/Debug links above application code.
+
+From the parent workspace, `./scripts/run-kafaa -d emulator-5554` supplies the
+same configuration file automatically. Changing a Dart define requires stopping
+and relaunching the app; hot reload cannot add missing build-time configuration.
 
 Building without the keys is not a crash — the app shows a screen explaining
 exactly which values are missing.
@@ -248,3 +281,45 @@ update public.survey_forms set cooldown_minutes = 60 where code = 'PATIENT_V1';
 
 **Arabic PDF shows boxes instead of letters**
 No Arabic font is available. See step 7.
+
+## Audit Structure version upgrade
+
+For an existing Kafaa database, inspect its deployed state first, then apply
+`supabase/migrations/20261112090000_audit_structure_versions.sql` once. It renames
+the existing baseline to **Audit Structure v 1.00** without replacing its items
+or assessment references. This upgrade has already been applied to kaffaDB on
+12 November 2026; see `SUPABASE_CONNECTION.md` before doing further deployment.
+
+For a fresh installation using individual files, load the baseline migrations
+and seeds first, then this version migration. The combined SQL installer
+includes that order. Baseline seeds now assemble a draft and release it only
+after the 79-item integrity check, so they also support a fresh migration-first
+installation. Published structures must be revised through a new version,
+not by rerunning baseline seeds. See `ADMIN_GUIDE.md` for the editor workflow.
+
+`supabase/tests/audit_structure_versions.sql` contains rollback-only hosted
+checks using this workspace's existing administrator UUID. It does not create
+Auth users or leave test versions behind; use an appropriate administrator
+identity when running the same checks in an isolated development database.
+
+## Arabic typing in the Android emulator
+
+The Mac input source and the emulator's Android keyboard have separate
+configuration. In the reported 12 November session, the Mac was switched to
+Arabic while Gboard in the emulator still listed only English (US).
+
+In the emulator, open Gboard **Settings → Languages → Add keyboard → Arabic**,
+choose a layout and tap **Done**. In a text field, hold the Gboard space bar to
+switch languages. You can also reach Gboard through Android **Settings →
+System → Keyboard → On-screen keyboard**. These steps change keyboard input;
+the Kafaa interface can remain in English.
+[Google's Gboard language instructions](https://support.google.com/gboard/answer/7068494?hl=en).
+
+The app provides an Arabic language hint for Arabic fields and an English hint
+for English fields. A hint does not enable a keyboard language that has not
+been configured. See [Flutter's keyboard locale hint documentation](https://api.flutter.dev/flutter/material/TextField/hintLocales.html).
+
+Both language names and a unique reference code are required when adding a
+main area or section. If an area such as `GOV` was imported already, edit that
+area or use a new code such as `GOV-2`; duplicate-code errors now appear in the
+form without clearing the entered names.

@@ -439,3 +439,32 @@ update public.centers set is_active = false where code = 'RDC-XXX';
 ```sql
 update public.app_settings set value = 'false' where key = 'ncr.auto_generate';
 ```
+
+## Audit Structures and versions
+
+Open **More → Setup → Audit Structures**. The original 79-item checklist is
+**Audit Structure v 1.00** (237 maximum points).
+
+1. Choose **New version** and enter a unique number with two decimal places,
+   such as `1.01` or `2.00`.
+2. Choose **Build from scratch**, or **Select from a previous version**. You can
+   select a whole main area, a section, or individual scored items. Necessary
+   parent groups and the selected items' exact scoring choices are copied.
+3. In the draft editor, add main areas, sections and scored items. Use each
+   item's menu to edit, reorder or delete it. Deleting a main area or section
+   also deletes its descendants from that draft.
+4. **Import items** can add selections from another saved version to an existing
+   draft. Duplicate item codes are rejected without saving a partial import.
+5. Changes are stored in the draft as you edit. Choose **Save version** when it
+   is ready. A version needs at least one scored item and complete scoring
+   choices. Saving makes it available and the default for new assessments.
+
+Saved versions are locked. Create a new version to revise their contents.
+Existing assessments retain their original structure, wording, thresholds and
+scoring; earlier saved versions remain selectable on **New assessment → Audit
+Structure**. Draft versions are not offered there. Version editing requires a
+network connection; cached saved structures and assessment drafts retain the
+existing offline workflow and account isolation.
+
+New versions retain the source's scoring defaults and rating bands. The
+clinical decisions in `ASSUMPTIONS.md` remain unchanged.

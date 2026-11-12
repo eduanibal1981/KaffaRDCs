@@ -1384,4 +1384,102 @@ class AppL10nAr extends AppL10n {
   @override
   String get scoringValidationOrder =>
       'يجب ألا تقل نقاط «مستوفى» عن «مستوفى جزئياً»، وألا تقل الأخيرة عن «غير مستوفى»';
+
+  @override
+  String get structuresTitle => 'هياكل التدقيق';
+
+  @override
+  String get structuresNew => 'إصدار جديد';
+
+  @override
+  String get structuresVersion => 'رقم الإصدار (مثلاً 1.01)';
+
+  @override
+  String get structuresVersionInvalid => 'أدخل إصداراً فريداً مثل 1.01';
+
+  @override
+  String get structuresScratch => 'إنشاء من البداية';
+
+  @override
+  String get structuresCopy => 'اختيار من إصدار سابق';
+
+  @override
+  String get structuresSource => 'الإصدار السابق';
+
+  @override
+  String get structuresCreate => 'إنشاء مسودة';
+
+  @override
+  String get structuresDraft => 'مسودة';
+
+  @override
+  String get structuresSaved => 'محفوظ';
+
+  @override
+  String get structuresSave => 'حفظ الإصدار';
+
+  @override
+  String get structuresLocked =>
+      'هذا الإصدار المحفوظ مقفل. أنشئ إصداراً جديداً لإجراء تغييرات.';
+
+  @override
+  String get structuresDraftHint =>
+      'تُحفظ التغييرات في هذه المسودة. احفظ الإصدار عندما يصبح جاهزاً للتقييمات الجديدة.';
+
+  @override
+  String get structuresImport => 'استيراد البنود';
+
+  @override
+  String get structuresSelect =>
+      'اختر المجالات الرئيسية أو الأقسام أو البنود لنسخها مع درجاتها وترجماتها.';
+
+  @override
+  String get structuresChoose => 'هيكل التدقيق';
+
+  @override
+  String get structuresDefault => 'الافتراضي للتقييمات الجديدة';
+
+  @override
+  String get structuresDelete => 'حذف المسودة؟';
+
+  @override
+  String get structuresDeleteHint => 'سيتم حذف هذه المسودة وجميع بنودها.';
+
+  @override
+  String get structuresDeleteItem => 'حذف البند؟';
+
+  @override
+  String get structuresDeleteItemHint =>
+      'سيتم حذف هذا البند وبنوده الفرعية من المسودة.';
+
+  @override
+  String get structuresNone => 'لا توجد هياكل تدقيق محفوظة.';
+
+  @override
+  String get structuresSelectionRequired =>
+      'اختر بنداً واحداً على الأقل للاستيراد.';
+
+  @override
+  String get structuresScoringHint =>
+      'يتم نسخ مقياس الدرجات ونطاقات التصنيف الحالية كنقطة بداية. راجعها قبل الحفظ.';
+
+  @override
+  String get structuresEmpty =>
+      'أضف بنداً واحداً محسوباً على الأقل قبل حفظ الإصدار.';
+
+  @override
+  String get structuresScaleInvalid =>
+      'راجع خيارات الدرجات. يحتاج كل بند إلى مستوفى ومستوفى جزئياً وغير مستوفى، ويجب أن يطابق حده الأقصى أعلى درجة.';
+
+  @override
+  String get structuresDuplicate =>
+      'رقم الإصدار أو رمز البند موجود بالفعل. اختر رقماً مختلفاً أو ألغِ اختيار البنود المستوردة سابقاً.';
+
+  @override
+  String get structureDuplicateCode =>
+      'رمز المرجع مستخدم بالفعل في هيكل التدقيق هذا. أدخل رمزاً مختلفاً.';
+
+  @override
+  String get structureCodeHelp =>
+      'رمز فريد داخل هذا الإصدار، مثل GOV أو GOV-2.';
 }

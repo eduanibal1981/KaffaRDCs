@@ -194,8 +194,7 @@ class _CriterionRow extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
@@ -298,13 +297,13 @@ class _CriterionFormState extends ConsumerState<_CriterionForm> {
       TextEditingController(text: widget.existing?.publicTextEn);
   late final _publicAr =
       TextEditingController(text: widget.existing?.publicTextAr);
-  late final _maxPoints = TextEditingController(
-      text: (widget.existing?.maxPoints ?? 3).toString());
+  late final _maxPoints =
+      TextEditingController(text: (widget.existing?.maxPoints ?? 3).toString());
   late final _weight =
       TextEditingController(text: (widget.existing?.weight ?? 1).toString());
   late final _sortOrder = TextEditingController(
-      text: (widget.existing?.sortOrder ?? widget.nextSortOrder ?? 0)
-          .toString());
+      text:
+          (widget.existing?.sortOrder ?? widget.nextSortOrder ?? 0).toString());
 
   late String? _sectionId =
       widget.existing?.sectionId ?? widget.initialSectionId;
@@ -373,8 +372,7 @@ class _CriterionFormState extends ConsumerState<_CriterionForm> {
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
     return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -410,14 +408,15 @@ class _CriterionFormState extends ConsumerState<_CriterionForm> {
               const SizedBox(height: 14),
               TextFormField(
                 controller: _code,
-                decoration:
-                    InputDecoration(labelText: l10n.adminCriterionCode),
+                decoration: InputDecoration(labelText: l10n.adminCriterionCode),
                 validator: (v) =>
                     (v ?? '').trim().isEmpty ? l10n.validationRequired : null,
               ),
               const SizedBox(height: 14),
               TextFormField(
                 controller: _textEn,
+                hintLocales: const [Locale('en')],
+                textDirection: TextDirection.ltr,
                 minLines: 2,
                 maxLines: 4,
                 decoration:
@@ -428,6 +427,8 @@ class _CriterionFormState extends ConsumerState<_CriterionForm> {
               const SizedBox(height: 14),
               TextFormField(
                 controller: _textAr,
+                hintLocales: const [Locale('ar')],
+                textAlign: TextAlign.right,
                 minLines: 2,
                 maxLines: 4,
                 textDirection: TextDirection.rtl,
@@ -439,6 +440,8 @@ class _CriterionFormState extends ConsumerState<_CriterionForm> {
               const SizedBox(height: 14),
               TextFormField(
                 controller: _publicEn,
+                hintLocales: const [Locale('en')],
+                textDirection: TextDirection.ltr,
                 minLines: 1,
                 maxLines: 3,
                 decoration: InputDecoration(labelText: l10n.adminPlainTextEn),
@@ -446,6 +449,8 @@ class _CriterionFormState extends ConsumerState<_CriterionForm> {
               const SizedBox(height: 14),
               TextFormField(
                 controller: _publicAr,
+                hintLocales: const [Locale('ar')],
+                textAlign: TextAlign.right,
                 minLines: 1,
                 maxLines: 3,
                 textDirection: TextDirection.rtl,
@@ -466,8 +471,8 @@ class _CriterionFormState extends ConsumerState<_CriterionForm> {
                   Expanded(
                     child: TextFormField(
                       controller: _weight,
-                      keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(labelText: l10n.adminWeight),
                     ),
                   ),
