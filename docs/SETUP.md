@@ -203,6 +203,11 @@ Serve `build/web` from the root of an HTTPS origin. The preview uses the
 existing Kafaa sign-in and keeps its cache and outbox in browser storage
 scoped to the origin, backend, and signed-in user.
 
+For remote iPhone testing, open the private
+[Kafaa Safari preview](https://kafaa-safari-preview.daintyloon4096.chatgpt.site)
+in Safari. If prompted, sign in to ChatGPT with the Site owner's account,
+then use your existing Kafaa login inside the app.
+
 ## 6. Release builds
 
 ```bash

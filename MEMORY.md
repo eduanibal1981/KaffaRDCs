@@ -736,3 +736,19 @@ It contains only disposable synthetic fixtures; start it explicitly for a rerun.
 Final Auditor QA container `kafaa-center-head-qa` was stopped after verification.
 It contains only disposable Kafaa synthetic fixtures. Export rendering also
 checks that empty optional sections do not create a spare report page.
+
+## GitHub push and Safari preview refresh — 14 November 2026
+
+- GitHub `eduanibal1981/KaffaRDCs` `main` received `7487638`, containing
+  the shared assessment, administration, directorate, centre self-audit and
+  auditor workflows. The existing upstream PowerShell launcher was retained.
+- Clean Flutter analysis, 275 passing tests and a successful configured web
+  build. The staged source passed Gitleaks and excluded the local build key
+  and `env/dev.json`. Safari on an iPhone simulator displayed onboarding from
+  this build; physical iPhone sign-in, evidence and export were not tested.
+- Sites confirmed publication of the refreshed owner-only
+  [Kafaa Safari preview](https://kafaa-safari-preview.daintyloon4096.chatgpt.site).
+  The archive matched the built files and Site source commit `870931f`,
+  including both SQLite runtime assets. Access still requires the ChatGPT Site
+  owner account and the existing Kafaa app login. No hosted database changes
+  were made during this release.

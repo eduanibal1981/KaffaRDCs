@@ -100,6 +100,14 @@ The iPhone Simulator showed the onboarding screen in Safari. Flutter analysis
 was clean and all 160 tests passed. The owner's sign-in, evidence upload and
 export still need verification on the physical iPhone.
 
+On 14 November 2026, the preview was refreshed from GitHub app commit
+`7487638` (Sites source `870931f`). Sites reported a successful deployment to
+the same owner-only URL. The build includes the shared assessment workflows,
+the new role workspaces and both browser SQLite runtime assets. Analysis was
+clean and all 275 Flutter tests passed. The new build displayed onboarding
+in iPhone Simulator Safari. Physical-device sign-in, evidence and export
+remain to be checked.
+
 ## H2 2025 period filter repair
 
 The dedicated MCP endpoint and API URL were reverified against
