@@ -121,4 +121,52 @@ void main() {
     await store!.scopedTo('project/alice').wipe();
     expect(await store!.pendingCount(), 1);
   });
+
+  test('shared cutover retires mock work once within the selected account',
+      () async {
+    final old = await databaseFactory.openDatabase(path,
+        options: OpenDatabaseOptions(
+            version: 2,
+            onCreate: (db, _) async {
+              await db.execute(
+                  'create table cache (key text primary key, owner text not null, payload text not null, updated_at integer not null)');
+              await db.execute(
+                  'create table outbox (id text primary key, owner text not null, kind text not null, payload text not null, created_at integer not null, attempts integer not null default 0, last_error text)');
+            }));
+    for (final owner in ['kafaa/alice', 'other-project/alice']) {
+      await old.insert('cache', {
+        'key': jsonEncode([owner, 'audit.summary.mock']),
+        'owner': owner,
+        'payload': jsonEncode({'audit_id': 'mock'}),
+        'updated_at': 1,
+      });
+      await old.insert('outbox', {
+        'id': owner,
+        'owner': owner,
+        'kind': 'auditCreate',
+        'payload': jsonEncode({'id': 'mock'}),
+        'created_at': 1,
+      });
+    }
+    await old.close();
+    store = await LocalStore.open(path: path);
+    final account = store!.scopedTo('kafaa/alice');
+    expect(await account.pendingCount(), 0);
+    expect(await account.readCache<Object>('audit.summary.mock'), isNull);
+    final raw = await databaseFactory.openDatabase(path);
+    expect(
+        (await raw.query('outbox',
+                where: 'owner = ?', whereArgs: ['other-project/alice']))
+            .length,
+        1);
+
+    await account.enqueue(OutboxKind.responseUpsert,
+        {'audit_id': 'joined', 'criterion_id': 'c0'});
+    await account.putCache('audit.summary.joined', {'participation_id': 'p'});
+    await store!.close();
+    store = await LocalStore.open(path: path);
+    final reopened = store!.scopedTo('kafaa/alice');
+    expect((await reopened.pending()).single.payload['audit_id'], 'joined');
+    expect(await reopened.readCache<Object>('audit.summary.joined'), isNotNull);
+  });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/assessment.dart';
+import 'scoring/assessment_score_calculator.dart';
 import '../../data/models/audit.dart';
 import '../../data/models/primitives.dart';
 import '../../data/repositories/assessment_repository.dart';
@@ -23,79 +24,21 @@ class AuditRunnerState {
   final Map<String, AuditResponse> responses;
   final Set<String> savingCriterionIds;
 
-  Iterable<AssessmentCriterion> get scorable => blueprint.scorable;
-
-  int get totalItems => scorable.length;
-
-  int get answeredItems =>
-      scorable.where((c) => responses[c.id]?.isAnswered ?? false).length;
-
-  double get progress => totalItems == 0 ? 0 : answeredItems / totalItems;
-
-  double get points => scorable.fold(
-        0.0,
-        (sum, c) => sum + (responses[c.id]?.points ?? 0),
-      );
-
-  /// Not Applicable removes a criterion from the denominator, matching
-  /// recalculate_audit() in SQL.
-  double get maxPoints => scorable.fold(
-        0.0,
-        (sum, c) =>
-            sum +
-            ((responses[c.id]?.isNotApplicable ?? false) ? 0 : c.maxPoints),
-      );
-
-  double get percent => maxPoints == 0 ? 0 : (points / maxPoints) * 100;
-
-  GradingBand? get band {
-    for (final b in blueprint.bands) {
-      final byPercent = b.minPercent != null || b.maxPercent != null;
-      if (byPercent) {
-        if (percent >= (b.minPercent ?? -1e9) &&
-            percent <= (b.maxPercent ?? 1e9)) {
-          return b;
-        }
-      } else if (points >= (b.minPoints ?? -1e9) &&
-          points <= (b.maxPoints ?? 1e9)) {
-        return b;
-      }
-    }
-    return null;
-  }
-
-  List<AssessmentCriterion> get unscored =>
-      scorable.where((c) => !(responses[c.id]?.isAnswered ?? false)).toList();
-
-  /// Criteria the template marks as needing evidence that still have none.
-  List<AssessmentCriterion> get missingEvidence => scorable
-      .where((c) =>
-          c.evidenceRequired &&
-          (responses[c.id]?.isAnswered ?? false) &&
-          !(responses[c.id]?.isNotApplicable ?? false) &&
-          (responses[c.id]?.evidenceCount ?? 0) == 0)
-      .toList();
-
-  int countAtLevel(ScoreLevel level) =>
-      scorable.where((c) => responses[c.id]?.level == level).length;
-
-  int sectionAnswered(String sectionId) => blueprint
-      .criteriaOfSection(sectionId)
-      .where((c) => responses[c.id]?.isAnswered ?? false)
-      .length;
-
-  double sectionPercent(String sectionId) {
-    final criteria = blueprint.criteriaOfSection(sectionId);
-    final max = criteria.fold<double>(
-        0,
-        (sum, c) =>
-            sum +
-            ((responses[c.id]?.isNotApplicable ?? false) ? 0 : c.maxPoints));
-    if (max == 0) return 0;
-    final got = criteria.fold<double>(
-        0, (sum, c) => sum + (responses[c.id]?.points ?? 0));
-    return (got / max) * 100;
-  }
+  AssessmentScoreCalculator get calculation =>
+      AssessmentScoreCalculator(blueprint, responses);
+  Iterable<AssessmentCriterion> get scorable => calculation.scorable;
+  int get totalItems => calculation.totalItems;
+  int get answeredItems => calculation.answeredItems;
+  double get progress => calculation.progress;
+  double get points => calculation.points;
+  double get maxPoints => calculation.maxPoints;
+  double get percent => calculation.percent;
+  GradingBand? get band => calculation.band;
+  List<AssessmentCriterion> get unscored => calculation.unscored;
+  List<AssessmentCriterion> get missingEvidence => calculation.missingEvidence;
+  int countAtLevel(ScoreLevel level) => calculation.countAtLevel(level);
+  int sectionAnswered(String id) => calculation.sectionAnswered(id);
+  double sectionPercent(String id) => calculation.sectionPercent(id);
 
   AuditRunnerState copyWith({
     AuditSummary? summary,
@@ -133,17 +76,18 @@ class AuditRunnerController
           .read(assessmentRepositoryProvider)
           .loadBlueprint(summary.templateId);
       final responses = await _audits.responses(auditId);
+      if (!mounted) return;
       state = AsyncValue.data(AuditRunnerState(
         blueprint: blueprint,
         summary: summary,
         responses: responses,
       ));
     } catch (error, stack) {
-      state = AsyncValue.error(error, stack);
+      if (mounted) state = AsyncValue.error(error, stack);
     }
   }
 
-  AuditRunnerState? get _current => state.valueOrNull;
+  AuditRunnerState? get _current => mounted ? state.valueOrNull : null;
 
   /// Records a score. The UI updates immediately; the write goes through
   /// the outbox so it survives a lost connection.
@@ -261,6 +205,15 @@ class AuditRunnerController
   Future<void> _persist(String criterionId, AuditResponse response) async {
     try {
       await _audits.saveResponse(response);
+      final persisted = await _audits.pendingResponse(auditId, criterionId);
+      final current = _current;
+      if (persisted != null && current != null) {
+        _apply(
+            criterionId,
+            (current.responses[criterionId] ?? response)
+                .copyWith(id: persisted.id, rowVersion: persisted.rowVersion),
+            saving: false);
+      }
     } finally {
       final current = _current;
       if (current != null) {
@@ -295,9 +248,10 @@ class AuditRunnerController
       throw StateError(
           'Assessment changes are still being saved. Please retry.');
     }
-    await _audits.flushNow(auditId: auditId);
-    await _audits.setStatus(auditId, AuditStatus.submitted);
-    await load();
+    final repository = _audits;
+    await repository.flushNow(auditId: auditId);
+    if (!mounted) return;
+    throw StateError('KAFAA_SIGNOFF_REQUIRED_CLIENT_UPDATE');
   }
 }
 

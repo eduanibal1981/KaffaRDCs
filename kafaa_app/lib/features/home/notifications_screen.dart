@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/enum_labels.dart';
@@ -61,6 +62,12 @@ class NotificationsScreen extends ConsumerWidget {
                           .read(notificationRepositoryProvider)
                           .markRead(n.id);
                       ref.invalidate(notificationsProvider);
+                    }
+                    final auditId = n.payload['audit_id'];
+                    if (context.mounted &&
+                        auditId is String &&
+                        RegExp(r'^[0-9a-fA-F-]{36}$').hasMatch(auditId)) {
+                      context.push('/audits/$auditId/dialogue');
                     }
                   },
                   child: Row(

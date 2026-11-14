@@ -1,11 +1,11 @@
-import 'dart:io';
+import '../supabase/supabase_providers.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -14,6 +14,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/l10n/l10n_extensions.dart';
 import '../models/analytics.dart';
 import '../models/audit.dart';
+import '../models/assessment_session.dart';
 import '../models/primitives.dart';
 import 'analytics_repository.dart';
 
@@ -24,7 +25,12 @@ import 'analytics_repository.dart';
 /// family once and caching it, and finally falls back to the built-in
 /// Helvetica for English-only reports. See docs/SETUP.md.
 class ReportService {
-  ReportService(this._analytics);
+  ReportService(this._analytics,
+      {this.sample = false, this.checkActive, this.loadAttribution});
+
+  final Future<Map<String, dynamic>> Function(String)? loadAttribution;
+  final bool sample;
+  final void Function()? checkActive;
 
   final AnalyticsRepository _analytics;
 
@@ -38,6 +44,7 @@ class ReportService {
   static const _lightGrey = PdfColor.fromInt(0xFFF1F5F9);
 
   Future<void> _ensureFonts() async {
+    checkActive?.call();
     if (_fontsResolved) return;
     _fontsResolved = true;
 
@@ -50,6 +57,7 @@ class ReportService {
       // No bundled font — try the network copy.
     }
 
+    if (sample) return;
     try {
       _regular = await PdfGoogleFonts.cairoRegular();
       _bold = await PdfGoogleFonts.cairoBold();
@@ -71,14 +79,16 @@ class ReportService {
   // Audit report
   // -------------------------------------------------------------------
 
-  Future<File> buildAuditPdf({
+  Future<XFile> buildAuditPdf({
     required AuditSummary summary,
     required List<ScoreBreakdown> domains,
     required List<CriterionDetail> criteria,
     required String locale,
     bool includeEvidenceList = true,
+    Map<String, dynamic>? attribution,
   }) async {
     await _ensureFonts();
+    checkActive?.call();
     final arabic = locale == 'ar' && canRenderArabic;
     final dir = arabic ? pw.TextDirection.rtl : pw.TextDirection.ltr;
 
@@ -87,10 +97,18 @@ class ReportService {
         arabic ? 'ar' : 'en', summary.centerNameEn, summary.centerNameAr);
 
     final doc = pw.Document(
-      title: 'Kafaa ${summary.centerCode} ${summary.cycleLabel ?? ''}',
+      title:
+          '${sample ? 'Sample testing mode — ' : ''}Kafaa ${summary.centerCode} ${summary.cycleLabel ?? ''}',
       author: "Kafa'a Initiative",
     );
 
+    final attributed = attribution ??
+        await loadAttribution?.call(summary.auditId) ??
+        <String, dynamic>{};
+    final roster = (attributed['team'] as List? ?? [])
+        .where((m) => m['removed_at'] == null)
+        .toList();
+    final signed = Map<String, dynamic>.from(attributed['audit'] ?? {});
     final findings = criteria
         .where((c) =>
             c.level == ScoreLevel.partiallyMet || c.level == ScoreLevel.notMet)
@@ -107,7 +125,7 @@ class ReportService {
             : pw.Container(
                 margin: const pw.EdgeInsets.only(bottom: 12),
                 child: pw.Text(
-                  '${t("Kafa'a Initiative", 'مبادرة كفاءة')} — $centreName',
+                  '${sample ? t('Sample — testing mode', 'نموذج — وضع الاختبار') : t("Kafa'a Initiative", 'مبادرة كفاءة')} — $centreName',
                   style: const pw.TextStyle(fontSize: 9, color: _grey),
                 ),
               ),
@@ -121,16 +139,56 @@ class ReportService {
           ),
         ),
         build: (context) => [
+          if (sample)
+            pw.Text(t('Sample — testing mode', 'نموذج — وضع الاختبار')),
           _pdfHeader(t, centreName, summary),
           pw.SizedBox(height: 18),
+          pw.Text(t('Evaluation team', 'فريق التقييم'),
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          for (final m in roster)
+            pw.Padding(
+                padding: const pw.EdgeInsets.only(bottom: 8),
+                child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      _attributedText(
+                          '${m['member_name'] ?? m['full_name'] ?? ''}'),
+                      _attributedText(
+                          '${m['actual_job_title'] ?? t('Recorded job not supplied', 'لم يسجل المسمى الوظيفي')}'),
+                      pw.Text(m['team_role'] == 'lead'
+                          ? t('Lead auditor', 'رئيس فريق التدقيق')
+                          : t('Team member', 'عضو الفريق')),
+                    ])),
+          _attributedText(signed['signed_off_name'] as String? ??
+              t('Electronic sign-off not recorded', 'لم يسجل إقرار إلكتروني')),
+          if (signed['signed_off_at'] != null)
+            pw.Text(signed['signed_off_at'].toString(),
+                textDirection: pw.TextDirection.ltr),
+          if (signed['signoff_note'] != null)
+            _attributedText(signed['signoff_note']),
+          if (signed['signoff_version'] != null)
+            pw.Text(
+                '${signed['signoff_version']} · ${signed['signed_content_version']}',
+                textDirection: pw.TextDirection.ltr),
+          pw.Text(
+              '${t('Official version', 'الإصدار الرسمي')}: ${summary.version}'),
+          pw.Text(summary.templateId, textDirection: pw.TextDirection.ltr),
+          if (attributed['structure_version'] != null)
+            pw.Text('v ${(attributed['structure_version'] as num) / 100}',
+                textDirection: pw.TextDirection.ltr),
+          if (summary.sessionId != null)
+            pw.Text(summary.sessionId!, textDirection: pw.TextDirection.ltr),
+          pw.SizedBox(height: 12),
           _pdfScoreBlock(t, summary, arabic),
           pw.SizedBox(height: 18),
-          pw.Text(t('Scores by main area', 'النتائج حسب المجال الرئيسي'),
-              style:
-                  pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
-          pw.SizedBox(height: 8),
-          _pdfDomainTable(t, domains, arabic),
-          pw.SizedBox(height: 18),
+          if (domains.isNotEmpty) ...[
+            pw.Text(t('Scores by main area', 'النتائج حسب المجال الرئيسي'),
+                style:
+                    pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 8),
+            _pdfDomainTable(t, domains, arabic),
+            pw.SizedBox(height: 18),
+          ],
           if (findings.isNotEmpty) ...[
             pw.Text(
               t('Findings requiring action (${findings.length})',
@@ -141,23 +199,23 @@ class ReportService {
             _pdfFindingsTable(t, findings, arabic),
             pw.SizedBox(height: 18),
           ],
-          pw.Text(t('Full checklist', 'قائمة التقييم الكاملة'),
-              style:
-                  pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
-          pw.SizedBox(height: 8),
-          _pdfCriteriaTable(t, criteria, arabic, includeEvidenceList),
+          if (criteria.isNotEmpty) ...[
+            pw.Text(t('Full checklist', 'قائمة التقييم الكاملة'),
+                style:
+                    pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 8),
+            _pdfCriteriaTable(t, criteria, arabic, includeEvidenceList),
+          ],
         ],
       ),
     );
 
-    final bytes = await doc.save();
-    final dirPath = await getTemporaryDirectory();
-    final file = File(p.join(
-      dirPath.path,
-      'kafaa_${summary.centerCode}_${summary.cycleLabel ?? 'report'}_$locale.pdf',
-    ));
-    await file.writeAsBytes(bytes);
-    return file;
+    return XFile.fromData(
+      await doc.save(),
+      mimeType: 'application/pdf',
+      name:
+          'kafaa_${summary.centerCode}_${summary.cycleLabel ?? 'report'}_$locale.pdf',
+    );
   }
 
   pw.Widget _pdfHeader(
@@ -186,18 +244,35 @@ class ReportService {
               style:
                   pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 6),
+          if (s.sessionId != null) ...[
+            pw.Text(t(s.sessionTitleEn ?? '',
+                s.sessionTitleAr ?? s.sessionTitleEn ?? '')),
+            pw.SizedBox(height: 4),
+          ],
+          pw.Text(t(s.templateNameEn ?? '',
+              s.templateNameAr ?? s.templateNameEn ?? '')),
+          pw.SizedBox(height: 4),
+          pw.Text(
+              '${t('Period covered', 'الفترة المشمولة')}  ${s.periodStart?.toIso8601String().split('T').first ?? '—'} – ${s.periodEnd?.toIso8601String().split('T').first ?? '—'}'),
+          pw.SizedBox(height: 6),
           pw.Row(children: [
             _kv(t('Cycle', 'الدورة'), s.cycleLabel ?? '—'),
             pw.SizedBox(width: 24),
             _kv(t('Evaluation date', 'تاريخ التقييم'),
                 s.evaluationDate?.toIso8601String().split('T').first ?? '—'),
             pw.SizedBox(width: 24),
-            _kv(t('Evaluator', 'المُقيِّم'), s.leadAuditorName ?? '—'),
+            _kv(t('Evaluator', 'المُقيِّم'),
+                s.evaluatorName ?? s.leadAuditorName ?? '—'),
           ]),
         ],
       ),
     );
   }
+
+  pw.Widget _attributedText(String value) => pw.Text(value,
+      textDirection: RegExp(r'[؀-ۿ]').hasMatch(value)
+          ? pw.TextDirection.rtl
+          : pw.TextDirection.ltr);
 
   pw.Widget _kv(String label, String value) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -414,9 +489,11 @@ class ReportService {
       includeEvidenceList: includeEvidenceList,
     );
 
+    checkActive?.call();
     await SharePlus.instance.share(
       ShareParams(
-        files: [XFile(file.path)],
+        files: [file],
+        fileNameOverrides: [file.name],
         subject: "Kafa'a report — ${summary.centerNameEn}",
       ),
     );
@@ -425,6 +502,9 @@ class ReportService {
   Future<void> exportAuditCsv(
       BuildContext context, AuditSummary summary) async {
     final criteria = await _analytics.criterionDetail(summary.auditId);
+    final attribution =
+        await loadAttribution?.call(summary.auditId) ?? <String, dynamic>{};
+    final signature = Map<String, dynamic>.from(attribution['audit'] ?? {});
     final rows = <List<dynamic>>[
       [
         'centre_code',
@@ -443,6 +523,21 @@ class ReportService {
         'evidence_count',
         'comment',
         'ncr_code',
+        'assessment_id',
+        'audit_id',
+        'audit_version',
+        'structure_id',
+        'structure_name',
+        'period_key',
+        'period_start',
+        'period_end',
+        'structure_version',
+        'team_snapshots',
+        'signed_off_by',
+        'signed_off_name',
+        'signed_off_at',
+        'signoff_version',
+        'signoff_note',
       ],
       for (final c in criteria)
         [
@@ -462,6 +557,21 @@ class ReportService {
           c.evidenceCount,
           c.comment ?? '',
           c.ncrCode ?? '',
+          summary.sessionId ?? '',
+          summary.auditId,
+          summary.version,
+          summary.templateId,
+          summary.templateNameEn ?? '',
+          summary.periodKey ?? '',
+          summary.periodStart?.toIso8601String().split('T').first ?? '',
+          summary.periodEnd?.toIso8601String().split('T').first ?? '',
+          attribution['structure_version'] ?? '',
+          jsonEncode(attribution['team'] ?? []),
+          signature['signed_off_by'] ?? '',
+          signature['signed_off_name'] ?? '',
+          signature['signed_off_at'] ?? '',
+          signature['signoff_version'] ?? '',
+          signature['signoff_note'] ?? '',
         ],
     ];
     await _shareCsv(rows,
@@ -469,7 +579,8 @@ class ReportService {
   }
 
   Future<void> exportComparisonCsv(
-      BuildContext context, List<CenterRanking> ranking) async {
+      BuildContext context, List<CenterRanking> ranking,
+      {AssessmentSession? session}) async {
     final rows = <List<dynamic>>[
       [
         'rank',
@@ -485,6 +596,15 @@ class ReportService {
         'satisfaction_responses',
         'open_actions',
         'overdue_actions',
+        'assessment_id',
+        'assessment_name',
+        'structure_id',
+        'structure_name',
+        'period_key',
+        'period_start',
+        'period_end',
+        'eligible_centres',
+        'approved_centres',
       ],
       for (final r in ranking)
         [
@@ -501,22 +621,47 @@ class ReportService {
           r.satisfactionResponses,
           r.openNcrCount,
           r.overdueNcrCount,
+          r.summary.sessionId ?? '',
+          session?.titleEn ?? '',
+          r.summary.templateId,
+          r.summary.templateNameEn ?? '',
+          r.summary.periodKey ?? '',
+          r.summary.periodStart?.toIso8601String().split('T').first ?? '',
+          r.summary.periodEnd?.toIso8601String().split('T').first ?? '',
+          session?.eligibleCount ?? '',
+          session?.approvedCount ?? '',
         ],
     ];
     await _shareCsv(rows, 'kafaa_comparison.csv');
   }
 
   Future<void> _shareCsv(List<List<dynamic>> rows, String fileName) async {
-    final csv = const ListToCsvConverter().convert(rows);
-    final dir = await getTemporaryDirectory();
-    final file = File(p.join(dir.path, fileName));
+    checkActive?.call();
+    final output = sample
+        ? <List<dynamic>>[
+            ['Sample — testing mode', 'نموذج — وضع الاختبار'],
+            ...rows
+          ]
+        : rows;
+    final csv = const ListToCsvConverter().convert(output);
+    final exportName = sample ? 'sample_$fileName' : fileName;
     // The BOM makes Excel open the Arabic columns as UTF-8 rather than
     // as the local code page.
-    await file.writeAsString('﻿$csv');
-    await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+    final file = XFile.fromData(
+      Uint8List.fromList(utf8.encode('\ufeff$csv')),
+      mimeType: 'text/csv',
+      name: exportName,
+    );
+    checkActive?.call();
+    await SharePlus.instance.share(
+      ShareParams(files: [file], fileNameOverrides: [exportName]),
+    );
   }
 }
 
 final reportServiceProvider = Provider<ReportService>(
-  (ref) => ReportService(ref.watch(analyticsRepositoryProvider)),
+  (ref) => ReportService(ref.watch(analyticsRepositoryProvider),
+      loadAttribution: (id) async => Map<String, dynamic>.from(
+          await watchSessionClient(ref)
+              .rpc('load_audit_attribution', params: {'p_audit_id': id}))),
 );

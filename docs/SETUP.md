@@ -51,8 +51,9 @@ Then the seeds:
 | 1 | `seed/0001_template_kafaa_2025_2026.sql` | **Yes** — template, domains, sections, grading bands |
 | 2 | `seed/0002_criteria_79_items.sql` | **Yes** — the 79 criteria in both languages |
 | 3 | `seed/0003_reference_data.sql` | **Yes** — settings, competencies, badges, survey, dictionary |
-| 4 | `seed/0004_demo_data.sql` | Recommended — the four Muscat renal units with two cycles of sample data |
+| 4 | `seed/0004_demo_data.sql` | Optional synthetic centres, staff and surveys |
 | 5 | `seed/0005_bootstrap_users.sql` | **Yes** — installs the role-granting helper |
+| 6 | `seed/0006_shared_assessment_demo.sql` | Optional shared assessment examples, after migrations and an app Super Admin grant |
 
 Seed 2 ends with an integrity check. A successful run prints:
 
@@ -63,9 +64,12 @@ NOTICE:  Kafa'a template loaded: 79 scored items, 237 maximum points
 If it raises `Seed integrity check failed`, something did not load — re-run
 seeds 1 and 2 from the top.
 
-> **Going live:** skip `0004_demo_data.sql`, or remove the demo centres with
-> `delete from public.centers where code like 'RDC-%';` (audits, findings and
-> survey responses cascade away with them).
+The combined installer also includes the Audit Structure versions, shared
+assessment and shared-only migrations in the order maintained by
+`supabase/build_full_schema.ps1`. Individual installs must apply those upgrades
+before loading the shared mock assessments.
+
+Use the optional mock seeds only in a demonstration environment.
 
 ## 3. Create the first accounts
 
@@ -169,6 +173,36 @@ and relaunching the app; hot reload cannot add missing build-time configuration.
 Building without the keys is not a crash — the app shows a screen explaining
 exactly which values are missing.
 
+### Debug on a physical iPhone
+
+1. Connect and unlock the iPhone. Tap **Trust** if prompted.
+2. Turn on **Settings → Privacy & Security → Developer Mode** if required,
+   restart the iPhone, then confirm Developer Mode after it restarts.
+3. In Xcode, open `kafaa_app/ios/Runner.xcworkspace`. Under the **Runner**
+   target's **Signing & Capabilities**, select the Apple development team
+   authorized to sign Kafaa and enable automatic signing.
+4. In VS Code, select the iPhone as the Flutter device and start **Kafaa
+   (dev)**. From the workspace root, you can also run
+   `./scripts/run-kafaa -d <iphone-device-id>` using the ID from
+   `flutter devices`.
+
+[Flutter iOS development setup](https://docs.flutter.dev/platform-integration/ios/setup)
+
+### Build the Safari preview
+
+From `kafaa_app`, generate the browser SQLite assets and build with the same
+development configuration as the mobile app.
+
+```bash
+flutter pub get
+dart run sqflite_common_ffi_web:setup
+flutter build web --no-web-resources-cdn --no-wasm-dry-run --dart-define-from-file=env/dev.json
+```
+
+Serve `build/web` from the root of an HTTPS origin. The preview uses the
+existing Kafaa sign-in and keeps its cache and outbox in browser storage
+scoped to the origin, backend, and signed-in user.
+
 ## 6. Release builds
 
 ```bash
@@ -208,10 +242,10 @@ tries three sources in order:
 2. Google Fonts over the network, cached after the first use.
 3. Built-in Helvetica — English reports render correctly, Arabic does not.
 
-To bundle it: download [Cairo from Google Fonts](https://fonts.google.com/specimen/Cairo)
-(SIL Open Font License, free to redistribute), and drop `Cairo-Regular.ttf` and
-`Cairo-Bold.ttf` into `kafaa_app/assets/fonts/`. Nothing else to change — the
-`pubspec.yaml` asset entry already points at that folder.
+Cairo Regular and Bold are bundled in `kafaa_app/assets/fonts`, with weights
+400 and 700. Their SIL Open Font License is included in `OFL.txt`. Sample exports
+resolve bundled fonts for offline generation. The source is maintained in the
+[Google Fonts Cairo directory](https://github.com/google/fonts/tree/main/ofl/cairo).
 
 ## 8. Scheduled jobs (optional but recommended)
 
@@ -235,22 +269,19 @@ dates on read) but no notification is sent.
 Sign in as the super admin. You should see:
 
 - **Home** — four renal units, an average score, open actions
-- **Centres → Compare centres** — a ranking table with Quriyat at 221/237 (Excellent)
-- **Audits** — eight approved, plus a **draft at Seeb** with a *Continue
-  scoring* button and one **submitted at Bausher** awaiting review
-- **Setup → Scoring structure** — 5 main areas, 22 sections, 79 points, 237 max
+- **Centres → Compare centres** shows results from approved shared participation.
+- **Audits** opens shared assessments directly.
+- **Mock assessment · 2026-H1** is closed with four approved centre results.
+- **Mock assessment · 2026-H2** has Quriyat approved, Bausher submitted, Seeb
+  partially scored and Al Amerat available to join.
+- **More → Setup → Audit Structures** lists the saved structure versions.
 
-Tap *Continue scoring* on the Seeb draft to reach the checklist and score a
-point Met / Partially Met / Not Met.
+Open the H2 shared assessment and choose Seeb’s **Continue scoring** to exercise
+scoring, or Al Amerat’s **Join assessment** to start a centre’s participation.
 
-> Re-running `0004_demo_data.sql` replaces its own rows rather than duplicating
-> them. If you loaded a version from before that was true, run
-> `seed/0004_reset_before_reseed.sql` first — it clears the demo centres'
-> audits, findings, survey responses and staff, so do not run it on a database
-> holding real evaluations.
-
-If Compare is empty but Centres is not, the analytics views did not load —
-re-run `0009_analytics_views.sql`.
+`0006_shared_assessment_demo.sql` is safe to repeat. It retains its existing
+joined work and uses stable session client identities. The shared-only migration
+rejects standalone assessment inserts from older clients.
 
 If everything is empty, RLS is working but your account has no role — go back
 to step 3.
@@ -323,3 +354,77 @@ Both language names and a unique reference code are required when adding a
 main area or section. If an area such as `GOV` was imported already, edit that
 area or use a new code such as `GOV-2`; duplicate-code errors now appear in the
 form without clearing the entered names.
+
+## Planned role-specific interfaces
+
+See [Role UI implementation plans](ROLE_UI_IMPLEMENTATION_PLANS.md) for the
+Admin/owner tester, Directorate, Head of Centre and Auditor workflows. The pack
+includes a shared technical contract, delivery sequence and acceptance tests.
+It describes proposed work; setup and the currently deployed schema remain
+as documented above.
+
+
+## Owner testing tools
+
+Use the configured Kafaa launcher to load the current app build. Open
+More → Administration → View as for local sample role testing, or
+Administration → Users and access for existing account grants. Role previews
+use an ephemeral four-criterion sample scenario. The testing banner supplies
+Exit preview on full-screen routes.
+
+Cairo Regular and Bold are bundled in `kafaa_app/assets/fonts` for Arabic PDF
+exports, with their SIL Open Font License. Owner preview and database
+verification details are in [PROJECT_REVIEW.md](PROJECT_REVIEW.md).
+
+
+### Preserve device storage when updating
+
+Use `./scripts/run-kafaa -d emulator-5554` from the workspace root (or the
+configured VS Code profile). Do not use `flutter install` for routine updates:
+the installed CLI uninstalls the app first, which removes sign-in and local
+cache/outbox data. This occurred during Directorate verification on 13 November
+2026; the emulator now requires sign-in. Hosted records were preserved. See
+`docs/PROJECT_REVIEW.md` for the incident and recovery limitation.
+
+
+### If a successful build says “Kafa'a is not configured”
+
+Stop the current terminal run with `q`. From the workspace root use:
+
+```sh
+./scripts/run-kafaa -d emulator-5554
+```
+
+If your terminal is already in `kafaa_app`, use:
+
+```sh
+flutter run --dart-define-from-file=env/dev.json -d emulator-5554
+```
+
+Selecting device `1` after bare `flutter run` does not load the environment
+file. A hot reload/restart cannot add missing build defines to that run; stop
+and launch with the command above. In VS Code select **Kafaa (dev)** (parent
+workspace) or **kafaa_app (dev)** (app folder). Keep `env/dev.json` private.
+
+
+## Centre Head delivery — 14 November 2026
+
+Plan 3's hosted schema and private proof bucket are installed. Use the existing
+Kafaa VS Code development profile or `./scripts/run-kafaa -d emulator-5554`;
+MCP authorization does not provide Flutter build defines. Use the launcher for
+routine updates; do not use `flutter install` or clear app data.
+
+The owner can choose the Head of Centre **Campaign** preview from Administration
+and test joining, self-scoring, proof, snapshots and gaps without changing real
+grants. Automated role/API tests cover the actual hosted contracts separately.
+Run `flutter analyze` and `flutter test` from `kafaa_app`. Optional rendered QA:
+
+```sh
+flutter test test/self_audit_controller_test.dart --dart-define=KAFAA_CAPTURE_QA=true
+```
+
+Remaining manual checks are camera and file-picker cancellation/permissions,
+real-device restart with unsynced proof, native sharing, iOS runtime, and browser
+quota/offline PDF viewing. The rendered widget tests do not establish those
+hardware/browser behaviors. Current evidence and exact scope are in
+`docs/evidence/center-head-verification.json` and `docs/PROJECT_REVIEW.md`.

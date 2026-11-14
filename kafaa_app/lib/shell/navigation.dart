@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/l10n/l10n_extensions.dart';
 import '../core/routing/app_router.dart';
 import '../features/auth/session.dart';
+import '../data/models/primitives.dart';
 
 /// One entry in the bottom bar or the More list.
 class NavItem {
@@ -114,9 +115,20 @@ String _moreLabel(BuildContext c) => c.l10n.navMore;
 /// one centre, so the centre list only appears for people who work across
 /// several — which is exactly what `homeCenterId == null` means.
 List<NavItem> candidateDestinations(Permissions perms) => [
-      _home,
-      if (perms.homeCenterId == null && perms.hasAnyRole) _centres,
-      if (perms.canRunAudits) _audits,
+      if (perms.primaryRole == AppRole.directorate)
+        _overview
+      else if (perms.primaryRole == AppRole.centerManager)
+        _myCenter
+      else if (perms.primaryRole == AppRole.auditor)
+        _work
+      else
+        _home,
+      if (perms.homeCenterId == null &&
+          perms.hasAnyRole &&
+          perms.primaryRole != AppRole.centerManager &&
+          perms.primaryRole != AppRole.auditor)
+        _centres,
+      if (perms.canAccessAssessments) _audits,
       _actions,
       if (perms.canManageStaff) _staff,
     ];
@@ -130,3 +142,21 @@ List<NavItem> primaryDestinations(Permissions perms) => [
 /// What did not fit, so More can offer it instead of losing it.
 List<NavItem> overflowDestinations(Permissions perms) =>
     candidateDestinations(perms).skip(kMaxNavDestinations - 1).toList();
+
+final _overview = NavItem(
+    route: Routes.home,
+    icon: Icons.dashboard_outlined,
+    selectedIcon: Icons.dashboard,
+    label: (context) => context.l10n.directorateOverviewNav);
+
+final _myCenter = NavItem(
+    route: Routes.home,
+    icon: Icons.local_hospital_outlined,
+    selectedIcon: Icons.local_hospital,
+    label: (context) => context.l10n.navMyCenter);
+
+final _work = NavItem(
+    route: Routes.home,
+    icon: Icons.work_outline,
+    selectedIcon: Icons.work,
+    label: (c) => c.l10n.auditorWorkNav);

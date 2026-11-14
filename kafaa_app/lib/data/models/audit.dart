@@ -32,6 +32,18 @@ class AuditSummary {
     required this.version,
     this.periodFrequency = PeriodFrequency.semiannual,
     this.periodKey,
+    this.templateNameEn,
+    this.templateNameAr,
+    this.participationId,
+    this.sessionId,
+    this.sessionStatus,
+    this.sessionDueAt,
+    this.sessionTitleEn,
+    this.sessionTitleAr,
+    this.centerActive = true,
+    this.evaluatorName,
+    this.registeredPatients,
+    this.dialysisBeds,
   });
 
   final String auditId;
@@ -67,6 +79,28 @@ class AuditSummary {
   final PeriodFrequency periodFrequency;
   final String? periodKey;
 
+  final String? templateNameEn;
+  final String? templateNameAr;
+  final String? participationId;
+  final String? sessionId;
+  final String? sessionStatus;
+  final DateTime? sessionDueAt;
+  final String? sessionTitleEn;
+  final String? sessionTitleAr;
+  final bool centerActive;
+  final String? evaluatorName;
+  final int? registeredPatients;
+  final int? dialysisBeds;
+
+  bool get isShared => participationId != null && sessionId != null;
+
+  bool get isEditable =>
+      isShared &&
+      status.isEditable &&
+      centerActive &&
+      sessionStatus == 'open' &&
+      (sessionDueAt == null || sessionDueAt!.isAfter(DateTime.now()));
+
   bool get isComplete => scorableCount > 0 && answeredCount >= scorableCount;
   int get remainingItems => (scorableCount - answeredCount).clamp(0, 1 << 30);
 
@@ -75,33 +109,9 @@ class AuditSummary {
     final periodEnd = asDate(m['period_end']);
     final evalDate = asDate(m['evaluation_date']);
 
-    final rawFreq = asStringOrNull(m['period_frequency']);
-    PeriodFrequency frequency;
-    if (rawFreq != null && rawFreq.isNotEmpty) {
-      frequency = PeriodFrequency.tryParse(rawFreq);
-    } else if (periodStart != null && periodEnd != null) {
-      final months = (periodEnd.year - periodStart.year) * 12 +
-          periodEnd.month -
-          periodStart.month +
-          1;
-      frequency = switch (months) {
-        1 => PeriodFrequency.monthly,
-        3 => PeriodFrequency.quarterly,
-        6 => PeriodFrequency.semiannual,
-        12 => PeriodFrequency.annual,
-        _ => PeriodFrequency.semiannual,
-      };
-    } else {
-      frequency = PeriodFrequency.semiannual;
-    }
-
-    var pKey = asStringOrNull(m['period_key']);
-    if (pKey == null || pKey.isEmpty) {
-      final anchor = periodStart ?? periodEnd ?? evalDate;
-      if (anchor != null) {
-        pKey = frequency.keyFor(anchor);
-      }
-    }
+    final frequency =
+        PeriodFrequency.tryParse(asStringOrNull(m['period_frequency']));
+    final pKey = asStringOrNull(m['period_key']);
 
     return AuditSummary(
       auditId: asString(m['audit_id'] ?? m['id']),
@@ -133,31 +143,20 @@ class AuditSummary {
       version: asIntOr(m['version'], 1),
       periodFrequency: frequency,
       periodKey: pKey,
+      templateNameEn: asStringOrNull(m['template_name_en']),
+      templateNameAr: asStringOrNull(m['template_name_ar']),
+      participationId: asStringOrNull(m['participation_id']),
+      sessionId: asStringOrNull(m['session_id']),
+      sessionStatus: asStringOrNull(m['session_status']),
+      sessionDueAt: asDate(m['session_due_at']),
+      sessionTitleEn: asStringOrNull(m['session_title_en']),
+      sessionTitleAr: asStringOrNull(m['session_title_ar']),
+      centerActive: asBool(m['center_active'], fallback: true),
+      evaluatorName: asStringOrNull(m['evaluator_name']),
+      registeredPatients: asInt(m['registered_patients']),
+      dialysisBeds: asInt(m['dialysis_beds']),
     );
   }
-}
-
-/// A period that actually has assessments, for the filter picker.
-class AuditPeriod {
-  const AuditPeriod({
-    required this.key,
-    required this.frequency,
-    this.periodEnd,
-    required this.auditCount,
-  });
-
-  final String key;
-  final PeriodFrequency frequency;
-  final DateTime? periodEnd;
-  final int auditCount;
-
-  factory AuditPeriod.fromMap(Map<String, dynamic> m) => AuditPeriod(
-        key: asString(m['period_key']),
-        frequency:
-            PeriodFrequency.tryParse(asStringOrNull(m['period_frequency'])),
-        periodEnd: asDate(m['period_end']),
-        auditCount: asIntOr(m['audit_count'], 0),
-      );
 }
 
 /// One scored criterion.
@@ -179,6 +178,7 @@ class AuditResponse {
     this.ncrSuppressionReason,
     this.assessedAt,
     this.evidenceCount = 0,
+    this.rowVersion = 0,
   });
 
   final String? id;
@@ -197,6 +197,7 @@ class AuditResponse {
   final String? ncrSuppressionReason;
   final DateTime? assessedAt;
   final int evidenceCount;
+  final int rowVersion;
 
   bool get isAnswered => level != null || isNotApplicable;
 
@@ -214,13 +215,15 @@ class AuditResponse {
     bool? ncrSuppressed,
     String? ncrSuppressionReason,
     int? evidenceCount,
+    int? rowVersion,
     bool clearLevel = false,
   }) =>
       AuditResponse(
         id: id ?? this.id,
         auditId: auditId,
         criterionId: criterionId,
-        scaleOptionId: clearLevel ? null : (scaleOptionId ?? this.scaleOptionId),
+        scaleOptionId:
+            clearLevel ? null : (scaleOptionId ?? this.scaleOptionId),
         level: clearLevel ? null : (level ?? this.level),
         points: points ?? this.points,
         isNotApplicable: isNotApplicable ?? this.isNotApplicable,
@@ -230,13 +233,14 @@ class AuditResponse {
         measuredValue: measuredValue ?? this.measuredValue,
         requiresFollowUp: requiresFollowUp ?? this.requiresFollowUp,
         ncrSuppressed: ncrSuppressed ?? this.ncrSuppressed,
-        ncrSuppressionReason:
-            ncrSuppressionReason ?? this.ncrSuppressionReason,
+        ncrSuppressionReason: ncrSuppressionReason ?? this.ncrSuppressionReason,
         assessedAt: assessedAt,
         evidenceCount: evidenceCount ?? this.evidenceCount,
+        rowVersion: rowVersion ?? this.rowVersion,
       );
 
   factory AuditResponse.fromMap(Map<String, dynamic> m) => AuditResponse(
+        rowVersion: asIntOr(m['row_version'], m['id'] == null ? 0 : 1),
         id: asStringOrNull(m['id'] ?? m['response_id']),
         auditId: asString(m['audit_id']),
         criterionId: asString(m['criterion_id']),
@@ -246,7 +250,8 @@ class AuditResponse {
         isNotApplicable: asBool(m['is_not_applicable']),
         comment: asStringOrNull(m['comment']),
         recommendation: asStringOrNull(m['recommendation']),
-        evidenceMethod: EvidenceMethod.tryParse(asStringOrNull(m['evidence_method'])),
+        evidenceMethod:
+            EvidenceMethod.tryParse(asStringOrNull(m['evidence_method'])),
         measuredValue: asDouble(m['measured_value']),
         requiresFollowUp: asBool(m['requires_follow_up']),
         ncrSuppressed: asBool(m['ncr_suppressed']),

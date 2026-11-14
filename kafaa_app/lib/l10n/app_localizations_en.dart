@@ -201,7 +201,7 @@ class AppL10nEn extends AppL10n {
   String get roleAuditor => 'Auditor';
 
   @override
-  String get roleCenterManager => 'Centre manager';
+  String get roleCenterManager => 'Head of Centre';
 
   @override
   String get roleViewer => 'Viewer';
@@ -257,7 +257,24 @@ class AppL10nEn extends AppL10n {
   String get centreWilayat => 'Wilayat';
 
   @override
+  String get centreAuditFilter => 'Audit';
+
+  @override
+  String get centreLatestAudit => 'Latest audit';
+
+  @override
+  String get centreNotInvolved => 'Not involved yet';
+
+  @override
   String get centreLastAssessed => 'Last assessed';
+
+  @override
+  String get centreLatestApprovedAssessment => 'Latest approved assessment';
+
+  @override
+  String centreResultFrom(String assessment) {
+    return 'Result from $assessment';
+  }
 
   @override
   String get centreNoAudit => 'Not assessed yet';
@@ -443,10 +460,6 @@ class AppL10nEn extends AppL10n {
   String get auditScoreHint => 'Score each point Met, Partially Met or Not Met';
 
   @override
-  String get auditNothingToScore =>
-      'Every assessment here is approved and locked. Start a new one to score a centre.';
-
-  @override
   String get auditReview => 'Review and submit';
 
   @override
@@ -490,19 +503,6 @@ class AppL10nEn extends AppL10n {
   @override
   String get auditLocked =>
       'This assessment is approved and can no longer be edited.';
-
-  @override
-  String get auditDeleteDraft => 'Delete draft';
-
-  @override
-  String get auditDeleteDraftTitle => 'Delete draft assessment?';
-
-  @override
-  String get auditDeleteDraftConfirm =>
-      'Are you sure you want to delete this draft assessment? This action cannot be undone.';
-
-  @override
-  String get auditDraftDeleted => 'Draft assessment deleted.';
 
   @override
   String get criterionComment => 'Comment';
@@ -1472,4 +1472,907 @@ class AppL10nEn extends AppL10n {
   @override
   String get structureCodeHelp =>
       'Unique within this version, for example GOV or GOV-2.';
+
+  @override
+  String get assessmentShared => 'Shared assessments';
+
+  @override
+  String get assessmentName => 'Assessment name';
+
+  @override
+  String get assessmentNameAr => 'Assessment name in Arabic';
+
+  @override
+  String get assessmentSaveDraft => 'Save draft';
+
+  @override
+  String get assessmentPublish => 'Publish assessment';
+
+  @override
+  String get assessmentAllCenters =>
+      'Available to all active centres when published';
+
+  @override
+  String get assessmentDue => 'Submission deadline';
+
+  @override
+  String get assessmentNoDeadline => 'No deadline';
+
+  @override
+  String get assessmentOpen => 'Open';
+
+  @override
+  String get assessmentClosed => 'Closed';
+
+  @override
+  String get assessmentDraft => 'Draft';
+
+  @override
+  String get assessmentDeadlinePassed => 'Deadline passed';
+
+  @override
+  String get assessmentEmpty => 'No shared assessments yet';
+
+  @override
+  String get assessmentJoin => 'Join assessment';
+
+  @override
+  String get assessmentNotJoined => 'Not joined';
+
+  @override
+  String get assessmentJoined => 'Joined';
+
+  @override
+  String get assessmentPending => 'Pending';
+
+  @override
+  String get assessmentJoiningPending =>
+      'Joining pending. Reconnect and retry.';
+
+  @override
+  String get assessmentJoinedCount => 'Joined';
+
+  @override
+  String get assessmentSubmittedCount => 'Submitted';
+
+  @override
+  String get assessmentApprovedCount => 'Approved';
+
+  @override
+  String get assessmentClose => 'Close assessment';
+
+  @override
+  String get assessmentReopen => 'Reopen assessment';
+
+  @override
+  String get assessmentExtend => 'Change deadline';
+
+  @override
+  String get assessmentCloseConfirm =>
+      'Closing stops new joins and centre edits. Submitted results can still be reviewed.';
+
+  @override
+  String get assessmentExists =>
+      'An assessment already exists for this structure and period. Open it from Shared assessments.';
+
+  @override
+  String get assessmentGeneralInfo => 'Centre assessment information';
+
+  @override
+  String get assessmentHeaderRequired =>
+      'Save the evaluation date and evaluator in Centre assessment information before submitting.';
+
+  @override
+  String get assessmentInactive => 'Centre inactive';
+
+  @override
+  String get assessmentNoCentres => 'No eligible centres in your scope';
+
+  @override
+  String get assessmentCorrection => 'Create correction';
+
+  @override
+  String get assessmentCorrectionConfirm =>
+      'A new version copies the answers. Review them, set its evaluation date and attach evidence for this version.';
+
+  @override
+  String get assessmentOfficialResult => 'Approved result';
+
+  @override
+  String get assessmentView => 'Open assessment';
+
+  @override
+  String get assessmentCompare => 'Compare approved centres';
+
+  @override
+  String get assessmentOnlineJoin =>
+      'Connect to join. Joined assessments can be continued offline.';
+
+  @override
+  String get adminOwnerTitle => 'Administration';
+
+  @override
+  String get adminViewAs => 'View as';
+
+  @override
+  String get adminTestingMode => 'Testing mode';
+
+  @override
+  String get adminExitPreview => 'Exit preview';
+
+  @override
+  String get adminPreviewDirectorate => 'Directorate';
+
+  @override
+  String get adminPreviewCenterHead => 'Head of Centre';
+
+  @override
+  String get adminPreviewAuditor => 'Auditor';
+
+  @override
+  String get adminRoamingAuditor => 'Auditor — all centres';
+
+  @override
+  String get adminScopedAuditor => 'Auditor — selected centre';
+
+  @override
+  String get adminEnterPreview => 'Enter preview';
+
+  @override
+  String get adminMockDataNotice => 'Sample data for testing';
+
+  @override
+  String get adminTesterToolbox => 'Tester toolbox';
+
+  @override
+  String get adminSimulateOffline => 'Simulate offline';
+
+  @override
+  String get adminResetScenario => 'Reset sample scenario';
+
+  @override
+  String get adminInspectOutbox => 'Inspect pending changes';
+
+  @override
+  String get adminScenarioReset => 'Sample scenario reset';
+
+  @override
+  String get adminUsersTitle => 'Users and access';
+
+  @override
+  String get adminGrantRole => 'Grant role';
+
+  @override
+  String get adminRevokeRole => 'Revoke role';
+
+  @override
+  String get adminRoleScope => 'Centre scope';
+
+  @override
+  String get adminLastOwnerRequired => 'Keep an active app owner';
+
+  @override
+  String adminPreviewIdentity(String role, String center) {
+    return '$role · $center';
+  }
+
+  @override
+  String adminSampleContext(String center) {
+    return 'Sample scenario for $center';
+  }
+
+  @override
+  String get adminMissingCenter => 'Choose a centre';
+
+  @override
+  String get adminPreviewUnauthorized =>
+      'An active app owner account is required';
+
+  @override
+  String get adminFixturesUnavailable => 'Sample scenario unavailable';
+
+  @override
+  String get adminSampleExport => 'Sample — testing mode';
+
+  @override
+  String get adminAccessUnavailable =>
+      'Access editing needs verified server guards. Reconnect after the Kafaa access migration is installed.';
+
+  @override
+  String get adminAllCenters => 'All centres';
+
+  @override
+  String get adminInactive => 'Inactive';
+
+  @override
+  String get adminScenarioCampaign => 'Join and score';
+
+  @override
+  String get adminScenarioReview => 'Submitted for review';
+
+  @override
+  String get adminScenarioApproved => 'Approved results';
+
+  @override
+  String get adminSampleJourney => 'Sample workflow';
+
+  @override
+  String get adminSelfAudit => 'Self-audit';
+
+  @override
+  String get adminTeam => 'Evaluation team';
+
+  @override
+  String get adminFullName => 'Full name';
+
+  @override
+  String get adminActualJob => 'Actual job title';
+
+  @override
+  String get adminTeamResponsibility => 'Team responsibility';
+
+  @override
+  String get adminDiscussion => 'Discussion';
+
+  @override
+  String get adminMessage => 'Message';
+
+  @override
+  String get adminSampleProof => 'Inspect sample proof';
+
+  @override
+  String get adminQueueEmpty => 'No pending sample changes';
+
+  @override
+  String adminQueueDetails(
+      String kind, String entity, String status, int attempts) {
+    return '$kind · $entity · $status · attempts $attempts';
+  }
+
+  @override
+  String get adminQueued => 'Waiting to sync';
+
+  @override
+  String get adminFailed => 'Needs attention';
+
+  @override
+  String get adminSaved => 'Saved';
+
+  @override
+  String get adminReconnect => 'Reconnect to confirm this action';
+
+  @override
+  String get adminRequired => 'Complete the required fields';
+
+  @override
+  String adminGrantConfirm(String name) {
+    return 'Grant this role to $name?';
+  }
+
+  @override
+  String adminRevokeConfirm(String name) {
+    return 'Revoke this role from $name?';
+  }
+
+  @override
+  String get adminAccessEvents => 'Recent access activity';
+
+  @override
+  String get adminSampleOnly => 'This workflow uses local sample data';
+
+  @override
+  String get adminSelfSubmitted => 'Self-audit submitted';
+
+  @override
+  String get adminSubmitSelf => 'Submit self-audit';
+
+  @override
+  String get directorateOverview => 'Directorate overview';
+
+  @override
+  String get centerRegistryTitle => 'Centre registry';
+
+  @override
+  String get centerRegistrySearch => 'Search name or code';
+
+  @override
+  String get centerAdd => 'Add centre';
+
+  @override
+  String get centerEdit => 'Edit centre';
+
+  @override
+  String get centerDeactivate => 'Deactivate centre';
+
+  @override
+  String get centerReactivate => 'Reactivate centre';
+
+  @override
+  String get centerWilayat => 'Wilayat';
+
+  @override
+  String get centerGovernorate => 'Governorate';
+
+  @override
+  String get centerCodeInUse => 'This centre code is already used';
+
+  @override
+  String get centerIncludeInactive => 'Include inactive centres';
+
+  @override
+  String get centerCode => 'Centre code';
+
+  @override
+  String get centerNameEn => 'Centre name (English)';
+
+  @override
+  String get centerNameAr => 'Centre name (Arabic)';
+
+  @override
+  String get centerDeactivateConfirm =>
+      'History and campaign membership will be retained.';
+
+  @override
+  String get campaignBuilderTitle => 'Build assessment campaign';
+
+  @override
+  String get campaignSaveDraft => 'Save campaign draft';
+
+  @override
+  String get campaignPublish => 'Publish campaign';
+
+  @override
+  String get campaignProgress => 'Campaign progress';
+
+  @override
+  String get campaignPendingJoin => 'Not joined';
+
+  @override
+  String get campaignNotStarted => 'Joined — not started';
+
+  @override
+  String get campaignInProgress => 'In progress';
+
+  @override
+  String get campaignUnderReview => 'Under review';
+
+  @override
+  String get campaignApprovedResults => 'Approved results';
+
+  @override
+  String get campaignCorrectionInProgress => 'Correction in progress';
+
+  @override
+  String get campaignOther => 'Archived / other';
+
+  @override
+  String get campaignAttention => 'Needs attention';
+
+  @override
+  String get reviewTitle => 'Review evaluation';
+
+  @override
+  String get reviewRequestRevisions => 'Request revisions';
+
+  @override
+  String get reviewApprove => 'Approve result';
+
+  @override
+  String get reviewRevisionReason => 'Reason for requested revisions';
+
+  @override
+  String get reviewApproved => 'Result approved';
+
+  @override
+  String get reviewStart => 'Start review';
+
+  @override
+  String get reviewCriteria => 'Criteria and proof';
+
+  @override
+  String get reviewTeam => 'Evaluation team';
+
+  @override
+  String get reviewVersion => 'Official version / revision';
+
+  @override
+  String get reviewLegacyTeam =>
+      'Legacy attribution; actual job and formal sign-off are not recorded.';
+
+  @override
+  String get reviewNoTeam => 'No team roster recorded';
+
+  @override
+  String get reviewSelfUnavailable =>
+      'Self-audit comparison is not available for this participation.';
+
+  @override
+  String get dialogueTitle => 'Comments and feedback';
+
+  @override
+  String get dialogueOfficialDirective => 'Directorate directive';
+
+  @override
+  String get dialogueReply => 'Reply';
+
+  @override
+  String get dialogueSend => 'Send message';
+
+  @override
+  String get dialogueClosed => 'Discussion closed';
+
+  @override
+  String get dialogueClose => 'Close discussion';
+
+  @override
+  String get dialogueReopen => 'Reopen discussion';
+
+  @override
+  String get dialogueEmpty => 'No messages yet';
+
+  @override
+  String get dialogueEarlier => 'Load earlier messages';
+
+  @override
+  String get syncSavedOnDevice => 'Saved on this device';
+
+  @override
+  String get syncAwaitingUpload => 'Waiting to sync';
+
+  @override
+  String get syncConflict =>
+      'Another user changed this item. Reload the current version and review your draft before retrying.';
+
+  @override
+  String get syncReconnectToConfirm => 'Reconnect to confirm this action';
+
+  @override
+  String get deadlineMuscat => 'Deadline (Muscat time)';
+
+  @override
+  String get directorateUnavailable =>
+      'This server does not yet support this workflow.';
+
+  @override
+  String get reviewCached =>
+      'Cached copy — reconnect and reload before a decision';
+
+  @override
+  String get reviewSyncedAt => 'Loaded at';
+
+  @override
+  String get evidenceNotDownloaded => 'Reconnect to download this proof';
+
+  @override
+  String get reviewDecisionConfirmed => 'Decision confirmed';
+
+  @override
+  String get reviewDecisionNote => 'Decision note';
+
+  @override
+  String get campaignDraftRetained =>
+      'Campaign draft saved; publication still needs confirmation.';
+
+  @override
+  String get validationNonnegative => 'Enter a whole number of zero or more';
+
+  @override
+  String get dialogueMessageTooLong => 'Use 8,000 characters or fewer';
+
+  @override
+  String get campaignExactDates => 'Exact period dates';
+
+  @override
+  String get centerEmail => 'Contact email';
+
+  @override
+  String get centerPhone => 'Contact phone';
+
+  @override
+  String campaignCentreCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count eligible centres',
+      one: '1 eligible centre',
+      zero: 'No eligible centres',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dialogueMessageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count messages',
+      one: '1 message',
+      zero: 'No messages',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewRequiredProofMissing =>
+      'Required proof is missing. Request revisions so the evaluation team can attach it.';
+
+  @override
+  String get reviewIncomplete =>
+      'Complete and submit the evaluation before approval.';
+
+  @override
+  String get directorateOverviewNav => 'Overview';
+
+  @override
+  String get syncCachedCopy => 'Cached copy';
+
+  @override
+  String get centerHeadRole => 'Head of Centre';
+
+  @override
+  String get centerQualityTitle => 'My centre quality';
+
+  @override
+  String get centerJoinCampaign => 'Join assessment';
+
+  @override
+  String get centerContinueSelfAudit => 'Continue self-audit';
+
+  @override
+  String get selfAuditTitle => 'Self-audit';
+
+  @override
+  String get selfAuditInternalOnly => 'Self-reported readiness';
+
+  @override
+  String get selfAuditIncomplete => 'Incomplete self-audit';
+
+  @override
+  String get selfAuditReadiness => 'Readiness score';
+
+  @override
+  String get selfAuditSubmitSnapshot => 'Submit self-audit snapshot';
+
+  @override
+  String get selfAuditSubmitted => 'Self-audit submitted';
+
+  @override
+  String get selfAuditStartRevision => 'Start a new self-audit version';
+
+  @override
+  String get selfAuditCopyProof => 'Copy proof to this draft';
+
+  @override
+  String get selfAuditFrozen => 'Self-audit frozen for official comparison';
+
+  @override
+  String get selfAuditAddProof => 'Add compliance proof';
+
+  @override
+  String get selfAuditNoBaseline => 'No submitted self-audit';
+
+  @override
+  String get gapTitle => 'Self-audit and official evaluation';
+
+  @override
+  String get gapSelfScore => 'Self score';
+
+  @override
+  String get gapOfficialScore => 'Official score';
+
+  @override
+  String get gapDifference => 'Difference (official − self)';
+
+  @override
+  String get gapApplicabilityDiffers => 'Applicability differs';
+
+  @override
+  String get gapOnlyDifferences => 'Show differences only';
+
+  @override
+  String get gapProvisional => 'Provisional comparison';
+
+  @override
+  String get centerReplyToDirectorate => 'Reply to Directorate';
+
+  @override
+  String get centerAddClarification => 'Add clarification';
+
+  @override
+  String get selfAuditStart => 'Start self-audit';
+
+  @override
+  String get selfAuditHistory => 'Self-audit history';
+
+  @override
+  String get selfAuditUnavailable =>
+      'Self-audit is not available on this server yet';
+
+  @override
+  String get selfAuditNoSnapshot => 'No self-audit has been started';
+
+  @override
+  String get selfAuditPending => 'Sync all saved changes before submitting';
+
+  @override
+  String get selfAuditIncompleteError =>
+      'Complete every required score before submitting';
+
+  @override
+  String get selfAuditProofFormat =>
+      'Choose a PDF, JPEG or PNG file up to 25 MiB';
+
+  @override
+  String get selfAuditProofPending => 'Proof is waiting to upload';
+
+  @override
+  String get selfAuditProofMissing =>
+      'The saved proof file is unavailable. Attach it again.';
+
+  @override
+  String get selfAuditConfirm =>
+      'Submit this immutable snapshot for official comparison?';
+
+  @override
+  String get selfAuditCompletion => 'Checklist completion';
+
+  @override
+  String get selfAuditNoCentre => 'Choose a centre you manage';
+
+  @override
+  String get selfAuditUnjoined => 'Join online before opening this self-audit';
+
+  @override
+  String get selfAuditNoData => 'No data available';
+
+  @override
+  String get centerActionsAllPeriods => 'Open actions · all periods';
+
+  @override
+  String get centerCompetencyReadiness => 'Staff competency readiness';
+
+  @override
+  String get centerSatisfactionRolling =>
+      'Patient satisfaction · last 12 months';
+
+  @override
+  String get centerSatisfactionSuppressed =>
+      'Fewer than 5 responses · result withheld';
+
+  @override
+  String get centerLatestApproved => 'Latest approved official result';
+
+  @override
+  String get gapMissingAnswer => 'Not answered';
+
+  @override
+  String get gapApproved => 'Approved comparison';
+
+  @override
+  String get gapNoOfficial => 'No approved official evaluation is available';
+
+  @override
+  String get gapProofReviewPending => 'Proof review is not recorded yet';
+
+  @override
+  String get gapChooseSelf => 'Choose submitted self-audit version';
+
+  @override
+  String get selfAuditConflictReview => 'Review saved changes';
+
+  @override
+  String get selfAuditKeepLocal => 'Apply my saved answer to this version';
+
+  @override
+  String get selfAuditUseServer => 'Use server answer';
+
+  @override
+  String get selfAuditConflictHelp =>
+      'Compare your saved answer with the current server answer before resolving the conflict.';
+
+  @override
+  String get selfAuditCopyFailed =>
+      'Some proof could not be copied. Your draft is saved; check required proof.';
+
+  @override
+  String get evidenceAvailableOffline => 'Available offline';
+
+  @override
+  String get assessmentStructureMismatch =>
+      'This item belongs to a different audit structure';
+
+  @override
+  String get directorateFeedback => 'Directorate feedback';
+
+  @override
+  String get selfAuditProofUploaded => 'Proof uploaded';
+
+  @override
+  String get selfAuditServerAnswer => 'Current synced self-answer';
+
+  @override
+  String get evidenceCaption => 'Proof description (optional)';
+
+  @override
+  String get selfAuditStorageFull =>
+      'Device storage is full. Free space and try attaching the proof again.';
+
+  @override
+  String get navMyCenter => 'My Centre';
+
+  @override
+  String get auditTeamMissingJob => 'Recorded job not supplied';
+
+  @override
+  String get auditTeamNameJobRequired =>
+      'Enter the full name and actual job title';
+
+  @override
+  String get auditTeamDuplicateUser =>
+      'This app account is already on the team';
+
+  @override
+  String get auditTeamSimilarName =>
+      'A similar name is recorded. Check before adding another person.';
+
+  @override
+  String get auditTeamReload =>
+      'Reload server roster (local edits remain archived)';
+
+  @override
+  String get auditProofNotReviewed => 'Review not recorded';
+
+  @override
+  String get auditProofNoteRequired =>
+      'Explain why this proof needs clarification or is not accepted';
+
+  @override
+  String get auditProofSourceMismatch =>
+      'Proof does not match this evaluation and criterion';
+
+  @override
+  String get auditProofOpenFirst =>
+      'Open and download the proof before recording your judgement';
+
+  @override
+  String get auditProofCounts =>
+      'Attached proof and accepted reviews are counted separately';
+
+  @override
+  String get auditSignedContentConflict =>
+      'The evaluation changed. Reload and review before signing.';
+
+  @override
+  String get auditSubmissionDate => 'Record the evaluation date';
+
+  @override
+  String get auditSubmissionScores => 'Complete this criterion score';
+
+  @override
+  String get auditSubmissionUploads => 'Proof uploads are not finalized';
+
+  @override
+  String get auditSubmissionPending =>
+      'Changes are waiting to sync or need attention. Your saved work is retained.';
+
+  @override
+  String get auditResponseConflict =>
+      'Compare the server answer with your saved answer';
+
+  @override
+  String get auditUseServer => 'Use server answer';
+
+  @override
+  String get auditKeepLocal =>
+      'Keep my answer with the current server revision';
+
+  @override
+  String get auditLegacyQueue =>
+      'Saved work from an older app needs conflict review before syncing';
+
+  @override
+  String get auditProofImmutable =>
+      'Reviewed proof is retained. Attach a new file for a replacement.';
+
+  @override
+  String get auditObservationHint =>
+      'Use anonymized observations and interviews; omit patient identifiers';
+
+  @override
+  String get auditNotSigned => 'Electronic sign-off not recorded';
+
+  @override
+  String get auditSignoffStatementVersion => 'Sign-off statement version';
+
+  @override
+  String get auditSubmissionRefresh => 'Sync and validate';
+
+  @override
+  String get auditTeamTitle => 'Evaluation team';
+
+  @override
+  String get auditTeamFullName => 'Full name';
+
+  @override
+  String get auditTeamActualJob =>
+      'Actual clinical or administrative job title';
+
+  @override
+  String get auditTeamResponsibility => 'Evaluation responsibility';
+
+  @override
+  String get auditTeamLead => 'Lead auditor';
+
+  @override
+  String get auditTeamMember => 'Team member';
+
+  @override
+  String get auditTeamGuest => 'Member without an app account';
+
+  @override
+  String get auditTeamLinkAccount => 'Link app account';
+
+  @override
+  String get auditTeamLeadRequired =>
+      'Select a lead auditor with an app account';
+
+  @override
+  String get auditProofTitle => 'Evidence and proof';
+
+  @override
+  String get auditProofCenterSource => 'Centre-supplied proof';
+
+  @override
+  String get auditProofAuditorSource => 'Auditor-supplied proof';
+
+  @override
+  String get auditProofAccepted => 'Accepted';
+
+  @override
+  String get auditProofClarification => 'Needs clarification';
+
+  @override
+  String get auditProofNotAccepted => 'Not accepted';
+
+  @override
+  String get auditProofReviewNote => 'Evidence review note';
+
+  @override
+  String get auditProofReviewedBy => 'Reviewed by';
+
+  @override
+  String get auditPotentialFinding => 'Potential finding on submission';
+
+  @override
+  String get auditSubmissionTitle => 'Review and submit evaluation';
+
+  @override
+  String get auditSubmissionMissingProof =>
+      'Required proof has not been accepted';
+
+  @override
+  String get auditSignoffConfirm =>
+      'I confirm this evaluation reflects the evidence reviewed by the recorded team';
+
+  @override
+  String get auditSignoffLeadOnly => 'The recorded lead must sign off';
+
+  @override
+  String get auditSubmitForReview => 'Submit to Directorate';
+
+  @override
+  String get auditSubmittedForReview => 'Evaluation submitted for review';
+
+  @override
+  String get auditSignoffOverrideReason => 'Reason for Directorate submission';
+
+  @override
+  String get syncReviewConflict => 'Review changes';
+
+  @override
+  String get assessmentClosedReadOnly =>
+      'Assessment closed — saved work is read-only';
+
+  @override
+  String get auditorWorkNav => 'Work';
 }

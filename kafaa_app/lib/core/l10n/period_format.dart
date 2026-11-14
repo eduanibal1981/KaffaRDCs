@@ -2,23 +2,59 @@ import 'package:flutter/widgets.dart';
 
 import '../../data/models/primitives.dart';
 import 'l10n_extensions.dart';
+import 'enum_labels.dart';
 
 const _monthsEn = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December'
 ];
 
 const _monthsShortEn = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec'
 ];
 
 const _monthsAr = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+  'يناير',
+  'فبراير',
+  'مارس',
+  'أبريل',
+  'مايو',
+  'يونيو',
+  'يوليو',
+  'أغسطس',
+  'سبتمبر',
+  'أكتوبر',
+  'نوفمبر',
+  'ديسمبر'
 ];
 
-const _quartersAr = ['الربع الأول', 'الربع الثاني', 'الربع الثالث', 'الربع الرابع'];
+const _quartersAr = [
+  'الربع الأول',
+  'الربع الثاني',
+  'الربع الثالث',
+  'الربع الرابع'
+];
 const _halvesAr = ['النصف الأول', 'النصف الثاني'];
 
 /// Turns the database's period key into something readable:
@@ -30,8 +66,15 @@ const _halvesAr = ['النصف الأول', 'النصف الثاني'];
 ///
 /// Years stay in Western digits so a figure reads identically in a
 /// bilingual meeting.
-String formatPeriodKey(BuildContext context, String? key, {bool short = false}) {
+String formatPeriodKey(BuildContext context, String? key,
+    {bool short = false}) {
   if (key == null || key.isEmpty) return '—';
+  if (key.startsWith('custom:')) {
+    final dates = key.substring(7).split('/');
+    return dates
+        .map((value) => formatDate(context, DateTime.tryParse(value)))
+        .join(' – ');
+  }
   final arabic = context.isArabic;
   final parts = key.split('-');
   final year = parts.first;

@@ -18,7 +18,16 @@ $files = @(
   "seed\0002_criteria_79_items.sql",
   "seed\0003_reference_data.sql",
   "seed\0005_bootstrap_users.sql",
-  "migrations\20261112090000_audit_structure_versions.sql"
+  "migrations\20261112090000_audit_structure_versions.sql",
+  "migrations\20261112194009_shared_assessments.sql",
+  "migrations\20261112204526_shared_assessments_only.sql",
+  "migrations\20261113031403_role_access_administration.sql",
+  "migrations\20261113111316_directorate_workflows.sql",
+  "migrations\20261113221319_center_self_audits.sql",
+  "migrations\20261113221701_center_self_template_index.sql",
+  "migrations\20261113222745_center_self_deadline_guard.sql",
+  "migrations\20261113225856_center_self_proof_retries.sql",
+  "migrations\20261114113748_auditor_workflows.sql"
 )
 
 $sb = New-Object System.Text.StringBuilder
@@ -33,14 +42,17 @@ $sb = New-Object System.Text.StringBuilder
 -- It creates the schema, the security policies, the storage buckets,
 -- and loads the official 79-criterion Kafa'a checklist (237 points).
 --
--- Demonstration data is NOT included here. To load five sample centres
--- with two evaluation cycles each, run seed/0004_demo_data.sql after.
+-- Load optional centre/staff examples with seed/0004_demo_data.sql.
+-- Load shared assessment examples with seed/0006_shared_assessment_demo.sql
+-- after granting an app Super Admin.
 --
 -- Generated from the numbered files in supabase/migrations and
 -- supabase/seed - edit those, not this file.
 -- =====================================================================
 
 '@)
+
+[void]$sb.AppendLine('set check_function_bodies = off;')
 
 foreach ($f in $files) {
   $path = Join-Path $base $f
@@ -53,6 +65,8 @@ foreach ($f in $files) {
   [void]$sb.AppendLine("")
   [void]$sb.AppendLine([System.IO.File]::ReadAllText($path))
 }
+
+[void]$sb.AppendLine('reset check_function_bodies;')
 
 $out = Join-Path $base "kafaa_full_schema.sql"
 [System.IO.File]::WriteAllText($out, $sb.ToString(), (New-Object System.Text.UTF8Encoding $false))

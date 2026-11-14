@@ -32,8 +32,11 @@ abstract final class AppConfig {
   /// build was compiled without credentials.
   static const missingConfigMessage =
       'Supabase credentials were not supplied at build time.\n\n'
-      'Run the app with:\n'
-      '  --dart-define=SUPABASE_URL=...\n'
-      '  --dart-define=SUPABASE_ANON_KEY=...\n\n'
+      'From the Kafaa Project folder, run:\n'
+      '  ./scripts/run-kafaa\n\n'
+      'From kafaa_app, run:\n'
+      '  flutter run --dart-define-from-file=env/dev.json\n\n'
+      'Stop the current run and launch again. '
+      'Hot reload does not apply build settings.\n\n'
       'See docs/SETUP.md.';
 }

@@ -6,16 +6,43 @@ import 'core/preferences/app_preferences.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/kafaa_theme.dart';
 import 'l10n/app_localizations.dart';
+import 'features/auth/session.dart';
+import 'features/auth/workspace_context.dart';
+import 'features/admin/role_simulation.dart';
+import 'features/admin/testing/tester_workspace.dart';
+import 'features/admin/testing_mode_banner.dart';
 
 class KafaaApp extends ConsumerWidget {
   const KafaaApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(sessionProvider);
+    final simulation = ref.watch(roleSimulationProvider);
+    final generation = ref.watch(workspaceGenerationProvider);
+    final workspace = ref.watch(workspaceContextProvider);
+    final value = session.valueOrNull;
+    if (value == null) return const _WorkspaceApp();
+    return AuthenticatedWorkspace(
+        key: ValueKey(
+            '${value.user.id}-$generation-${value.profile?.isActive}-${workspace?.role}-${workspace?.centerId}-${value.permissions.grants.map((g) => '${g.role}-${g.centerId}').join(',')}'),
+        owner: ProviderScope.containerOf(context, listen: false),
+        session: value,
+        simulation: simulation,
+        generation: generation,
+        child: const _WorkspaceApp());
+  }
+}
+
+class _WorkspaceApp extends ConsumerWidget {
+  const _WorkspaceApp();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final locale = ref.watch(localeControllerProvider);
     final themeMode = ref.watch(themeModeControllerProvider);
     final textScale = ref.watch(textScaleControllerProvider);
+    final isTesting = ref.watch(roleSimulationProvider) != null;
 
     return MaterialApp.router(
       title: "Kafa'a",
@@ -44,7 +71,14 @@ class KafaaApp extends ConsumerWidget {
               media.textScaler.scale(1) * textScale,
             ),
           ),
-          child: child ?? const SizedBox.shrink(),
+          child: Column(children: [
+            const TestingModeBanner(),
+            Expanded(
+                child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: isTesting,
+                    child: child ?? const SizedBox.shrink())),
+          ]),
         );
       },
     );

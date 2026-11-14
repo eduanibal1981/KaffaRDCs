@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/offline/local_store.dart';
+import '../../core/offline/network_error.dart';
 import '../models/assessment.dart';
 import '../models/operations.dart';
 import '../supabase/supabase_providers.dart';
@@ -47,14 +46,16 @@ class AssessmentRepository {
     }
     try {
       return await _fetchById(templateId, key);
-    } on SocketException {
-      if (cached?.template.id == templateId) return cached!;
+    } catch (error) {
+      if (isNetworkError(error) && cached?.template.id == templateId) {
+        return cached!;
+      }
       rethrow;
     }
   }
 
   Future<AssessmentBlueprint> _fetchById(String templateId, String key) async {
-    final template = await _client
+    final template = await _client.rest
         .from('assessment_templates')
         .select()
         .eq('id', templateId)
@@ -73,7 +74,7 @@ class AssessmentRepository {
   }
 
   Future<AssessmentBlueprint> _fetchAndCache() async {
-    final templateRow = await _client
+    final templateRow = await _client.rest
         .from('assessment_templates')
         .select()
         .eq('status', 'active')
@@ -92,27 +93,27 @@ class AssessmentRepository {
     final templateId = templateRow['id'] as String;
 
     final results = await Future.wait([
-      _client
+      _client.rest
           .from('assessment_domains')
           .select()
           .eq('template_id', templateId)
           .order('sort_order'),
-      _client
+      _client.rest
           .from('assessment_sections')
           .select()
           .eq('template_id', templateId)
           .order('sort_order'),
-      _client
+      _client.rest
           .from('assessment_criteria')
           .select()
           .eq('template_id', templateId)
           .order('sort_order'),
-      _client
+      _client.rest
           .from('v_criterion_scale')
           .select()
           .eq('template_id', templateId)
           .order('sort_order'),
-      _client
+      _client.rest
           .from('grading_bands')
           .select()
           .eq('template_id', templateId)
@@ -176,7 +177,7 @@ class AssessmentRepository {
       {bool includeDrafts = false}) async {
     final key = includeDrafts ? 'structures.admin' : 'structures.saved';
     try {
-      var query = _client.from('assessment_templates').select();
+      var query = _client.rest.from('assessment_templates').select();
       if (!includeDrafts) query = query.eq('status', 'active');
       final rows = await query.order('created_at', ascending: false);
       await _store.putCache(key, rows);
@@ -184,7 +185,7 @@ class AssessmentRepository {
     } catch (error) {
       // Only network failures may use stale data; authorization and schema
       // failures must remain visible.
-      if (error is! SocketException) rethrow;
+      if (!isNetworkError(error)) rethrow;
       final cached = await _store.readCache<List<dynamic>>(key);
       if (cached == null) {
         final previous = await _readCached();
@@ -241,7 +242,7 @@ class AssessmentRepository {
   // -------------------------------------------------------------------
 
   Future<List<TerminologyEntry>> loadTerminology() async {
-    final rows = await _client
+    final rows = await _client.rest
         .from('terminology_map')
         .select()
         .eq('is_active', true)
@@ -250,27 +251,27 @@ class AssessmentRepository {
   }
 
   Future<void> upsertTerminology(Map<String, dynamic> values) =>
-      _client.from('terminology_map').upsert(values);
+      _client.rest.from('terminology_map').upsert(values);
 
   Future<void> deleteTerminology(String id) =>
-      _client.from('terminology_map').delete().eq('id', id);
+      _client.rest.from('terminology_map').delete().eq('id', id);
 
   // -------------------------------------------------------------------
   // Template configuration (super admin)
   // -------------------------------------------------------------------
 
   Future<void> upsertCriterion(Map<String, dynamic> values) async {
-    await _client.from('assessment_criteria').upsert(values);
+    await _client.rest.from('assessment_criteria').upsert(values);
   }
 
   Future<void> archiveCriterion(String id) async {
-    await _client
+    await _client.rest
         .from('assessment_criteria')
         .update({'is_active': false}).eq('id', id);
   }
 
   Future<void> setCriterionActive(String id, bool active) async {
-    await _client
+    await _client.rest
         .from('assessment_criteria')
         .update({'is_active': active}).eq('id', id);
   }
@@ -280,21 +281,21 @@ class AssessmentRepository {
   // -------------------------------------------------------------------
 
   Future<void> upsertDomain(Map<String, dynamic> values) async {
-    await _client.from('assessment_domains').upsert(values);
+    await _client.rest.from('assessment_domains').upsert(values);
   }
 
   Future<void> setDomainActive(String id, bool active) async {
-    await _client
+    await _client.rest
         .from('assessment_domains')
         .update({'is_active': active}).eq('id', id);
   }
 
   Future<void> upsertSection(Map<String, dynamic> values) async {
-    await _client.from('assessment_sections').upsert(values);
+    await _client.rest.from('assessment_sections').upsert(values);
   }
 
   Future<void> setSectionActive(String id, bool active) async {
-    await _client
+    await _client.rest
         .from('assessment_sections')
         .update({'is_active': active}).eq('id', id);
   }
@@ -302,7 +303,7 @@ class AssessmentRepository {
   /// Moves a section to a different main area. Criteria come with it, so
   /// the totals and charts regroup on the next refresh.
   Future<void> moveSectionToDomain(String sectionId, String? domainId) async {
-    await _client
+    await _client.rest
         .from('assessment_sections')
         .update({'domain_id': domainId}).eq('id', sectionId);
   }
@@ -316,7 +317,7 @@ class AssessmentRepository {
     List<({String id, int sortOrder})> order,
   ) async {
     for (final item in order) {
-      await _client
+      await _client.rest
           .from(level.table)
           .update({'sort_order': item.sortOrder}).eq('id', item.id);
     }
@@ -347,13 +348,13 @@ class AssessmentRepository {
     required String templateId,
     required List<Map<String, dynamic>> options,
   }) async {
-    await _client
+    await _client.rest
         .from('assessment_scale_options')
         .delete()
         .eq('criterion_id', criterionId);
 
     if (options.isNotEmpty) {
-      await _client.from('assessment_scale_options').insert([
+      await _client.rest.from('assessment_scale_options').insert([
         for (final o in options)
           {...o, 'criterion_id': criterionId, 'template_id': templateId},
       ]);
@@ -372,14 +373,14 @@ class AssessmentRepository {
   /// Drops a criterion's own options so it falls back to the template
   /// default scale.
   Future<void> resetCriterionScale(String criterionId) async {
-    await _client
+    await _client.rest
         .from('assessment_scale_options')
         .delete()
         .eq('criterion_id', criterionId);
   }
 
   Future<void> upsertGradingBand(Map<String, dynamic> values) async {
-    await _client.from('grading_bands').upsert(values);
+    await _client.rest.from('grading_bands').upsert(values);
   }
 }
 

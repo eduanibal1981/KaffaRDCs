@@ -146,7 +146,7 @@ packages:
     source: hosted
     version: "3.1.2"
   cross_file:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: cross_file
       sha256: "92c9c43c383bfa1c32079d3bc492d55d6d4318044b7b47edaff8971cbb555c51"
@@ -185,6 +185,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.14"
+  dev_build:
+    dependency: transitive
+    description:
+      name: dev_build
+      sha256: "8b5b35d31c4c08486c7f1313a378b432fafafb4ad67249bc1cb6626a308459cb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
   equatable:
     dependency: transitive
     description:
@@ -398,7 +406,7 @@ packages:
     source: hosted
     version: "2.0.2"
   http:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: http
       sha256: "87721a4a50b19c7f1d49001e51409bddc46303966ce89a65af4f4e6004896412"
@@ -741,6 +749,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  pool:
+    dependency: transitive
+    description:
+      name: pool
+      sha256: "4177f68c237ea2128d1bee66ac17b2ce05ba3dbaafcbdd54c5d40a39d0b6b11c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.3"
   posix:
     dependency: transitive
     description:
@@ -765,6 +781,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.14.3"
+  process_run:
+    dependency: transitive
+    description:
+      name: process_run
+      sha256: bc771cd3e812205540923ecbc2612367a78eadae08b32e593362aac9c2959693
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.4"
   pub_semver:
     dependency: transitive
     description:
@@ -930,6 +954,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.7"
+  sqflite_common_ffi_web:
+    dependency: "direct main"
+    description:
+      name: sqflite_common_ffi_web
+      sha256: "45aeed3b367c06f3daf9ba6cdb4bfda1732673263fc9491e40166d2cb5353731"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   sqflite_darwin:
     dependency: transitive
     description:

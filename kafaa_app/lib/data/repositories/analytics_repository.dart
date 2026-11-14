@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/offline/local_store.dart';
+import '../../core/offline/network_error.dart';
 import '../models/analytics.dart';
 import '../models/audit.dart';
 import '../models/operations.dart';
@@ -18,10 +19,99 @@ class AnalyticsRepository {
     try {
       final rows =
           await _client.from('v_center_ranking').select().order('rank_overall');
-      await _store.putCache(cacheKey, rows);
-      return rows.map(CenterRanking.fromMap).toList();
-    } catch (_) {
+      // The ranking view predates the shared-session columns. Match the
+      // selected approved audit by ID so its title and period stay together.
+      final summaries = rows.isEmpty
+          ? <Map<String, dynamic>>[]
+          : await _client.from('v_audit_summary').select().inFilter(
+              'audit_id', rows.map((row) => row['audit_id']).toList());
+      final byId = {
+        for (final summary in summaries) summary['audit_id']: summary
+      };
+      final results = [
+        for (final row in rows)
+          if (byId.containsKey(row['audit_id']))
+            {...row, ...byId[row['audit_id']]!},
+      ];
+      await _store.putCache(cacheKey, results);
+      return results.map(CenterRanking.fromMap).toList();
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
       final cached = await _store.readCache<List<dynamic>>(cacheKey);
+      if (cached == null) rethrow;
+      return cached
+          .cast<Map<String, dynamic>>()
+          .map(CenterRanking.fromMap)
+          .toList();
+    }
+  }
+
+  Future<List<CenterRanking>> rankingForSession(String sessionId) async {
+    final key = 'analytics.session-ranking.$sessionId';
+    try {
+      final participants = await _client
+          .from('v_assessment_center_status')
+          .select('official_audit_id')
+          .eq('session_id', sessionId);
+      final ids = participants
+          .map((row) => row['official_audit_id'])
+          .whereType<String>()
+          .toList();
+      if (ids.isEmpty) {
+        await _store.putCache(key, <Map<String, dynamic>>[]);
+        return [];
+      }
+      final rows = await _client
+          .from('v_audit_summary')
+          .select()
+          .inFilter('audit_id', ids)
+          .order('percent', ascending: false)
+          .order('center_code');
+      final statistics = await Future.wait([
+        _client.from('v_center_satisfaction_current').select(),
+        _client
+            .from('ncrs')
+            .select('center_id,status')
+            .inFilter('audit_id', ids),
+      ]);
+      final satisfaction = {
+        for (final row in statistics[0]) row['center_id']: row,
+      };
+      final openCounts = <String, int>{};
+      final overdueCounts = <String, int>{};
+      for (final finding in statistics[1]) {
+        final center = finding['center_id'] as String;
+        if (['open', 'in_progress', 'submitted_for_review']
+            .contains(finding['status'])) {
+          openCounts.update(center, (n) => n + 1, ifAbsent: () => 1);
+        }
+        if (finding['status'] == 'overdue') {
+          overdueCounts.update(center, (n) => n + 1, ifAbsent: () => 1);
+        }
+      }
+      var rank = 0;
+      double? previous;
+      final output = <Map<String, dynamic>>[];
+      for (var index = 0; index < rows.length; index++) {
+        final row = rows[index];
+        final score = (row['percent'] as num).toDouble();
+        if (score != previous) rank = index + 1;
+        previous = score;
+        final stats = satisfaction[row['center_id']];
+        output.add({
+          ...row,
+          'rank_overall': rank,
+          'satisfaction_percent': stats?['satisfaction_percent'],
+          'satisfaction_responses': stats?['response_count'],
+          'open_ncr_count': openCounts[row['center_id']] ?? 0,
+          'overdue_ncr_count': overdueCounts[row['center_id']] ?? 0
+        });
+      }
+      await _store.putCache(key, output);
+      return output.map(CenterRanking.fromMap).toList();
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
+      final cached = await _store.readCache<List<dynamic>>(key);
       if (cached == null) rethrow;
       return cached
           .cast<Map<String, dynamic>>()
@@ -40,7 +130,8 @@ class AnalyticsRepository {
           .order('sort_order');
       await _store.putCache(cacheKey, rows);
       return rows.map(ScoreBreakdown.fromDomainMap).toList();
-    } catch (_) {
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
       final cached = await _store.readCache<List<dynamic>>(cacheKey);
       if (cached == null) rethrow;
       return cached
@@ -221,3 +312,7 @@ final satisfactionProvider = FutureProvider<Map<String, SatisfactionSummary>>(
 final trendProvider = FutureProvider<List<ScoreTrendPoint>>(
   (ref) => ref.watch(analyticsRepositoryProvider).trend(),
 );
+
+final sessionRankingProvider =
+    FutureProvider.family<List<CenterRanking>, String>((ref, id) =>
+        ref.watch(analyticsRepositoryProvider).rankingForSession(id));

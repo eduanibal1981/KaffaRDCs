@@ -17,6 +17,9 @@ import '../../data/repositories/audit_repository.dart';
 import '../../data/repositories/center_repository.dart';
 import '../../data/repositories/operations_repository.dart';
 import '../auth/session.dart';
+import '../center_head/center_quality_dashboard_screen.dart';
+import '../directorate/directorate_dashboard_screen.dart';
+import '../admin/testing/tester_workspace.dart';
 
 /// The dashboard shows a different first screen per role: the directorate
 /// opens on the league table, a centre manager opens on their own centre,
@@ -40,6 +43,12 @@ class HomeScreen extends ConsumerWidget {
       );
     }
     final perms = ref.watch(permissionsProvider);
+    if (perms.primaryRole == AppRole.directorate) {
+      return const DirectorateDashboardScreen();
+    }
+    if (perms.primaryRole == AppRole.centerManager) {
+      return const CenterQualityDashboardScreen();
+    }
     final notifications = ref.watch(notificationsProvider);
     final unread =
         notifications.valueOrNull?.where((n) => n.isUnread).length ?? 0;
@@ -73,6 +82,7 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
+          final owner = ref.read(workspaceOwnerProvider);
           ref.invalidate(sessionProvider);
           ref.invalidate(centersProvider);
           ref.invalidate(rankingProvider);
@@ -87,6 +97,7 @@ class HomeScreen extends ConsumerWidget {
             ref.read(notificationsProvider.future),
             ref.read(satisfactionProvider.future),
           ]);
+          if (owner != null) await owner.refresh(sessionProvider.future);
         },
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -384,11 +395,14 @@ class _QuickActions extends StatelessWidget {
     final l10n = context.l10n;
 
     final actions = <({IconData icon, String label, VoidCallback onTap})>[
-      if (perms.canRunAudits)
+      if (perms.canRunAudits || perms.isCenterManager)
         (
           icon: Icons.add_task,
-          label: l10n.homeStartAudit,
-          onTap: () => context.push('/audits/new'),
+          label: perms.canCreateAssessments
+              ? l10n.auditNew
+              : l10n.assessmentShared,
+          onTap: () => context
+              .push(perms.canCreateAssessments ? '/audits/new' : '/audits'),
         ),
       (
         icon: Icons.rule_folder_outlined,

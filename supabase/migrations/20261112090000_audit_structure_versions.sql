@@ -203,7 +203,7 @@ begin
   if tg_op='UPDATE' and new.template_id is distinct from old.template_id then
     raise exception 'An assessment keeps the structure it started with';
   end if;
-  select status into v_status from public.assessment_templates where id=new.template_id for share;
+  select status into v_status from public.assessment_templates where id=new.template_id;
   if v_status is distinct from 'active'::public.template_status then
     raise exception 'Choose a saved Audit Structure';
   end if;

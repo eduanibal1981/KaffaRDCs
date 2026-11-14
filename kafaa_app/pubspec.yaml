@@ -18,9 +18,11 @@ dependencies:
 
   # Backend
   supabase_flutter: ^2.6.0
+  http: 1.6.0
 
   # Storage / offline
   sqflite: ^2.3.3
+  sqflite_common_ffi_web: 1.0.2
   path: ^1.9.0
   path_provider: ^2.1.4
   shared_preferences: ^2.3.2
@@ -32,6 +34,7 @@ dependencies:
   intl: any
 
   # Evidence capture & export
+  cross_file: ^0.3.5+4
   image_picker: ^1.1.2
   file_picker: ^12.0.0
   pdf: ^3.11.1
@@ -47,7 +50,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  http: 1.6.0
   sqflite_common_ffi: 2.3.7
 
 flutter:

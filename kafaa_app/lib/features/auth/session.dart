@@ -5,6 +5,7 @@ import '../../core/offline/local_store.dart';
 import '../../data/models/center.dart';
 import '../../data/models/primitives.dart';
 import '../../data/supabase/supabase_providers.dart';
+import '../admin/role_simulation.dart';
 
 /// What the signed-in user may do. Computed once from their role grants
 /// so screens ask a question ("canRunAudits") rather than reasoning about
@@ -47,7 +48,9 @@ class Permissions {
 
   bool canReadCenter(String centerId) =>
       isDirectorate ||
-      grants.any((g) => g.centerId == null || g.centerId == centerId);
+      grants.any((g) =>
+          (g.role != AppRole.centerManager && g.centerId == null) ||
+          g.centerId == centerId);
 
   /// A roaming auditor (centerId null) may audit anywhere.
   bool canAuditCenter(String centerId) =>
@@ -59,9 +62,22 @@ class Permissions {
   bool managesCenter(String centerId) => grants
       .any((g) => g.role == AppRole.centerManager && g.centerId == centerId);
 
+  bool get canUseTester => isSuperAdmin;
+  bool get canManageCenterRegistry => isDirectorate;
+  bool get canAccessAssessments =>
+      isDirectorate || isAuditor || managedCenterIds.isNotEmpty;
+  bool canPrepareSelfAudit(String centerId) =>
+      isSuperAdmin || managesCenter(centerId);
+  bool canReadSelfAudit(String centerId) =>
+      canAuditCenter(centerId) || managesCenter(centerId);
+  bool canDiscussAudit(String centerId) => canReadSelfAudit(centerId);
+
+  bool get canCreateAssessments => isDirectorate;
+  bool canJoinCenter(String centerId) =>
+      canAuditCenter(centerId) || managesCenter(centerId);
+
   bool get canRunAudits => isAuditor || isDirectorate;
   bool get canApproveAudits => isDirectorate;
-  bool get canDeleteDraft => isSuperAdmin;
   bool get canCompareAllCentres => isDirectorate;
   bool get canConfigureTemplate => isSuperAdmin;
   bool get canManageUsers => isSuperAdmin;
@@ -128,21 +144,22 @@ final sessionProvider = FutureProvider<AppSession?>((ref) async {
 });
 
 /// Convenience for the many widgets that only need the permission set.
-final permissionsProvider = Provider<Permissions>((ref) {
-  return ref.watch(sessionProvider).maybeWhen(
-        data: (s) => s?.permissions ?? Permissions.empty,
-        orElse: () => Permissions.empty,
-      );
-});
+final permissionsProvider = Provider<Permissions>(
+  (ref) => ref.watch(effectivePermissionsProvider),
+);
 
 class AuthController extends StateNotifier<AsyncValue<void>> {
-  AuthController(this._ref) : super(const AsyncValue.data(null));
+  AuthController(this._ref, {this.delegate})
+      : super(const AsyncValue.data(null));
+
+  final AuthController? delegate;
 
   final Ref _ref;
 
   SupabaseClient get _client => _ref.read(supabaseProvider);
 
   Future<void> signIn(String email, String password) async {
+    if (delegate != null) return delegate!.signIn(email, password);
     state = const AsyncValue.loading();
     try {
       await _client.auth.signInWithPassword(
@@ -161,9 +178,11 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<void> sendPasswordReset(String email) =>
+      delegate?.sendPasswordReset(email) ??
       _client.auth.resetPasswordForEmail(email.trim());
 
   Future<void> signOut() async {
+    if (delegate != null) return delegate!.signOut();
     final store = _ref.read(localStoreProvider);
     await _client.auth.signOut();
     _ref.invalidate(currentUserProvider);

@@ -1,0 +1,263 @@
+{
+  "date": "2026-11-14",
+  "timezone": "Asia/Muscat",
+  "project_ref": "onzmwoajiyennqtjcjez",
+  "configured_endpoint_verified": true,
+  "read_only_default_preserved": true,
+  "dedicated_write_oauth_renewed": true,
+  "migrations": [
+    "20261113221319_center_self_audits",
+    "20261113221701_center_self_template_index",
+    "20261113222745_center_self_deadline_guard",
+    "20261113225856_center_self_proof_retries"
+  ],
+  "existing_data_preserved": true,
+  "before": [
+    {
+      "entity": "audits",
+      "count": 7,
+      "hash": "9364b9d3d471cc92f5c88e4696ee3d3e"
+    },
+    {
+      "entity": "centers",
+      "count": 4,
+      "hash": "599997658c512eb2bcbd032e045f0f21"
+    },
+    {
+      "entity": "criteria",
+      "count": 109,
+      "hash": "2681f7bf5030825b7fb8d2eacfd81307"
+    },
+    {
+      "entity": "grants",
+      "count": 5,
+      "hash": "0aa6584583155b952002fd7da5e0fbbf"
+    },
+    {
+      "entity": "ncrs",
+      "count": 148,
+      "hash": "c3493652347109c943fa1af403c9e589"
+    },
+    {
+      "entity": "profiles",
+      "count": 5,
+      "hash": "b937ade61c666692ca958a24410e0560"
+    },
+    {
+      "entity": "responses",
+      "count": 500,
+      "hash": "c9d1f8486c3f91e87af4537d84c83aed"
+    }
+  ],
+  "after": {
+    "hashes": [
+      {
+        "hash": "9364b9d3d471cc92f5c88e4696ee3d3e",
+        "count": 7,
+        "entity": "audits"
+      },
+      {
+        "hash": "599997658c512eb2bcbd032e045f0f21",
+        "count": 4,
+        "entity": "centers"
+      },
+      {
+        "hash": "2681f7bf5030825b7fb8d2eacfd81307",
+        "count": 109,
+        "entity": "criteria"
+      },
+      {
+        "hash": "0aa6584583155b952002fd7da5e0fbbf",
+        "count": 5,
+        "entity": "grants"
+      },
+      {
+        "hash": "c3493652347109c943fa1af403c9e589",
+        "count": 148,
+        "entity": "ncrs"
+      },
+      {
+        "hash": "b937ade61c666692ca958a24410e0560",
+        "count": 5,
+        "entity": "profiles"
+      },
+      {
+        "hash": "c9d1f8486c3f91e87af4537d84c83aed",
+        "count": 500,
+        "entity": "responses"
+      }
+    ],
+    "headers": 0,
+    "evidence": 0,
+    "responses": 0,
+    "invoker_views": true,
+    "qa_identities": 0,
+    "deadline_volatile": true,
+    "anonymous_rpc_denied": true,
+    "client_points_denied": true,
+    "client_baseline_denied": true
+  },
+  "schema": {
+    "new_tables_rls": true,
+    "invoker_reporting_views": true,
+    "client_points_denied": true,
+    "client_baseline_denied": true,
+    "anonymous_rpc_denied": true,
+    "actual_deadline_clock": true,
+    "private_proof_bucket": {
+      "max_bytes": 26214400,
+      "allowed_mime_types": [
+        "application/pdf",
+        "image/jpeg",
+        "image/png"
+      ]
+    }
+  },
+  "advisors": {
+    "security": [
+      {
+        "name": "security_definer_view",
+        "count": 1
+      },
+      {
+        "name": "function_search_path_mutable",
+        "count": 10
+      },
+      {
+        "name": "anon_security_definer_function_executable",
+        "count": 1
+      },
+      {
+        "name": "authenticated_security_definer_function_executable",
+        "count": 1
+      },
+      {
+        "name": "auth_leaked_password_protection",
+        "count": 1
+      }
+    ],
+    "security_counts_unchanged": true,
+    "health": [],
+    "performance_before": [
+      {
+        "name": "unindexed_foreign_keys",
+        "count": 42
+      },
+      {
+        "name": "auth_rls_initplan",
+        "count": 5
+      },
+      {
+        "name": "unused_index",
+        "count": 20
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "count": 25
+      }
+    ],
+    "performance_after_index": [
+      {
+        "name": "unindexed_foreign_keys",
+        "count": 42
+      },
+      {
+        "name": "auth_rls_initplan",
+        "count": 5
+      },
+      {
+        "name": "unused_index",
+        "count": 29
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "count": 25
+      }
+    ]
+  },
+  "verification": {
+    "flutter_analyze": "passed",
+    "flutter_tests": 256,
+    "fresh_postgresql17_installer": "passed",
+    "sql_suites": [
+      "center_self_audits.sql",
+      "self_audit_storage.sql",
+      "directorate_registry.sql",
+      "audit_discussions_and_review.sql",
+      "shared_assessments.sql"
+    ],
+    "hosted_authenticated_rollback_role_tests": "passed",
+    "concurrency": {
+      "revision_starts_one_draft": true,
+      "self_official_submission_baseline_preserved": true
+    },
+    "ui": {
+      "languages": [
+        "en",
+        "ar"
+      ],
+      "widths": [
+        390,
+        1024
+      ],
+      "text_scale": 2,
+      "keyboard": true,
+      "offline_resume": true,
+      "proof_capture_copy": true,
+      "pinned_gap_with_newer_self_version": true,
+      "preview_live_requests": 0,
+      "long_section_picker_labels": true,
+      "final_proof_gap_live_request_assertion": 0
+    },
+    "durability": {
+      "native_picker_file_deleted": true,
+      "sqlite_reopened": true,
+      "account_isolation": true,
+      "atomic_cache_outbox_rollback": true,
+      "lost_finalization_ack_no_overwrite": true,
+      "missing_file_and_conflict_do_not_block_unrelated_work": true,
+      "equivalent_capture_timestamp_retry": true
+    },
+    "api": {
+      "authenticated_capabilities_and_self_table_and_summary": 200,
+      "anonymous_table_and_rpc": 401,
+      "credentials_exported": false
+    },
+    "android": {
+      "configured_launcher": true,
+      "build_install_launch": "passed",
+      "supabase_initialized": true,
+      "main_activity_resumed": true,
+      "uninstall_or_clear_data_invoked": false
+    },
+    "web_build": "passed",
+    "secret_scan": {
+      "scope": [
+        "kafaa_app/lib",
+        "tools/center-head-qa"
+      ],
+      "leaks_found": 0
+    },
+    "post_launch_existing_data_hashes_match": true,
+    "sql_installer_includes_all_four_migrations": true
+  },
+  "limitations": [
+    "Physical camera/picker permissions, native share sheets and real-device proof restart need device QA.",
+    "iOS runtime and browser storage-quota/offline PDF rendering require manual checks.",
+    "Storage SQL metadata fixtures ran only in the disposable local database; no hosted file-byte upload is claimed.",
+    "Plan 4 team jobs, formal sign-off and official proof-review provenance remain unavailable.",
+    "The existing hosted Safari preview has not been republished by this implementation."
+  ],
+  "screenshots": [
+    "center-head/en-390-self.png",
+    "center-head/en-1024-self.png",
+    "center-head/ar-390-self.png",
+    "center-head/ar-1024-self.png"
+  ],
+  "migration_sha256": {
+    "20261113221319_center_self_audits": "1de5eec72da23de599c29fca26ce76cacfb6bcfc4cc804f98f86f2e7a6c812d8",
+    "20261113221701_center_self_template_index": "59c9118437489d21a9122227553d22049feee0cfd9663956e37985aa1be1d115",
+    "20261113222745_center_self_deadline_guard": "26b2c7e3d775a7c8358c172497ea401d933197e6d0df9e6f5aee6860f1efad5e",
+    "20261113225856_center_self_proof_retries": "f54730f2ce8191ecadb14860fefe5c01e505d842ce0aecadb25d7c3044bd540f"
+  }
+}

@@ -44,11 +44,10 @@ class CentreDetailScreen extends ConsumerWidget {
         ),
         actions: [
           // Scoring a centre starts here as well as from Assessments.
-          if (perms.canAuditCenter(centerId))
+          if (perms.canJoinCenter(centerId))
             IconButton(
-              tooltip: l10n.auditNew,
-              onPressed: () =>
-                  context.push('/audits/new?centerId=$centerId'),
+              tooltip: l10n.assessmentShared,
+              onPressed: () => context.push('/audits?centerId=$centerId'),
               icon: const Icon(Icons.add_task),
             ),
           if (perms.isDirectorate || perms.managesCenter(centerId))
@@ -67,9 +66,10 @@ class CentreDetailScreen extends ConsumerWidget {
             return EmptyView(
               message: l10n.centreNoAudit,
               icon: Icons.fact_check_outlined,
-              actionLabel: perms.canAuditCenter(centerId) ? l10n.auditNew : null,
-              onAction: perms.canAuditCenter(centerId)
-                  ? () => context.push('/audits/new?centerId=$centerId')
+              actionLabel:
+                  perms.canJoinCenter(centerId) ? l10n.assessmentShared : null,
+              onAction: perms.canJoinCenter(centerId)
+                  ? () => context.push('/audits?centerId=$centerId')
                   : null,
             );
           }
@@ -116,8 +116,7 @@ class _HeadlineCard extends ConsumerWidget {
           ScoreRing(
             points: summary.totalPoints,
             maxPoints: summary.maxPoints,
-            gradeLabel:
-                context.pick(summary.gradeNameEn, summary.gradeNameAr),
+            gradeLabel: context.pick(summary.gradeNameEn, summary.gradeNameAr),
             gradeColor: parseHexColor(summary.gradeColor,
                 fallback: KafaaColors.forPercent(summary.percent)),
             size: 200,
@@ -217,8 +216,8 @@ class _DomainRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final percent = domain.percent ?? 0;
-    final color = parseHexColor(domain.color,
-        fallback: KafaaColors.forPercent(percent));
+    final color =
+        parseHexColor(domain.color, fallback: KafaaColors.forPercent(percent));
 
     return InkWell(
       onTap: () => showCriterionDrilldown(
@@ -257,7 +256,8 @@ class _DomainRow extends ConsumerWidget {
                           domain.publicNameEn ?? domain.nameEn,
                           domain.publicNameAr ?? domain.nameAr,
                         ),
-                        style: theme.textTheme.titleMedium?.copyWith(fontSize: 15),
+                        style:
+                            theme.textTheme.titleMedium?.copyWith(fontSize: 15),
                       ),
                       Text(
                         '${formatPoints(domain.points)} / '
@@ -462,8 +462,8 @@ class _HistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final ordered = [...audits]..sort(
-        (a, b) => (a.evaluationDate ?? DateTime(2000))
+    final ordered = [...audits]..sort((a, b) =>
+        (a.evaluationDate ?? DateTime(2000))
             .compareTo(b.evaluationDate ?? DateTime(2000)));
 
     return Column(
@@ -529,8 +529,7 @@ class _BadgesCard extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(16),
-                      border:
-                          Border.all(color: color.withValues(alpha: 0.25)),
+                      border: Border.all(color: color.withValues(alpha: 0.25)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,8 +538,7 @@ class _BadgesCard extends ConsumerWidget {
                             color: color, size: 28),
                         const Spacer(),
                         Text(
-                          context.pick(
-                              award.badge.nameEn, award.badge.nameAr),
+                          context.pick(award.badge.nameEn, award.badge.nameAr),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context)

@@ -1,0 +1,158 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Muscat",
+  "project_ref": "onzmwoajiyennqtjcjez",
+  "api_url": "https://onzmwoajiyennqtjcjez.supabase.co",
+  "connection": {
+    "dedicated_server": "kafaa_db",
+    "reauthorized": true,
+    "workspace_default_read_only": true,
+    "command_local_write_identity_verified": true
+  },
+  "migration": {
+    "version": "20261113031403",
+    "name": "role_access_administration",
+    "source": "supabase/migrations/20261113031403_role_access_administration.sql",
+    "sha256": "b171ea6a3e5059385bce6e0ac4088cd80a36d4410f93efcdf465880fb8ae2078",
+    "local_filename_matches_hosted": true
+  },
+  "hosted": {
+    "preflight_review": [
+      "columns",
+      "policies",
+      "existing function definitions and grants",
+      "triggers",
+      "migration history",
+      "log sources",
+      "security performance and health advisors"
+    ],
+    "rollback_authenticated_role_tests": "passed",
+    "existing_record_counts": {
+      "roles": 5,
+      "audits": 7,
+      "profiles": 5,
+      "responses": 500
+    },
+    "before_hashes": {
+      "roles": "c16b91e315f590827df92add1bc73f03",
+      "audits": "ceb22d8ed1cb9cc15226632df3db6271",
+      "profiles": "9a5a8619023ab040aded102ee7dada46",
+      "responses": "c1f14ac177aac9f058829b0fdaa1650b"
+    },
+    "after_hashes": {
+      "roles": "c16b91e315f590827df92add1bc73f03",
+      "audits": "ceb22d8ed1cb9cc15226632df3db6271",
+      "profiles": "9a5a8619023ab040aded102ee7dada46",
+      "responses": "c1f14ac177aac9f058829b0fdaa1650b"
+    },
+    "original_record_hashes_preserved": true,
+    "guard_triggers": [
+      "trg_kafaa_owner_profile",
+      "trg_kafaa_access_guard",
+      "trg_kafaa_access_log"
+    ],
+    "security_advisors_before": {
+      "security_definer_view": 1,
+      "function_search_path_mutable": 10,
+      "anon_security_definer_function_executable": 1,
+      "authenticated_security_definer_function_executable": 1,
+      "auth_leaked_password_protection": 1
+    },
+    "security_advisors_after": {
+      "security_definer_view": 1,
+      "function_search_path_mutable": 10,
+      "anon_security_definer_function_executable": 1,
+      "authenticated_security_definer_function_executable": 1,
+      "auth_leaked_password_protection": 1
+    },
+    "performance_advisors_before": {
+      "unindexed_foreign_keys": 42,
+      "auth_rls_initplan": 5,
+      "unused_index": 16,
+      "multiple_permissive_policies": 27
+    },
+    "performance_advisors_after": {
+      "unindexed_foreign_keys": 42,
+      "auth_rls_initplan": 5,
+      "unused_index": 15,
+      "multiple_permissive_policies": 27
+    },
+    "health_advisors_after": {},
+    "after_native_preview": {
+      "counts": {
+        "roles": 5,
+        "audits": 7,
+        "profiles": 5,
+        "responses": 500
+      },
+      "hashes": {
+        "roles": "c16b91e315f590827df92add1bc73f03",
+        "audits": "ceb22d8ed1cb9cc15226632df3db6271",
+        "profiles": "9a5a8619023ab040aded102ee7dada46",
+        "responses": "c1f14ac177aac9f058829b0fdaa1650b"
+      },
+      "qa_users": 0,
+      "capability": {
+        "anonymous_execute": false,
+        "authenticated_execute": true
+      }
+    }
+  },
+  "local_database": {
+    "engine": "PostgreSQL 17",
+    "container": "kafaa-admin-role-tests",
+    "combined_installer": "passed",
+    "access_sql_tests": "passed",
+    "shared_assessment_sql_tests": "passed",
+    "structure_sql_tests": "passed with synthetic actor and deterministic two-criterion source section",
+    "concurrent_raw_revocation": {
+      "concurrent_raw_revocations": [
+        0,
+        3
+      ],
+      "active_owners_remaining": 1,
+      "last_owner_error": true
+    },
+    "disposable_container_removed": true
+  },
+  "flutter": {
+    "analysis": "passed without issues",
+    "tests_passed": 218,
+    "baseline_tests": 176,
+    "layout_locales": [
+      "en",
+      "ar"
+    ],
+    "layout_widths": [
+      390,
+      1024
+    ],
+    "text_scale": 2,
+    "scoring_keyboard_inset": 280,
+    "four_preview_profiles": true,
+    "arabic_pdf_font_test": "passed"
+  },
+  "implementation_choices": {
+    "repository_boundary": "existing contracts with socket-free in-process REST/RPC adapter and independent provider container",
+    "sample_criteria": 4,
+    "sample_max_points": 12,
+    "sample_centers": 2,
+    "preview_storage": "ephemeral in-memory",
+    "normal_scope": "existing project and signed-in user"
+  },
+  "android": {
+    "device": "emulator-5554",
+    "configured_launcher": "scripts/run-kafaa",
+    "build_install_launch": "passed",
+    "owner_admin_visual_check": "passed",
+    "role_preview_visual_check": "passed for Head of Centre with synthetic centre, toolbox and sample join/self-audit form",
+    "exit_preview_restored_administration": true,
+    "users_access_visual_check": "passed with existing profiles, grants, centre scopes and enabled server-verified controls"
+  },
+  "unverified": [
+    "physical-device evidence capture",
+    "native share-sheet delivery",
+    "iOS runtime for this change",
+    "published Safari preview for this change"
+  ]
+}

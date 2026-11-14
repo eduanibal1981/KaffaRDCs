@@ -81,7 +81,7 @@ extension AppRoleLabel on AppRole {
         AppRole.superAdmin => context.l10n.roleSuperAdmin,
         AppRole.directorate => context.l10n.roleDirectorate,
         AppRole.auditor => context.l10n.roleAuditor,
-        AppRole.centerManager => context.l10n.roleCenterManager,
+        AppRole.centerManager => context.l10n.centerHeadRole,
         AppRole.viewer => context.l10n.roleViewer,
       };
 }
@@ -92,12 +92,32 @@ extension AppRoleLabel on AppRole {
 String formatDate(BuildContext context, DateTime? date) {
   if (date == null) return '—';
   const monthsEn = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
   ];
   const monthsAr = [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+    'يناير',
+    'فبراير',
+    'مارس',
+    'أبريل',
+    'مايو',
+    'يونيو',
+    'يوليو',
+    'أغسطس',
+    'سبتمبر',
+    'أكتوبر',
+    'نوفمبر',
+    'ديسمبر'
   ];
   final months = context.isArabic ? monthsAr : monthsEn;
   return '${date.day} ${months[date.month - 1]} ${date.year}';
@@ -106,5 +126,6 @@ String formatDate(BuildContext context, DateTime? date) {
 String formatPercent(double? value, {int decimals = 1}) =>
     value == null ? '—' : '${value.toStringAsFixed(decimals)}%';
 
-String formatPoints(double value) =>
-    value == value.roundToDouble() ? value.round().toString() : value.toStringAsFixed(1);
+String formatPoints(double value) => value == value.roundToDouble()
+    ? value.round().toString()
+    : value.toStringAsFixed(1);

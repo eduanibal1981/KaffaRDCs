@@ -19,6 +19,7 @@ class RenalCenter {
     this.logoPath,
     this.accentColor,
     required this.isActive,
+    this.rowVersion = 1,
   });
 
   final String id;
@@ -38,10 +39,12 @@ class RenalCenter {
   final String? logoPath;
   final String? accentColor;
   final bool isActive;
+  final int rowVersion;
 
   factory RenalCenter.fromMap(Map<String, dynamic> m) => RenalCenter(
         id: asString(m['id']),
         code: asString(m['code']),
+        rowVersion: asIntOr(m['row_version'], 1),
         nameEn: asString(m['name_en']),
         nameAr: asString(m['name_ar']),
         shortNameEn: asStringOrNull(m['short_name_en']),
@@ -96,10 +99,9 @@ class UserProfile {
   final String preferredLocale;
   final bool isActive;
 
-  String get displayName =>
-      (fullName != null && fullName!.trim().isNotEmpty)
-          ? fullName!
-          : (email ?? '').split('@').first;
+  String get displayName => (fullName != null && fullName!.trim().isNotEmpty)
+      ? fullName!
+      : (email ?? '').split('@').first;
 
   factory UserProfile.fromMap(Map<String, dynamic> m) => UserProfile(
         id: asString(m['id']),

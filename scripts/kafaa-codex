@@ -7,6 +7,30 @@ kafaa_script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 kafaa_project_root=$(CDPATH= cd -- "$kafaa_script_dir/.." && pwd)
 kafaa_mcp_url='https://mcp.supabase.com/mcp?project_ref=onzmwoajiyennqtjcjez&read_only=true&features=database,debugging,development,docs'
 
+# VS Code adds its bundled CLI to the agent's PATH, but regular terminals may
+# not inherit it. Resolve the installed extension without changing shell setup.
+kafaa_codex_bin=$(command -v codex || true)
+if [ -z "$kafaa_codex_bin" ]; then
+  case "$(uname -s):$(uname -m)" in
+    Darwin:arm64) kafaa_codex_platform=macos-aarch64 ;;
+    Darwin:x86_64) kafaa_codex_platform=macos-x86_64 ;;
+    *) kafaa_codex_platform='' ;;
+  esac
+  if [ -n "$kafaa_codex_platform" ]; then
+    for kafaa_candidate in "$HOME"/.vscode/extensions/openai.chatgpt-*/bin/"$kafaa_codex_platform"/codex; do
+      if [ -f "$kafaa_candidate" ] && [ -x "$kafaa_candidate" ]; then
+        kafaa_codex_bin=$kafaa_candidate
+      fi
+    done
+  fi
+fi
+
+if [ -z "$kafaa_codex_bin" ]; then
+  echo 'Codex CLI was not found in PATH or the macOS VS Code extension.' >&2
+  echo 'Install Codex CLI or the Codex VS Code extension, then retry this command.' >&2
+  exit 127
+fi
+
 cd "$kafaa_project_root"
-exec codex -C "$kafaa_project_root" \
+exec "$kafaa_codex_bin" -C "$kafaa_project_root" \
   -c "mcp_servers.kafaa_db.url=\"$kafaa_mcp_url\"" "$@"

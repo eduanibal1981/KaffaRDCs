@@ -1,5 +1,11 @@
 import 'dart:io';
+import '../../core/offline/local_store.dart';
+import '../../core/offline/sync_service.dart';
+import '../../core/offline/network_error.dart';
+import '../../core/offline/durable_evidence.dart';
 
+import 'package:cross_file/cross_file.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -32,7 +38,11 @@ class NcrFilter {
 }
 
 class NcrRepository {
-  NcrRepository(this._client);
+  NcrRepository(this._client, {LocalStore? store, SyncService? sync})
+      : _store = store,
+        _sync = sync;
+  final LocalStore? _store;
+  final SyncService? _sync;
   final SupabaseClient _client;
   static const _uuid = Uuid();
 
@@ -51,53 +61,153 @@ class NcrRepository {
   }
 
   Future<Ncr?> byId(String id) async {
-    final row = await _client.from('ncrs').select().eq('id', id).maybeSingle();
-    return row == null ? null : Ncr.fromMap(row);
+    Map<String, dynamic>? row;
+    try {
+      row = await _client.from('ncrs').select().eq('id', id).maybeSingle();
+      if (row == null) return null;
+      await _store?.putCache('ncr.$id', row);
+    } catch (e) {
+      if (!isNetworkError(e)) rethrow;
+      row = await _store?.readCache<Map<String, dynamic>>('ncr.$id');
+      if (row == null) rethrow;
+    }
+    for (final e in await _store?.pending() ?? <OutboxEntry>[]) {
+      if (e.kind == OutboxKind.ncrUpdate && e.payload['id'] == id) {
+        row = {...row!, ...e.payload};
+      }
+    }
+    return Ncr.fromMap(row!);
   }
 
   Future<List<NcrUpdate>> timeline(String ncrId) async {
-    final rows = await _client
-        .from('ncr_updates')
-        .select('*, profiles:author_id(full_name)')
-        .eq('ncr_id', ncrId)
-        .order('created_at', ascending: false);
-
-    return rows.map((row) {
+    List<dynamic> rows;
+    try {
+      rows = await _client
+          .from('ncr_updates')
+          .select('*, profiles:author_id(full_name)')
+          .eq('ncr_id', ncrId)
+          .order('created_at', ascending: false);
+      await _store?.putCache('ncr.timeline.$ncrId', rows);
+      await _store?.putCache('ncr.notes.accepted.$ncrId',
+          {for (final r in rows) r['id'] as String: r});
+    } catch (e) {
+      if (!isNetworkError(e)) rethrow;
+      final old = await _store?.readCache<List<dynamic>>('ncr.timeline.$ncrId');
+      if (old == null) rethrow;
+      final accepted = await _store
+              ?.readCache<Map<String, dynamic>>('ncr.notes.accepted.$ncrId') ??
+          {};
+      rows = {for (final r in old) r['id'] as String: r, ...accepted}
+          .values
+          .toList();
+    }
+    final result = <NcrUpdate>[];
+    for (final row in rows) {
       final profile = row['profiles'];
-      return NcrUpdate.fromMap({
+      result.add(NcrUpdate.fromMap({
         ...row,
-        'author_name': profile is Map ? profile['full_name'] : null,
-      });
-    }).toList();
+        'author_name': profile is Map ? profile['full_name'] : null
+      }));
+    }
+    for (final e in await _store?.pending() ?? <OutboxEntry>[]) {
+      if (e.kind == OutboxKind.ncrNoteAppend &&
+          e.payload['ncr_id'] == ncrId &&
+          !rows.any((r) => r['id'] == e.payload['id'])) {
+        result.insert(
+            0,
+            NcrUpdate.fromMap(
+                {...e.payload, 'created_at': e.createdAt.toIso8601String()}));
+      }
+    }
+    return result;
   }
 
   Future<void> create(Map<String, dynamic> values) =>
       _client.from('ncrs').insert(values);
 
-  Future<void> update(String id, Map<String, dynamic> values) =>
-      _client.from('ncrs').update(values).eq('id', id);
+  Future<void> update(String id, Map<String, dynamic> values) async {
+    if (_store == null || _sync == null) {
+      await _client.from('ncrs').update(values).eq('id', id);
+      return;
+    }
+    final old = await byId(id);
+    if (old == null) throw StateError('KAFAA_ACCESS_DENIED');
+    await _store.enqueue(
+        OutboxKind.ncrUpdate, {'id': id, ...values, 'entity_key': 'ncr:$id'},
+        dedupeKey: 'ncr-update:$id');
+    await _sync.refreshPendingCount();
+    _sync.scheduleSync();
+  }
 
-  Future<void> addNote(String ncrId, String note) =>
-      _client.from('ncr_updates').insert({'ncr_id': ncrId, 'note': note});
+  Future<void> addNote(String ncrId, String note) async {
+    if (_store == null || _sync == null) {
+      await _client.from('ncr_updates').insert({'ncr_id': ncrId, 'note': note});
+      return;
+    }
+    if (note.trim().isEmpty) return;
+    await _store.enqueueWithCache(
+        OutboxKind.ncrNoteAppend,
+        {
+          'id': _uuid.v4(),
+          'ncr_id': ncrId,
+          'note': note.trim(),
+          'entity_key': 'ncr-note:$ncrId'
+        },
+        cacheKey: 'ncr.timeline.$ncrId',
+        cacheValue:
+            await _store.readCache<List<dynamic>>('ncr.timeline.$ncrId') ?? []);
+    await _sync.refreshPendingCount();
+    _sync.scheduleSync();
+  }
 
-  Future<void> attachEvidence({
-    required String ncrId,
-    required String centerId,
-    required File file,
-    required String fileName,
-    String? mimeType,
-    String? caption,
-  }) async {
+  Future<void> attachEvidence(
+      {required String ncrId,
+      required String centerId,
+      required XFile file,
+      required String fileName,
+      String? mimeType,
+      String? caption}) async {
+    final id = _uuid.v4();
     final storagePath =
-        p.posix.join(centerId, ncrId, '${_uuid.v4()}${p.extension(fileName)}');
-
-    await _client.storage.from('ncr-evidence').upload(
-          storagePath,
-          file,
-          fileOptions: FileOptions(contentType: mimeType, upsert: true),
-        );
-
+        p.posix.join(centerId, ncrId, '$id${p.extension(fileName)}');
+    if (_store != null && _sync != null) {
+      final owned = await persistEvidence(_client, file, 'ncr/$ncrId/$id');
+      final dependencies = (await _store.pending())
+          .where(
+              (e) => e.kind == OutboxKind.ncrUpdate && e.payload['id'] == ncrId)
+          .map((e) => e.id)
+          .toList();
+      await _store.enqueue(OutboxKind.ncrEvidenceUpload, {
+        ...owned,
+        'ncr_id': ncrId,
+        'depends_on': dependencies,
+        'entity_key': 'ncr-proof:$id',
+        'metadata': {
+          'id': id,
+          'ncr_id': ncrId,
+          'center_id': centerId,
+          'storage_bucket': 'ncr-evidence',
+          'storage_path': storagePath,
+          'file_name': fileName,
+          'mime_type': mimeType,
+          'size_bytes': owned['size_bytes'],
+          'caption': caption
+        }
+      });
+      await _sync.refreshPendingCount();
+      _sync.scheduleSync();
+      return;
+    }
+    final storage = _client.storage.from('ncr-evidence');
+    final options = FileOptions(contentType: mimeType, upsert: true);
+    if (kIsWeb) {
+      await storage.uploadBinary(storagePath, await file.readAsBytes(),
+          fileOptions: options);
+    } else {
+      await storage.upload(storagePath, File(file.path), fileOptions: options);
+    }
     await _client.from('ncr_evidence').insert({
+      'id': id,
       'ncr_id': ncrId,
       'center_id': centerId,
       'storage_bucket': 'ncr-evidence',
@@ -105,7 +215,7 @@ class NcrRepository {
       'file_name': fileName,
       'mime_type': mimeType,
       'size_bytes': await file.length(),
-      'caption': caption,
+      'caption': caption
     });
   }
 
@@ -125,8 +235,10 @@ class NcrRepository {
   }
 }
 
-final ncrRepositoryProvider =
-    Provider<NcrRepository>((ref) => NcrRepository(watchSessionClient(ref)));
+final ncrRepositoryProvider = Provider<NcrRepository>((ref) => NcrRepository(
+    watchSessionClient(ref),
+    store: ref.watch(localStoreProvider),
+    sync: ref.watch(syncServiceProvider.notifier)));
 
 final ncrListProvider = FutureProvider.family<List<Ncr>, NcrFilter>(
   (ref, filter) => ref.watch(ncrRepositoryProvider).list(filter),

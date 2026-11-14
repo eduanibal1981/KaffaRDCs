@@ -79,15 +79,20 @@ void main() {
       final primary =
           primaryDestinations(roles['centre manager']!).map((d) => d.route);
       expect(primary, isNot(contains(Routes.centres)));
-      expect(primary,
-          [Routes.home, Routes.actions, Routes.staff, Routes.more]);
+      expect(primary, [
+        Routes.home,
+        Routes.audits,
+        Routes.actions,
+        Routes.staff,
+        Routes.more
+      ]);
     });
 
-    test('a roaming auditor keeps the centre list, having many to pick from',
-        () {
+    test('an auditor opens Work with the four planned destinations', () {
       final primary =
           primaryDestinations(roles['roaming auditor']!).map((d) => d.route);
-      expect(primary, contains(Routes.centres));
+      expect(
+          primary, [Routes.home, Routes.audits, Routes.actions, Routes.more]);
       expect(primary, contains(Routes.audits));
     });
 

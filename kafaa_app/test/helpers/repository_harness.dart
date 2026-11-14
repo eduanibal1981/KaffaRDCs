@@ -100,6 +100,15 @@ class MemoryLocalStore implements LocalStore {
   }
 
   @override
+  Future<String> enqueueWithCache(OutboxKind kind, Map<String, dynamic> payload,
+      {String? dedupeKey,
+      required String cacheKey,
+      required Object cacheValue}) async {
+    await putCache(cacheKey, cacheValue);
+    return enqueue(kind, payload, dedupeKey: dedupeKey);
+  }
+
+  @override
   Future<List<OutboxEntry>> pending(
       {int? limit, bool includeExhausted = true}) async {
     final rows = entries.values
@@ -124,7 +133,7 @@ class MemoryLocalStore implements LocalStore {
 
   @override
   Future<void> markFailed(String id, String error,
-      {OutboxEntry? expected}) async {
+      {OutboxEntry? expected, bool permanent = false}) async {
     if (!_matches(id, expected)) return;
     final entry = entries[id]!;
     entries[id] = OutboxEntry(
@@ -132,9 +141,21 @@ class MemoryLocalStore implements LocalStore {
       kind: entry.kind,
       payload: entry.payload,
       createdAt: entry.createdAt,
-      attempts: entry.attempts + 1,
+      attempts: permanent ? 8 : entry.attempts + 1,
       lastError: error,
     );
+  }
+
+  @override
+  Future<void> replacePending(
+      OutboxEntry entry, Map<String, dynamic> payload) async {
+    if (!_matches(entry.id, entry)) return;
+    entries[entry.id] = OutboxEntry(
+        id: entry.id,
+        kind: entry.kind,
+        payload: _copy<Map<String, dynamic>>(payload),
+        createdAt: entry.createdAt,
+        attempts: 0);
   }
 
   @override

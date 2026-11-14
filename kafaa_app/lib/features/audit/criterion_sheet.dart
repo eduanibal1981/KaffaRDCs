@@ -1,3 +1,7 @@
+import '../../data/models/evidence_review.dart';
+import '../../data/repositories/directorate_capabilities.dart';
+import 'evidence/criterion_proof_panel.dart';
+import 'official_response_conflict_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -160,6 +164,12 @@ class _CriterionSheetState extends ConsumerState<_CriterionSheet> {
             controller: widget.scrollController,
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             children: [
+              if (widget.canEdit)
+                TextButton(
+                    onPressed: () => showOfficialResponseConflict(
+                        context, ref, widget.auditId, criterion.id),
+                    child: Text(l10n.syncReviewConflict)),
+              Text(l10n.auditObservationHint),
               Text(
                 context.pick(criterion.textEn, criterion.textAr),
                 style: theme.textTheme.titleMedium,
@@ -645,6 +655,13 @@ class _EvidenceSection extends ConsumerWidget {
             ],
           ),
         const SizedBox(height: 12),
+        if (ref
+                .watch(directorateCapabilitiesProvider)
+                .valueOrNull?['formal_signoff'] ==
+            true)
+          CriterionProofPanel(
+              contextKey: CriterionProofKey(auditId, criterion.id),
+              canEdit: canEdit),
         FutureBuilder<List<EvidenceItem>>(
           future: ref
               .read(auditRepositoryProvider)

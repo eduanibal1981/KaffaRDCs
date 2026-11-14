@@ -48,11 +48,22 @@ void main() {
 
   test('filters older periods on the server before limiting results', () async {
     h = RepositoryHarness((request) async {
+      expect(request.url.queryParameters['participation_id'], 'not.is.null');
       final period = request.url.queryParameters['period_key'];
       final rows = [
         for (var i = 0; i < 60; i++)
-          {'audit_id': 'recent-$i', 'period_key': '2026-H2'},
-        {'audit_id': 'older', 'period_key': '2026-H1'},
+          {
+            'audit_id': 'recent-$i',
+            'period_key': '2026-H2',
+            'participation_id': 'p-$i',
+            'session_id': 'shared'
+          },
+        {
+          'audit_id': 'older',
+          'period_key': '2026-H1',
+          'participation_id': 'p-old',
+          'session_id': 'shared'
+        },
       ].where((row) => period == null || 'eq.${row['period_key']}' == period);
       return jsonResponse(rows.take(50).toList());
     });
@@ -60,83 +71,28 @@ void main() {
     expect(rows.map((row) => row.auditId), ['older']);
   });
 
-  test('legacy period filtering pages past newer audits and caches matches',
+  test('offline results and direct links reject cached standalone mock audits',
       () async {
     var offline = false;
-    final offsets = <int>[];
+    final joined = {
+      'audit_id': 'joined',
+      'participation_id': 'participation',
+      'session_id': 'shared',
+      'session_status': 'open',
+    };
     h = RepositoryHarness((request) async {
       if (offline) throw const SocketException('offline');
-      final params = request.url.queryParameters;
-      expect(params['center_id'], 'eq.center');
-      expect(params['status'], 'eq.approved');
-      expect(params['cycle_label'], 'eq.2025');
-      if (params.containsKey('period_key')) {
-        return jsonResponse({
-          'code': '42703',
-          'message': 'column v_audit_summary.period_key does not exist',
-        }, status: 400);
-      }
-      expect(params['order'],
-          'evaluation_date.desc.nullslast,audit_id.asc.nullslast');
-      final rows = [
-        for (var i = 0; i < 205; i++)
-          {
-            'audit_id': 'recent-$i',
-            'period_start': '2026-07-01',
-            'period_end': '2026-12-31',
-          },
-        // Shares the start date, but is quarterly rather than semiannual.
-        {
-          'audit_id': 'quarterly',
-          'period_start': '2025-07-01',
-          'period_end': '2025-09-30',
-        },
-        for (var i = 0; i < 3; i++)
-          {
-            'audit_id': 'older-$i',
-            'period_start': '2025-07-01',
-            'period_end': '2025-12-31',
-          },
-      ];
-      final offset = int.parse(params['offset']!);
-      offsets.add(offset);
-      return jsonResponse(
-          rows.skip(offset).take(int.parse(params['limit']!)).toList());
+      return jsonResponse([
+        joined,
+        {'audit_id': 'standalone'}
+      ]);
     });
-    const filter = AuditFilter(
-      centerId: 'center',
-      status: AuditStatus.approved,
-      cycleLabel: '2025',
-      periodKey: '2025-H2',
-      limit: 2,
-    );
-    expect((await h.audits.list(filter)).map((row) => row.auditId),
-        ['older-0', 'older-1']);
-    expect(offsets, [0, 200]);
+    expect((await h.audits.list(const AuditFilter())).single.auditId, 'joined');
+    await h.store
+        .putCache('audit.summary.standalone', {'audit_id': 'standalone'});
     offline = true;
-    expect((await h.audits.list(filter)).map((row) => row.auditId),
-        ['older-0', 'older-1']);
-  });
-
-  test('legacy period filtering stops at the end with no matches', () async {
-    var pages = 0;
-    h = RepositoryHarness((request) async {
-      if (request.url.queryParameters.containsKey('period_key')) {
-        return jsonResponse({
-          'code': '42703',
-          'message': 'column v_audit_summary.period_key does not exist',
-        }, status: 400);
-      }
-      pages++;
-      return jsonResponse(pages == 1
-          ? [
-              {'audit_id': 'newer', 'evaluation_date': '2026-07-01'}
-            ]
-          : []);
-    });
-    expect(
-        await h.audits.list(const AuditFilter(periodKey: '2025-H2')), isEmpty);
-    expect(pages, 2);
+    expect((await h.audits.list(const AuditFilter())).single.auditId, 'joined');
+    expect(await h.audits.summary('standalone'), isNull);
   });
 
   test('other database errors are not treated as legacy period schemas',
@@ -159,7 +115,11 @@ void main() {
     h = RepositoryHarness((request) async {
       if (offline) throw const SocketException('offline');
       return jsonResponse([
-        {'audit_id': request.url.queryParameters['cycle_label']},
+        {
+          'audit_id': request.url.queryParameters['cycle_label'],
+          'participation_id': 'p',
+          'session_id': 'shared'
+        },
       ]);
     });
     const first = AuditFilter(cycleLabel: '2025-2026', limit: 10);
@@ -169,52 +129,6 @@ void main() {
     offline = true;
     expect((await h.audits.list(first)).single.auditId, 'eq.2025-2026');
     expect((await h.audits.list(second)).single.auditId, 'eq.2026-2027');
-  });
-
-  test('saves the selected frequency and uses a stable primary key', () async {
-    h = RepositoryHarness((request) async {
-      final body = jsonDecode(request.body) as Map;
-      expect(body['period_frequency'], 'monthly');
-      expect(body['id'], body['client_uuid']);
-      return jsonResponse({'id': body['id']});
-    });
-    final id = await h.audits.createDraft(
-      templateId: 'template',
-      centerId: 'center',
-      cycleLabel: '2026',
-      evaluationDate: DateTime(2026, 3, 12),
-      frequency: PeriodFrequency.monthly,
-    );
-    expect(id, isNotEmpty);
-  });
-
-  test('an offline draft opens and appears in the matching audit list',
-      () async {
-    h = RepositoryHarness((_) async => throw const SocketException('offline'),
-        online: false);
-    await h.store.putCache('centers.active', [
-      {'id': 'center', 'code': 'TEST', 'name_en': 'Test centre'},
-    ]);
-    final id = await h.audits.createDraft(
-      templateId: 'template',
-      centerId: 'center',
-      cycleLabel: '2026',
-      evaluationDate: DateTime(2026, 3, 12),
-      frequency: PeriodFrequency.monthly,
-    );
-    final queued = (await h.store.pending()).single;
-    expect(queued.payload['id'], id);
-    final summary = await h.audits.summary(id);
-    expect(summary?.auditId, id);
-    expect(summary?.periodKey, '2026-03');
-    expect(summary?.centerNameEn, 'Test centre');
-    expect(await h.audits.responses(id), isEmpty);
-    expect(
-        (await h.audits.list(const AuditFilter(periodKey: '2026-03')))
-            .single
-            .auditId,
-        id);
-    expect(await h.audits.list(const AuditFilter(centerId: 'other')), isEmpty);
   });
 
   test('reopening an offline response retains the latest score and level',
@@ -253,11 +167,16 @@ void main() {
     h = RepositoryHarness((_) async {
       started.complete();
       await response.future;
-      return jsonResponse({});
+      return jsonResponse({
+        'id': 'r1',
+        'audit_id': 'audit-1',
+        'criterion_id': 'c0',
+        'row_version': 1
+      });
     });
     await h.ready();
-    await h.store.enqueue(OutboxKind.responseUpsert,
-        {'audit_id': 'audit-1', 'criterion_id': 'c0'});
+    await h.store
+        .enqueue(OutboxKind.auditUpdate, {'id': 'audit-1', 'title': 'saved'});
     final first = h.sync.sync();
     await started.future;
     var flushed = false;
@@ -277,17 +196,31 @@ void main() {
     final comments = <String>[];
     h = RepositoryHarness((request) async {
       final body = jsonDecode(request.body) as Map;
-      comments.add(body['comment'] as String);
+      comments.add((body['p_payload'] as Map)['comment'] as String);
       if (comments.length == 1) {
         started.complete();
         await firstResponse.future;
       }
       expect(body.containsKey('_local_response'), isFalse);
-      return jsonResponse({});
+      return jsonResponse({
+        'id': 'r1',
+        'audit_id': 'audit-1',
+        'criterion_id': 'c0',
+        'row_version': 1
+      });
     });
     await h.ready();
     await h.store.enqueue(
-        OutboxKind.responseUpsert, {'audit_id': 'audit-1', 'comment': 'old'},
+        OutboxKind.responseUpsert,
+        {
+          'audit_id': 'audit-1',
+          'p_audit_id': 'audit-1',
+          'p_id': 'r1',
+          'p_criterion_id': 'c0',
+          'p_expected_version': 0,
+          'p_mutation_id': 'm1',
+          'p_payload': {'comment': 'old'}
+        },
         dedupeKey: 'response');
     final syncing = h.sync.sync();
     await started.future;
@@ -295,7 +228,12 @@ void main() {
         OutboxKind.responseUpsert,
         {
           'audit_id': 'audit-1',
-          'comment': 'new',
+          'p_audit_id': 'audit-1',
+          'p_id': 'r1',
+          'p_criterion_id': 'c0',
+          'p_expected_version': 1,
+          'p_mutation_id': 'm2',
+          'p_payload': {'comment': 'new'},
           '_local_response': {'points': 3, 'level': 'met'},
         },
         dedupeKey: 'response');
@@ -342,7 +280,8 @@ void main() {
         await h.store.markFailed(id, 'invalid');
       }
     }
-    await h.store.enqueue(OutboxKind.responseUpsert, {'audit_id': 'good'});
+    await h.store
+        .enqueue(OutboxKind.auditUpdate, {'id': 'good', 'title': 'saved'});
     await h.sync.sync();
     expect(requests, 1);
     expect(await h.store.pendingCount(), 100);
@@ -377,7 +316,13 @@ void main() {
       () async {
     h = RepositoryHarness((request) async {
       if (request.url.path.endsWith('v_audit_summary')) {
-        return jsonResponse({'audit_id': 'audit-1', 'template_id': 'original'});
+        return jsonResponse({
+          'audit_id': 'audit-1',
+          'template_id': 'original',
+          'participation_id': 'p',
+          'session_id': 'shared',
+          'session_status': 'open'
+        });
       }
       if (request.url.path.endsWith('assessment_templates')) {
         expect(request.url.queryParameters['id'], 'eq.original');

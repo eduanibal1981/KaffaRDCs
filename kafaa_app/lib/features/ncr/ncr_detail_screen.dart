@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/l10n/enum_labels.dart';
 import '../../core/l10n/l10n_extensions.dart';
@@ -14,6 +13,8 @@ import '../../data/models/primitives.dart';
 import '../../data/repositories/center_repository.dart';
 import '../../data/repositories/operations_repository.dart';
 import '../auth/session.dart';
+import '../admin/role_simulation.dart';
+import '../admin/testing/tester_workspace.dart';
 
 final _ncrProvider = FutureProvider.family<Ncr?, String>(
   (ref, id) => ref.watch(ncrRepositoryProvider).byId(id),
@@ -87,15 +88,21 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
 
   Future<void> _attach(Ncr ncr, bool fromCamera) async {
     try {
-      File file;
+      XFile file;
       String name;
       String? mime;
 
-      if (fromCamera) {
+      if (ref.read(roleSimulationProvider) != null) {
+        final fixture = ref.read(testerScenarioProvider);
+        file = XFile.fromData(fixture.sampleProof(arabic: context.isArabic),
+            name: 'SAMPLE-testing-mode.txt');
+        name = 'SAMPLE-testing-mode.txt';
+        mime = 'text/plain';
+      } else if (fromCamera) {
         final picked = await ImagePicker()
             .pickImage(source: ImageSource.camera, imageQuality: 82);
         if (picked == null) return;
-        file = File(picked.path);
+        file = picked;
         name = picked.name;
         mime = 'image/jpeg';
       } else {
@@ -103,9 +110,8 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
           type: FileType.custom,
           allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx'],
         );
-        final path = result?.path;
-        if (result == null || path == null) return;
-        file = File(path);
+        if (result == null) return;
+        file = result.xFile;
         name = result.name;
         mime = name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
       }
@@ -120,7 +126,7 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.actionDone)),
+          SnackBar(content: Text(context.l10n.syncSavedOnDevice)),
         );
       }
     } catch (e) {
@@ -155,6 +161,11 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             children: [
+              if (ncr.auditId != null && perms.canDiscussAudit(ncr.centerId))
+                TextButton(
+                    onPressed: () => context.push(
+                        '/audits/${ncr.auditId}/dialogue${ncr.criterionId == null ? '' : '?criterionId=${ncr.criterionId}'}'),
+                    child: Text(context.l10n.centerAddClarification)),
               KafaaCard(
                 accent: ncr.isOverdue ? KafaaColors.danger : null,
                 child: Column(
@@ -223,8 +234,7 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
                       enabled: canRespond && !_busy,
                       minLines: 2,
                       maxLines: 4,
-                      decoration:
-                          InputDecoration(labelText: l10n.ncrRootCause),
+                      decoration: InputDecoration(labelText: l10n.ncrRootCause),
                     ),
                     const SizedBox(height: 14),
                     TextField(
@@ -240,8 +250,8 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
                       enabled: canRespond && !_busy,
                       minLines: 2,
                       maxLines: 4,
-                      decoration: InputDecoration(
-                          labelText: l10n.ncrResolutionNotes),
+                      decoration:
+                          InputDecoration(labelText: l10n.ncrResolutionNotes),
                     ),
                     if (canRespond) ...[
                       const SizedBox(height: 14),
@@ -284,8 +294,7 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
                         controller: _note,
                         minLines: 2,
                         maxLines: 3,
-                        decoration:
-                            InputDecoration(labelText: l10n.ncrAddNote),
+                        decoration: InputDecoration(labelText: l10n.ncrAddNote),
                       ),
                       const SizedBox(height: 14),
                       Wrap(
@@ -347,8 +356,7 @@ class _Timeline extends ConsumerWidget {
                   leading: Icon(
                     Icons.circle,
                     size: 12,
-                    color: KafaaColors.forNcrStatus(
-                        u.toStatus?.wire ?? 'open'),
+                    color: KafaaColors.forNcrStatus(u.toStatus?.wire ?? 'open'),
                   ),
                   title: Text(
                     u.toStatus?.label(context) ?? context.l10n.ncrAddNote,

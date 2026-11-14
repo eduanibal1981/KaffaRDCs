@@ -203,7 +203,7 @@ class AppL10nAr extends AppL10n {
   String get roleAuditor => 'مدقق';
 
   @override
-  String get roleCenterManager => 'مدير المركز';
+  String get roleCenterManager => 'رئيس المركز';
 
   @override
   String get roleViewer => 'مطّلع';
@@ -259,7 +259,24 @@ class AppL10nAr extends AppL10n {
   String get centreWilayat => 'الولاية';
 
   @override
+  String get centreAuditFilter => 'التقييم';
+
+  @override
+  String get centreLatestAudit => 'أحدث تقييم';
+
+  @override
+  String get centreNotInvolved => 'لم يشارك بعد';
+
+  @override
   String get centreLastAssessed => 'آخر تقييم';
+
+  @override
+  String get centreLatestApprovedAssessment => 'آخر تقييم معتمد';
+
+  @override
+  String centreResultFrom(String assessment) {
+    return 'النتيجة من $assessment';
+  }
 
   @override
   String get centreNoAudit => 'لم يُقيَّم بعد';
@@ -445,10 +462,6 @@ class AppL10nAr extends AppL10n {
       'قيّم كل بند: مستوفى أو مستوفى جزئياً أو غير مستوفى';
 
   @override
-  String get auditNothingToScore =>
-      'جميع التقييمات هنا معتمدة ومقفلة. ابدأ تقييماً جديداً لتقييم أحد المراكز.';
-
-  @override
   String get auditReview => 'المراجعة والإرسال';
 
   @override
@@ -491,19 +504,6 @@ class AppL10nAr extends AppL10n {
 
   @override
   String get auditLocked => 'هذا التقييم معتمد ولم يعد قابلاً للتعديل.';
-
-  @override
-  String get auditDeleteDraft => 'حذف المسودة';
-
-  @override
-  String get auditDeleteDraftTitle => 'حذف مسودة التقييم؟';
-
-  @override
-  String get auditDeleteDraftConfirm =>
-      'هل أنت متأكد من رغبتك في حذف مسودة التقييم هذه؟ لا يمكن التراجع عن هذا الإجراء.';
-
-  @override
-  String get auditDraftDeleted => 'تم حذف مسودة التقييم بنجاح.';
 
   @override
   String get criterionComment => 'تعليق';
@@ -1482,4 +1482,900 @@ class AppL10nAr extends AppL10n {
   @override
   String get structureCodeHelp =>
       'رمز فريد داخل هذا الإصدار، مثل GOV أو GOV-2.';
+
+  @override
+  String get assessmentShared => 'التقييمات المشتركة';
+
+  @override
+  String get assessmentName => 'اسم التقييم';
+
+  @override
+  String get assessmentNameAr => 'اسم التقييم بالعربية';
+
+  @override
+  String get assessmentSaveDraft => 'حفظ المسودة';
+
+  @override
+  String get assessmentPublish => 'نشر التقييم';
+
+  @override
+  String get assessmentAllCenters => 'متاح لجميع المراكز النشطة عند النشر';
+
+  @override
+  String get assessmentDue => 'آخر موعد للتقديم';
+
+  @override
+  String get assessmentNoDeadline => 'بدون موعد نهائي';
+
+  @override
+  String get assessmentOpen => 'مفتوح';
+
+  @override
+  String get assessmentClosed => 'مغلق';
+
+  @override
+  String get assessmentDraft => 'مسودة';
+
+  @override
+  String get assessmentDeadlinePassed => 'انتهى الموعد النهائي';
+
+  @override
+  String get assessmentEmpty => 'لا توجد تقييمات مشتركة حتى الآن';
+
+  @override
+  String get assessmentJoin => 'الانضمام إلى التقييم';
+
+  @override
+  String get assessmentNotJoined => 'لم ينضم بعد';
+
+  @override
+  String get assessmentJoined => 'تم الانضمام';
+
+  @override
+  String get assessmentPending => 'قيد الانتظار';
+
+  @override
+  String get assessmentJoiningPending =>
+      'الانضمام قيد الانتظار. أعد الاتصال وحاول مجدداً.';
+
+  @override
+  String get assessmentJoinedCount => 'انضم';
+
+  @override
+  String get assessmentSubmittedCount => 'تم التقديم';
+
+  @override
+  String get assessmentApprovedCount => 'معتمد';
+
+  @override
+  String get assessmentClose => 'إغلاق التقييم';
+
+  @override
+  String get assessmentReopen => 'إعادة فتح التقييم';
+
+  @override
+  String get assessmentExtend => 'تعديل الموعد النهائي';
+
+  @override
+  String get assessmentCloseConfirm =>
+      'يوقف الإغلاق الانضمام الجديد وتعديلات المراكز. تبقى النتائج المقدمة متاحة للمراجعة.';
+
+  @override
+  String get assessmentExists =>
+      'يوجد تقييم لهذا الهيكل وهذه الفترة. افتحه من التقييمات المشتركة.';
+
+  @override
+  String get assessmentGeneralInfo => 'معلومات تقييم المركز';
+
+  @override
+  String get assessmentHeaderRequired =>
+      'احفظ تاريخ التقييم والمقيّم في معلومات تقييم المركز قبل التقديم.';
+
+  @override
+  String get assessmentInactive => 'المركز غير نشط';
+
+  @override
+  String get assessmentNoCentres => 'لا توجد مراكز مؤهلة ضمن صلاحياتك';
+
+  @override
+  String get assessmentCorrection => 'إنشاء نسخة تصحيحية';
+
+  @override
+  String get assessmentCorrectionConfirm =>
+      'تنسخ النسخة الجديدة الإجابات. راجعها وحدد تاريخ التقييم وأرفق أدلة هذه النسخة.';
+
+  @override
+  String get assessmentOfficialResult => 'النتيجة المعتمدة';
+
+  @override
+  String get assessmentView => 'فتح التقييم';
+
+  @override
+  String get assessmentCompare => 'مقارنة المراكز المعتمدة';
+
+  @override
+  String get assessmentOnlineJoin =>
+      'اتصل للانضمام. يمكن متابعة التقييمات المنضم إليها دون اتصال.';
+
+  @override
+  String get adminOwnerTitle => 'إدارة التطبيق';
+
+  @override
+  String get adminViewAs => 'العرض بصلاحيات';
+
+  @override
+  String get adminTestingMode => 'وضع الاختبار';
+
+  @override
+  String get adminExitPreview => 'الخروج من المعاينة';
+
+  @override
+  String get adminPreviewDirectorate => 'المديرية';
+
+  @override
+  String get adminPreviewCenterHead => 'رئيس المركز';
+
+  @override
+  String get adminPreviewAuditor => 'مدقق';
+
+  @override
+  String get adminRoamingAuditor => 'مدقق — جميع المراكز';
+
+  @override
+  String get adminScopedAuditor => 'مدقق — المركز المحدد';
+
+  @override
+  String get adminEnterPreview => 'بدء المعاينة';
+
+  @override
+  String get adminMockDataNotice => 'بيانات تجريبية للاختبار';
+
+  @override
+  String get adminTesterToolbox => 'أدوات الاختبار';
+
+  @override
+  String get adminSimulateOffline => 'محاكاة انقطاع الاتصال';
+
+  @override
+  String get adminResetScenario => 'إعادة ضبط السيناريو التجريبي';
+
+  @override
+  String get adminInspectOutbox => 'فحص التغييرات المعلقة';
+
+  @override
+  String get adminScenarioReset => 'تمت إعادة ضبط السيناريو التجريبي';
+
+  @override
+  String get adminUsersTitle => 'المستخدمون والصلاحيات';
+
+  @override
+  String get adminGrantRole => 'منح صلاحية';
+
+  @override
+  String get adminRevokeRole => 'إلغاء صلاحية';
+
+  @override
+  String get adminRoleScope => 'نطاق المراكز';
+
+  @override
+  String get adminLastOwnerRequired => 'يجب الإبقاء على مالك نشط للتطبيق';
+
+  @override
+  String adminPreviewIdentity(String role, String center) {
+    return '$role · $center';
+  }
+
+  @override
+  String adminSampleContext(String center) {
+    return 'سيناريو تجريبي لمركز $center';
+  }
+
+  @override
+  String get adminMissingCenter => 'اختر المركز';
+
+  @override
+  String get adminPreviewUnauthorized => 'يلزم حساب مالك تطبيق نشط';
+
+  @override
+  String get adminFixturesUnavailable => 'السيناريو التجريبي غير متاح';
+
+  @override
+  String get adminSampleExport => 'نموذج — وضع الاختبار';
+
+  @override
+  String get adminAccessUnavailable =>
+      'يتطلب تعديل الصلاحيات التحقق من ضوابط الخادم. أعد الاتصال بعد تثبيت ترقية صلاحيات كفاءة.';
+
+  @override
+  String get adminAllCenters => 'جميع المراكز';
+
+  @override
+  String get adminInactive => 'غير نشط';
+
+  @override
+  String get adminScenarioCampaign => 'الانضمام والتقييم';
+
+  @override
+  String get adminScenarioReview => 'مقدم للمراجعة';
+
+  @override
+  String get adminScenarioApproved => 'نتائج معتمدة';
+
+  @override
+  String get adminSampleJourney => 'سير العمل التجريبي';
+
+  @override
+  String get adminSelfAudit => 'التقييم الذاتي';
+
+  @override
+  String get adminTeam => 'فريق التقييم';
+
+  @override
+  String get adminFullName => 'الاسم الكامل';
+
+  @override
+  String get adminActualJob => 'المسمى الوظيفي الفعلي';
+
+  @override
+  String get adminTeamResponsibility => 'مسؤولية الفريق';
+
+  @override
+  String get adminDiscussion => 'المناقشة';
+
+  @override
+  String get adminMessage => 'الرسالة';
+
+  @override
+  String get adminSampleProof => 'فحص الدليل التجريبي';
+
+  @override
+  String get adminQueueEmpty => 'لا توجد تغييرات تجريبية معلقة';
+
+  @override
+  String adminQueueDetails(
+      String kind, String entity, String status, int attempts) {
+    return '$kind · $entity · $status · المحاولات $attempts';
+  }
+
+  @override
+  String get adminQueued => 'بانتظار المزامنة';
+
+  @override
+  String get adminFailed => 'يتطلب المراجعة';
+
+  @override
+  String get adminSaved => 'تم الحفظ';
+
+  @override
+  String get adminReconnect => 'أعد الاتصال لتأكيد هذا الإجراء';
+
+  @override
+  String get adminRequired => 'أكمل الحقول المطلوبة';
+
+  @override
+  String adminGrantConfirm(String name) {
+    return 'منح هذه الصلاحية إلى $name؟';
+  }
+
+  @override
+  String adminRevokeConfirm(String name) {
+    return 'إلغاء هذه الصلاحية من $name؟';
+  }
+
+  @override
+  String get adminAccessEvents => 'نشاط الصلاحيات الأخير';
+
+  @override
+  String get adminSampleOnly => 'يستخدم سير العمل هذا بيانات تجريبية محلية';
+
+  @override
+  String get adminSelfSubmitted => 'تم تقديم التقييم الذاتي';
+
+  @override
+  String get adminSubmitSelf => 'تقديم التقييم الذاتي';
+
+  @override
+  String get directorateOverview => 'نظرة عامة للمديرية';
+
+  @override
+  String get centerRegistryTitle => 'سجل المراكز';
+
+  @override
+  String get centerRegistrySearch => 'البحث بالاسم أو الرمز';
+
+  @override
+  String get centerAdd => 'إضافة مركز';
+
+  @override
+  String get centerEdit => 'تعديل المركز';
+
+  @override
+  String get centerDeactivate => 'إيقاف تفعيل المركز';
+
+  @override
+  String get centerReactivate => 'إعادة تفعيل المركز';
+
+  @override
+  String get centerWilayat => 'الولاية';
+
+  @override
+  String get centerGovernorate => 'المحافظة';
+
+  @override
+  String get centerCodeInUse => 'رمز المركز مستخدم بالفعل';
+
+  @override
+  String get centerIncludeInactive => 'إظهار المراكز غير النشطة';
+
+  @override
+  String get centerCode => 'رمز المركز';
+
+  @override
+  String get centerNameEn => 'اسم المركز بالإنجليزية';
+
+  @override
+  String get centerNameAr => 'اسم المركز بالعربية';
+
+  @override
+  String get centerDeactivateConfirm => 'سيُحتفظ بالسجل وعضوية الحملات.';
+
+  @override
+  String get campaignBuilderTitle => 'إعداد حملة تقييم';
+
+  @override
+  String get campaignSaveDraft => 'حفظ مسودة الحملة';
+
+  @override
+  String get campaignPublish => 'نشر الحملة';
+
+  @override
+  String get campaignProgress => 'تقدم الحملة';
+
+  @override
+  String get campaignPendingJoin => 'لم ينضم';
+
+  @override
+  String get campaignNotStarted => 'انضم — لم يبدأ';
+
+  @override
+  String get campaignInProgress => 'قيد التنفيذ';
+
+  @override
+  String get campaignUnderReview => 'قيد المراجعة';
+
+  @override
+  String get campaignApprovedResults => 'النتائج المعتمدة';
+
+  @override
+  String get campaignCorrectionInProgress => 'التصحيح قيد التنفيذ';
+
+  @override
+  String get campaignOther => 'مؤرشف / حالة أخرى';
+
+  @override
+  String get campaignAttention => 'يحتاج إلى متابعة';
+
+  @override
+  String get reviewTitle => 'مراجعة التقييم';
+
+  @override
+  String get reviewRequestRevisions => 'طلب تعديلات';
+
+  @override
+  String get reviewApprove => 'اعتماد النتيجة';
+
+  @override
+  String get reviewRevisionReason => 'سبب طلب التعديلات';
+
+  @override
+  String get reviewApproved => 'تم اعتماد النتيجة';
+
+  @override
+  String get reviewStart => 'بدء المراجعة';
+
+  @override
+  String get reviewCriteria => 'المعايير والأدلة';
+
+  @override
+  String get reviewTeam => 'فريق التقييم';
+
+  @override
+  String get reviewVersion => 'الإصدار الرسمي / المراجعة';
+
+  @override
+  String get reviewLegacyTeam =>
+      'بيانات الفريق السابقة؛ لم تُسجل الوظيفة الفعلية أو المصادقة الرسمية.';
+
+  @override
+  String get reviewNoTeam => 'لم يُسجل فريق التقييم';
+
+  @override
+  String get reviewSelfUnavailable =>
+      'مقارنة التقييم الذاتي غير متاحة لهذه المشاركة.';
+
+  @override
+  String get dialogueTitle => 'التعليقات والملاحظات';
+
+  @override
+  String get dialogueOfficialDirective => 'توجيه المديرية';
+
+  @override
+  String get dialogueReply => 'رد';
+
+  @override
+  String get dialogueSend => 'إرسال الرسالة';
+
+  @override
+  String get dialogueClosed => 'أُغلقت المناقشة';
+
+  @override
+  String get dialogueClose => 'إغلاق المناقشة';
+
+  @override
+  String get dialogueReopen => 'إعادة فتح المناقشة';
+
+  @override
+  String get dialogueEmpty => 'لا توجد رسائل بعد';
+
+  @override
+  String get dialogueEarlier => 'تحميل الرسائل السابقة';
+
+  @override
+  String get syncSavedOnDevice => 'محفوظ على هذا الجهاز';
+
+  @override
+  String get syncAwaitingUpload => 'بانتظار المزامنة';
+
+  @override
+  String get syncConflict =>
+      'عدّل مستخدم آخر هذا البند. أعد تحميل الإصدار الحالي وراجع مسودتك قبل المحاولة.';
+
+  @override
+  String get syncReconnectToConfirm => 'أعد الاتصال لتأكيد هذا الإجراء';
+
+  @override
+  String get deadlineMuscat => 'الموعد النهائي (بتوقيت مسقط)';
+
+  @override
+  String get directorateUnavailable => 'لا يدعم الخادم هذا الإجراء بعد.';
+
+  @override
+  String get reviewCached =>
+      'نسخة محفوظة — أعد الاتصال والتحميل قبل اتخاذ قرار';
+
+  @override
+  String get reviewSyncedAt => 'وقت التحميل';
+
+  @override
+  String get evidenceNotDownloaded => 'أعد الاتصال لتنزيل هذا الدليل';
+
+  @override
+  String get reviewDecisionConfirmed => 'تم تأكيد القرار';
+
+  @override
+  String get reviewDecisionNote => 'ملاحظة القرار';
+
+  @override
+  String get campaignDraftRetained =>
+      'حُفظت مسودة الحملة؛ لا يزال النشر بحاجة إلى تأكيد.';
+
+  @override
+  String get validationNonnegative => 'أدخل عدداً صحيحاً غير سالب';
+
+  @override
+  String get dialogueMessageTooLong => 'استخدم ٨٠٠٠ حرف أو أقل';
+
+  @override
+  String get campaignExactDates => 'تواريخ الفترة المحددة';
+
+  @override
+  String get centerEmail => 'البريد الإلكتروني للتواصل';
+
+  @override
+  String get centerPhone => 'هاتف التواصل';
+
+  @override
+  String campaignCentreCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مركز مؤهل',
+      many: '$count مركزاً مؤهلاً',
+      few: '$count مراكز مؤهلة',
+      two: 'مركزان مؤهلان',
+      one: 'مركز مؤهل واحد',
+      zero: 'لا توجد مراكز مؤهلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dialogueMessageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رسالة',
+      many: '$count رسالة',
+      few: '$count رسائل',
+      two: 'رسالتان',
+      one: 'رسالة واحدة',
+      zero: 'لا توجد رسائل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewRequiredProofMissing =>
+      'الدليل المطلوب غير مكتمل. اطلب تعديلات ليتمكن فريق التقييم من إرفاقه.';
+
+  @override
+  String get reviewIncomplete => 'أكمل التقييم وقدّمه قبل الاعتماد.';
+
+  @override
+  String get directorateOverviewNav => 'نظرة عامة';
+
+  @override
+  String get syncCachedCopy => 'نسخة محفوظة';
+
+  @override
+  String get centerHeadRole => 'رئيس المركز';
+
+  @override
+  String get centerQualityTitle => 'جودة مركزي';
+
+  @override
+  String get centerJoinCampaign => 'الانضمام إلى التقييم';
+
+  @override
+  String get centerContinueSelfAudit => 'متابعة التقييم الذاتي';
+
+  @override
+  String get selfAuditTitle => 'التقييم الذاتي';
+
+  @override
+  String get selfAuditInternalOnly => 'الجاهزية وفق التقييم الذاتي';
+
+  @override
+  String get selfAuditIncomplete => 'التقييم الذاتي غير مكتمل';
+
+  @override
+  String get selfAuditReadiness => 'درجة الجاهزية';
+
+  @override
+  String get selfAuditSubmitSnapshot => 'إرسال نسخة التقييم الذاتي';
+
+  @override
+  String get selfAuditSubmitted => 'تم إرسال التقييم الذاتي';
+
+  @override
+  String get selfAuditStartRevision => 'بدء إصدار جديد للتقييم الذاتي';
+
+  @override
+  String get selfAuditCopyProof => 'نسخ الأدلة إلى هذه المسودة';
+
+  @override
+  String get selfAuditFrozen => 'تم تثبيت التقييم الذاتي للمقارنة الرسمية';
+
+  @override
+  String get selfAuditAddProof => 'إضافة دليل الاستيفاء';
+
+  @override
+  String get selfAuditNoBaseline => 'لا يوجد تقييم ذاتي مُرسل';
+
+  @override
+  String get gapTitle => 'التقييم الذاتي والتقييم الرسمي';
+
+  @override
+  String get gapSelfScore => 'الدرجة الذاتية';
+
+  @override
+  String get gapOfficialScore => 'الدرجة الرسمية';
+
+  @override
+  String get gapDifference => 'الفرق (الرسمي − الذاتي)';
+
+  @override
+  String get gapApplicabilityDiffers => 'يوجد اختلاف في قابلية التطبيق';
+
+  @override
+  String get gapOnlyDifferences => 'عرض الاختلافات فقط';
+
+  @override
+  String get gapProvisional => 'مقارنة أولية';
+
+  @override
+  String get centerReplyToDirectorate => 'الرد على المديرية';
+
+  @override
+  String get centerAddClarification => 'إضافة توضيح';
+
+  @override
+  String get selfAuditStart => 'بدء التقييم الذاتي';
+
+  @override
+  String get selfAuditHistory => 'سجل التقييم الذاتي';
+
+  @override
+  String get selfAuditUnavailable => 'التقييم الذاتي غير متاح على الخادم بعد';
+
+  @override
+  String get selfAuditNoSnapshot => 'لم يبدأ التقييم الذاتي بعد';
+
+  @override
+  String get selfAuditPending => 'زامن جميع التغييرات المحفوظة قبل الإرسال';
+
+  @override
+  String get selfAuditIncompleteError =>
+      'أكمل درجات جميع البنود المطلوبة قبل الإرسال';
+
+  @override
+  String get selfAuditProofFormat =>
+      'اختر ملف PDF أو JPEG أو PNG بحجم لا يتجاوز ٢٥ ميبيبايت';
+
+  @override
+  String get selfAuditProofPending => 'الأدلة بانتظار الرفع';
+
+  @override
+  String get selfAuditProofMissing =>
+      'ملف الدليل المحفوظ غير متاح. أرفقه مرة أخرى.';
+
+  @override
+  String get selfAuditConfirm =>
+      'هل تريد إرسال هذه النسخة الثابتة للمقارنة الرسمية؟';
+
+  @override
+  String get selfAuditCompletion => 'اكتمال قائمة التحقق';
+
+  @override
+  String get selfAuditNoCentre => 'اختر المركز الذي تديره';
+
+  @override
+  String get selfAuditUnjoined =>
+      'انضم عبر الإنترنت قبل فتح هذا التقييم الذاتي';
+
+  @override
+  String get selfAuditNoData => 'لا تتوفر بيانات';
+
+  @override
+  String get centerActionsAllPeriods => 'الإجراءات المفتوحة · جميع الفترات';
+
+  @override
+  String get centerCompetencyReadiness => 'جاهزية كفاءات الموظفين';
+
+  @override
+  String get centerSatisfactionRolling => 'رضا المرضى · آخر ١٢ شهراً';
+
+  @override
+  String get centerSatisfactionSuppressed => 'أقل من ٥ إجابات · النتيجة محجوبة';
+
+  @override
+  String get centerLatestApproved => 'أحدث نتيجة رسمية معتمدة';
+
+  @override
+  String get gapMissingAnswer => 'لم تتم الإجابة';
+
+  @override
+  String get gapApproved => 'مقارنة معتمدة';
+
+  @override
+  String get gapNoOfficial => 'لا يتوفر تقييم رسمي معتمد';
+
+  @override
+  String get gapProofReviewPending => 'لم تُسجل مراجعة الأدلة بعد';
+
+  @override
+  String get gapChooseSelf => 'اختر إصدار التقييم الذاتي المُرسل';
+
+  @override
+  String get selfAuditConflictReview => 'مراجعة التغييرات المحفوظة';
+
+  @override
+  String get selfAuditKeepLocal => 'تطبيق إجابتي المحفوظة على هذا الإصدار';
+
+  @override
+  String get selfAuditUseServer => 'استخدام إجابة الخادم';
+
+  @override
+  String get selfAuditConflictHelp =>
+      'قارن إجابتك المحفوظة مع إجابة الخادم الحالية قبل حل التعارض.';
+
+  @override
+  String get selfAuditCopyFailed =>
+      'تعذر نسخ بعض الأدلة. حُفظت المسودة؛ تحقق من الأدلة المطلوبة.';
+
+  @override
+  String get evidenceAvailableOffline => 'متاح دون اتصال';
+
+  @override
+  String get assessmentStructureMismatch =>
+      'ينتمي هذا البند إلى هيكل تدقيق مختلف';
+
+  @override
+  String get directorateFeedback => 'ملاحظات المديرية';
+
+  @override
+  String get selfAuditProofUploaded => 'تم رفع الدليل';
+
+  @override
+  String get selfAuditServerAnswer => 'الإجابة الذاتية المتزامنة الحالية';
+
+  @override
+  String get evidenceCaption => 'وصف الدليل (اختياري)';
+
+  @override
+  String get selfAuditStorageFull =>
+      'مساحة التخزين ممتلئة. وفر مساحة ثم حاول إرفاق الدليل مرة أخرى.';
+
+  @override
+  String get navMyCenter => 'مركزي';
+
+  @override
+  String get auditTeamMissingJob => 'لم يُسجل المسمى الوظيفي';
+
+  @override
+  String get auditTeamNameJobRequired =>
+      'أدخل الاسم الكامل والمسمى الوظيفي الفعلي';
+
+  @override
+  String get auditTeamDuplicateUser => 'هذا الحساب مسجل بالفعل في الفريق';
+
+  @override
+  String get auditTeamSimilarName =>
+      'يوجد اسم مشابه مسجل. تحقق قبل إضافة شخص آخر.';
+
+  @override
+  String get auditTeamReload =>
+      'إعادة تحميل فريق الخادم مع أرشفة التعديلات المحلية';
+
+  @override
+  String get auditProofNotReviewed => 'لم تسجل مراجعة';
+
+  @override
+  String get auditProofNoteRequired => 'وضح سبب طلب التوضيح أو عدم قبول الدليل';
+
+  @override
+  String get auditProofSourceMismatch =>
+      'الدليل لا يتطابق مع هذا التقييم والمعيار';
+
+  @override
+  String get auditProofOpenFirst => 'افتح الدليل ونزله قبل تسجيل حكمك';
+
+  @override
+  String get auditProofCounts =>
+      'يُحسب الدليل المرفق والمراجعات المقبولة بشكل منفصل';
+
+  @override
+  String get auditSignedContentConflict =>
+      'تغير التقييم. أعد تحميله وراجعه قبل الإقرار.';
+
+  @override
+  String get auditSubmissionDate => 'سجل تاريخ التقييم';
+
+  @override
+  String get auditSubmissionScores => 'أكمل درجة هذا المعيار';
+
+  @override
+  String get auditSubmissionUploads => 'لم يكتمل رفع الأدلة';
+
+  @override
+  String get auditSubmissionPending =>
+      'تنتظر التعديلات المزامنة أو تحتاج إلى مراجعة. تم الاحتفاظ بعملك المحفوظ.';
+
+  @override
+  String get auditResponseConflict => 'قارن إجابة الخادم بإجابتك المحفوظة';
+
+  @override
+  String get auditUseServer => 'استخدام إجابة الخادم';
+
+  @override
+  String get auditKeepLocal => 'الاحتفاظ بإجابتي مع إصدار الخادم الحالي';
+
+  @override
+  String get auditLegacyQueue =>
+      'يحتاج العمل المحفوظ من إصدار سابق إلى مراجعة التعارض قبل المزامنة';
+
+  @override
+  String get auditProofImmutable =>
+      'يُحتفظ بالدليل الذي تمت مراجعته. أرفق ملفا جديدا للاستبدال.';
+
+  @override
+  String get auditObservationHint =>
+      'استخدم ملاحظات ومقابلات مجهولة الهوية دون بيانات تعريف المرضى';
+
+  @override
+  String get auditNotSigned => 'لم يُسجل إقرار إلكتروني';
+
+  @override
+  String get auditSignoffStatementVersion => 'إصدار نص الإقرار';
+
+  @override
+  String get auditSubmissionRefresh => 'مزامنة والتحقق';
+
+  @override
+  String get auditTeamTitle => 'فريق التقييم';
+
+  @override
+  String get auditTeamFullName => 'الاسم الكامل';
+
+  @override
+  String get auditTeamActualJob => 'المسمى الوظيفي السريري أو الإداري الفعلي';
+
+  @override
+  String get auditTeamResponsibility => 'الدور في التقييم';
+
+  @override
+  String get auditTeamLead => 'رئيس فريق التدقيق';
+
+  @override
+  String get auditTeamMember => 'عضو الفريق';
+
+  @override
+  String get auditTeamGuest => 'عضو دون حساب في التطبيق';
+
+  @override
+  String get auditTeamLinkAccount => 'ربط حساب التطبيق';
+
+  @override
+  String get auditTeamLeadRequired =>
+      'اختر رئيس فريق تدقيق لديه حساب في التطبيق';
+
+  @override
+  String get auditProofTitle => 'الأدلة والإثباتات';
+
+  @override
+  String get auditProofCenterSource => 'دليل مقدم من المركز';
+
+  @override
+  String get auditProofAuditorSource => 'دليل مقدم من المدقق';
+
+  @override
+  String get auditProofAccepted => 'مقبول';
+
+  @override
+  String get auditProofClarification => 'يحتاج إلى توضيح';
+
+  @override
+  String get auditProofNotAccepted => 'غير مقبول';
+
+  @override
+  String get auditProofReviewNote => 'ملاحظة مراجعة الدليل';
+
+  @override
+  String get auditProofReviewedBy => 'تمت المراجعة بواسطة';
+
+  @override
+  String get auditPotentialFinding => 'ملاحظة محتملة عند الإرسال';
+
+  @override
+  String get auditSubmissionTitle => 'مراجعة التقييم وإرساله';
+
+  @override
+  String get auditSubmissionMissingProof => 'لم يُقبل الدليل المطلوب بعد';
+
+  @override
+  String get auditSignoffConfirm =>
+      'أؤكد أن هذا التقييم يعكس الأدلة التي راجعها الفريق المسجل';
+
+  @override
+  String get auditSignoffLeadOnly =>
+      'يجب أن يقر رئيس الفريق المسجل بصحة التقييم';
+
+  @override
+  String get auditSubmitForReview => 'إرسال إلى المديرية';
+
+  @override
+  String get auditSubmittedForReview => 'تم إرسال التقييم للمراجعة';
+
+  @override
+  String get auditSignoffOverrideReason => 'سبب الإرسال من المديرية';
+
+  @override
+  String get syncReviewConflict => 'مراجعة التغييرات';
+
+  @override
+  String get assessmentClosedReadOnly =>
+      'التقييم مغلق — العمل المحفوظ للقراءة فقط';
+
+  @override
+  String get auditorWorkNav => 'عملي';
 }

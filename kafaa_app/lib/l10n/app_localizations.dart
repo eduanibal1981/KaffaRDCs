@@ -472,7 +472,7 @@ abstract class AppL10n {
   /// No description provided for @roleCenterManager.
   ///
   /// In en, this message translates to:
-  /// **'Centre manager'**
+  /// **'Head of Centre'**
   String get roleCenterManager;
 
   /// No description provided for @roleViewer.
@@ -577,11 +577,41 @@ abstract class AppL10n {
   /// **'Wilayat'**
   String get centreWilayat;
 
+  /// No description provided for @centreAuditFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit'**
+  String get centreAuditFilter;
+
+  /// No description provided for @centreLatestAudit.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest audit'**
+  String get centreLatestAudit;
+
+  /// No description provided for @centreNotInvolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Not involved yet'**
+  String get centreNotInvolved;
+
   /// No description provided for @centreLastAssessed.
   ///
   /// In en, this message translates to:
   /// **'Last assessed'**
   String get centreLastAssessed;
+
+  /// No description provided for @centreLatestApprovedAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest approved assessment'**
+  String get centreLatestApprovedAssessment;
+
+  /// No description provided for @centreResultFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Result from {assessment}'**
+  String centreResultFrom(String assessment);
 
   /// No description provided for @centreNoAudit.
   ///
@@ -931,12 +961,6 @@ abstract class AppL10n {
   /// **'Score each point Met, Partially Met or Not Met'**
   String get auditScoreHint;
 
-  /// No description provided for @auditNothingToScore.
-  ///
-  /// In en, this message translates to:
-  /// **'Every assessment here is approved and locked. Start a new one to score a centre.'**
-  String get auditNothingToScore;
-
   /// No description provided for @auditReview.
   ///
   /// In en, this message translates to:
@@ -1014,30 +1038,6 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'This assessment is approved and can no longer be edited.'**
   String get auditLocked;
-
-  /// No description provided for @auditDeleteDraft.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete draft'**
-  String get auditDeleteDraft;
-
-  /// No description provided for @auditDeleteDraftTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete draft assessment?'**
-  String get auditDeleteDraftTitle;
-
-  /// No description provided for @auditDeleteDraftConfirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to delete this draft assessment? This action cannot be undone.'**
-  String get auditDeleteDraftConfirm;
-
-  /// No description provided for @auditDraftDeleted.
-  ///
-  /// In en, this message translates to:
-  /// **'Draft assessment deleted.'**
-  String get auditDraftDeleted;
 
   /// No description provided for @criterionComment.
   ///
@@ -2784,6 +2784,1657 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Unique within this version, for example GOV or GOV-2.'**
   String get structureCodeHelp;
+
+  /// No description provided for @assessmentShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared assessments'**
+  String get assessmentShared;
+
+  /// No description provided for @assessmentName.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment name'**
+  String get assessmentName;
+
+  /// No description provided for @assessmentNameAr.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment name in Arabic'**
+  String get assessmentNameAr;
+
+  /// No description provided for @assessmentSaveDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Save draft'**
+  String get assessmentSaveDraft;
+
+  /// No description provided for @assessmentPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish assessment'**
+  String get assessmentPublish;
+
+  /// No description provided for @assessmentAllCenters.
+  ///
+  /// In en, this message translates to:
+  /// **'Available to all active centres when published'**
+  String get assessmentAllCenters;
+
+  /// No description provided for @assessmentDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Submission deadline'**
+  String get assessmentDue;
+
+  /// No description provided for @assessmentNoDeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'No deadline'**
+  String get assessmentNoDeadline;
+
+  /// No description provided for @assessmentOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get assessmentOpen;
+
+  /// No description provided for @assessmentClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get assessmentClosed;
+
+  /// No description provided for @assessmentDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get assessmentDraft;
+
+  /// No description provided for @assessmentDeadlinePassed.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline passed'**
+  String get assessmentDeadlinePassed;
+
+  /// No description provided for @assessmentEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No shared assessments yet'**
+  String get assessmentEmpty;
+
+  /// No description provided for @assessmentJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join assessment'**
+  String get assessmentJoin;
+
+  /// No description provided for @assessmentNotJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'Not joined'**
+  String get assessmentNotJoined;
+
+  /// No description provided for @assessmentJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined'**
+  String get assessmentJoined;
+
+  /// No description provided for @assessmentPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get assessmentPending;
+
+  /// No description provided for @assessmentJoiningPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Joining pending. Reconnect and retry.'**
+  String get assessmentJoiningPending;
+
+  /// No description provided for @assessmentJoinedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined'**
+  String get assessmentJoinedCount;
+
+  /// No description provided for @assessmentSubmittedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get assessmentSubmittedCount;
+
+  /// No description provided for @assessmentApprovedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get assessmentApprovedCount;
+
+  /// No description provided for @assessmentClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close assessment'**
+  String get assessmentClose;
+
+  /// No description provided for @assessmentReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen assessment'**
+  String get assessmentReopen;
+
+  /// No description provided for @assessmentExtend.
+  ///
+  /// In en, this message translates to:
+  /// **'Change deadline'**
+  String get assessmentExtend;
+
+  /// No description provided for @assessmentCloseConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing stops new joins and centre edits. Submitted results can still be reviewed.'**
+  String get assessmentCloseConfirm;
+
+  /// No description provided for @assessmentExists.
+  ///
+  /// In en, this message translates to:
+  /// **'An assessment already exists for this structure and period. Open it from Shared assessments.'**
+  String get assessmentExists;
+
+  /// No description provided for @assessmentGeneralInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre assessment information'**
+  String get assessmentGeneralInfo;
+
+  /// No description provided for @assessmentHeaderRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the evaluation date and evaluator in Centre assessment information before submitting.'**
+  String get assessmentHeaderRequired;
+
+  /// No description provided for @assessmentInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre inactive'**
+  String get assessmentInactive;
+
+  /// No description provided for @assessmentNoCentres.
+  ///
+  /// In en, this message translates to:
+  /// **'No eligible centres in your scope'**
+  String get assessmentNoCentres;
+
+  /// No description provided for @assessmentCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Create correction'**
+  String get assessmentCorrection;
+
+  /// No description provided for @assessmentCorrectionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version copies the answers. Review them, set its evaluation date and attach evidence for this version.'**
+  String get assessmentCorrectionConfirm;
+
+  /// No description provided for @assessmentOfficialResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved result'**
+  String get assessmentOfficialResult;
+
+  /// No description provided for @assessmentView.
+  ///
+  /// In en, this message translates to:
+  /// **'Open assessment'**
+  String get assessmentView;
+
+  /// No description provided for @assessmentCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare approved centres'**
+  String get assessmentCompare;
+
+  /// No description provided for @assessmentOnlineJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to join. Joined assessments can be continued offline.'**
+  String get assessmentOnlineJoin;
+
+  /// No description provided for @adminOwnerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Administration'**
+  String get adminOwnerTitle;
+
+  /// No description provided for @adminViewAs.
+  ///
+  /// In en, this message translates to:
+  /// **'View as'**
+  String get adminViewAs;
+
+  /// No description provided for @adminTestingMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing mode'**
+  String get adminTestingMode;
+
+  /// No description provided for @adminExitPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit preview'**
+  String get adminExitPreview;
+
+  /// No description provided for @adminPreviewDirectorate.
+  ///
+  /// In en, this message translates to:
+  /// **'Directorate'**
+  String get adminPreviewDirectorate;
+
+  /// No description provided for @adminPreviewCenterHead.
+  ///
+  /// In en, this message translates to:
+  /// **'Head of Centre'**
+  String get adminPreviewCenterHead;
+
+  /// No description provided for @adminPreviewAuditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Auditor'**
+  String get adminPreviewAuditor;
+
+  /// No description provided for @adminRoamingAuditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Auditor — all centres'**
+  String get adminRoamingAuditor;
+
+  /// No description provided for @adminScopedAuditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Auditor — selected centre'**
+  String get adminScopedAuditor;
+
+  /// No description provided for @adminEnterPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter preview'**
+  String get adminEnterPreview;
+
+  /// No description provided for @adminMockDataNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample data for testing'**
+  String get adminMockDataNotice;
+
+  /// No description provided for @adminTesterToolbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Tester toolbox'**
+  String get adminTesterToolbox;
+
+  /// No description provided for @adminSimulateOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulate offline'**
+  String get adminSimulateOffline;
+
+  /// No description provided for @adminResetScenario.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset sample scenario'**
+  String get adminResetScenario;
+
+  /// No description provided for @adminInspectOutbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspect pending changes'**
+  String get adminInspectOutbox;
+
+  /// No description provided for @adminScenarioReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample scenario reset'**
+  String get adminScenarioReset;
+
+  /// No description provided for @adminUsersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Users and access'**
+  String get adminUsersTitle;
+
+  /// No description provided for @adminGrantRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant role'**
+  String get adminGrantRole;
+
+  /// No description provided for @adminRevokeRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke role'**
+  String get adminRevokeRole;
+
+  /// No description provided for @adminRoleScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre scope'**
+  String get adminRoleScope;
+
+  /// No description provided for @adminLastOwnerRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep an active app owner'**
+  String get adminLastOwnerRequired;
+
+  /// No description provided for @adminPreviewIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'{role} · {center}'**
+  String adminPreviewIdentity(String role, String center);
+
+  /// No description provided for @adminSampleContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample scenario for {center}'**
+  String adminSampleContext(String center);
+
+  /// No description provided for @adminMissingCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a centre'**
+  String get adminMissingCenter;
+
+  /// No description provided for @adminPreviewUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'An active app owner account is required'**
+  String get adminPreviewUnauthorized;
+
+  /// No description provided for @adminFixturesUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample scenario unavailable'**
+  String get adminFixturesUnavailable;
+
+  /// No description provided for @adminSampleExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample — testing mode'**
+  String get adminSampleExport;
+
+  /// No description provided for @adminAccessUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Access editing needs verified server guards. Reconnect after the Kafaa access migration is installed.'**
+  String get adminAccessUnavailable;
+
+  /// No description provided for @adminAllCenters.
+  ///
+  /// In en, this message translates to:
+  /// **'All centres'**
+  String get adminAllCenters;
+
+  /// No description provided for @adminInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get adminInactive;
+
+  /// No description provided for @adminScenarioCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Join and score'**
+  String get adminScenarioCampaign;
+
+  /// No description provided for @adminScenarioReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted for review'**
+  String get adminScenarioReview;
+
+  /// No description provided for @adminScenarioApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved results'**
+  String get adminScenarioApproved;
+
+  /// No description provided for @adminSampleJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample workflow'**
+  String get adminSampleJourney;
+
+  /// No description provided for @adminSelfAudit.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-audit'**
+  String get adminSelfAudit;
+
+  /// No description provided for @adminTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluation team'**
+  String get adminTeam;
+
+  /// No description provided for @adminFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get adminFullName;
+
+  /// No description provided for @adminActualJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual job title'**
+  String get adminActualJob;
+
+  /// No description provided for @adminTeamResponsibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Team responsibility'**
+  String get adminTeamResponsibility;
+
+  /// No description provided for @adminDiscussion.
+  ///
+  /// In en, this message translates to:
+  /// **'Discussion'**
+  String get adminDiscussion;
+
+  /// No description provided for @adminMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get adminMessage;
+
+  /// No description provided for @adminSampleProof.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspect sample proof'**
+  String get adminSampleProof;
+
+  /// No description provided for @adminQueueEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending sample changes'**
+  String get adminQueueEmpty;
+
+  /// No description provided for @adminQueueDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} · {entity} · {status} · attempts {attempts}'**
+  String adminQueueDetails(
+      String kind, String entity, String status, int attempts);
+
+  /// No description provided for @adminQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to sync'**
+  String get adminQueued;
+
+  /// No description provided for @adminFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get adminFailed;
+
+  /// No description provided for @adminSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get adminSaved;
+
+  /// No description provided for @adminReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect to confirm this action'**
+  String get adminReconnect;
+
+  /// No description provided for @adminRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the required fields'**
+  String get adminRequired;
+
+  /// No description provided for @adminGrantConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant this role to {name}?'**
+  String adminGrantConfirm(String name);
+
+  /// No description provided for @adminRevokeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke this role from {name}?'**
+  String adminRevokeConfirm(String name);
+
+  /// No description provided for @adminAccessEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent access activity'**
+  String get adminAccessEvents;
+
+  /// No description provided for @adminSampleOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This workflow uses local sample data'**
+  String get adminSampleOnly;
+
+  /// No description provided for @adminSelfSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-audit submitted'**
+  String get adminSelfSubmitted;
+
+  /// No description provided for @adminSubmitSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit self-audit'**
+  String get adminSubmitSelf;
+
+  /// No description provided for @directorateOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Directorate overview'**
+  String get directorateOverview;
+
+  /// No description provided for @centerRegistryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre registry'**
+  String get centerRegistryTitle;
+
+  /// No description provided for @centerRegistrySearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search name or code'**
+  String get centerRegistrySearch;
+
+  /// No description provided for @centerAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add centre'**
+  String get centerAdd;
+
+  /// No description provided for @centerEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit centre'**
+  String get centerEdit;
+
+  /// No description provided for @centerDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate centre'**
+  String get centerDeactivate;
+
+  /// No description provided for @centerReactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate centre'**
+  String get centerReactivate;
+
+  /// No description provided for @centerWilayat.
+  ///
+  /// In en, this message translates to:
+  /// **'Wilayat'**
+  String get centerWilayat;
+
+  /// No description provided for @centerGovernorate.
+  ///
+  /// In en, this message translates to:
+  /// **'Governorate'**
+  String get centerGovernorate;
+
+  /// No description provided for @centerCodeInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'This centre code is already used'**
+  String get centerCodeInUse;
+
+  /// No description provided for @centerIncludeInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Include inactive centres'**
+  String get centerIncludeInactive;
+
+  /// No description provided for @centerCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre code'**
+  String get centerCode;
+
+  /// No description provided for @centerNameEn.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre name (English)'**
+  String get centerNameEn;
+
+  /// No description provided for @centerNameAr.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre name (Arabic)'**
+  String get centerNameAr;
+
+  /// No description provided for @centerDeactivateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'History and campaign membership will be retained.'**
+  String get centerDeactivateConfirm;
+
+  /// No description provided for @campaignBuilderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Build assessment campaign'**
+  String get campaignBuilderTitle;
+
+  /// No description provided for @campaignSaveDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Save campaign draft'**
+  String get campaignSaveDraft;
+
+  /// No description provided for @campaignPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish campaign'**
+  String get campaignPublish;
+
+  /// No description provided for @campaignProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign progress'**
+  String get campaignProgress;
+
+  /// No description provided for @campaignPendingJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Not joined'**
+  String get campaignPendingJoin;
+
+  /// No description provided for @campaignNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined — not started'**
+  String get campaignNotStarted;
+
+  /// No description provided for @campaignInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get campaignInProgress;
+
+  /// No description provided for @campaignUnderReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get campaignUnderReview;
+
+  /// No description provided for @campaignApprovedResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved results'**
+  String get campaignApprovedResults;
+
+  /// No description provided for @campaignCorrectionInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction in progress'**
+  String get campaignCorrectionInProgress;
+
+  /// No description provided for @campaignOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived / other'**
+  String get campaignOther;
+
+  /// No description provided for @campaignAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get campaignAttention;
+
+  /// No description provided for @reviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review evaluation'**
+  String get reviewTitle;
+
+  /// No description provided for @reviewRequestRevisions.
+  ///
+  /// In en, this message translates to:
+  /// **'Request revisions'**
+  String get reviewRequestRevisions;
+
+  /// No description provided for @reviewApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve result'**
+  String get reviewApprove;
+
+  /// No description provided for @reviewRevisionReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for requested revisions'**
+  String get reviewRevisionReason;
+
+  /// No description provided for @reviewApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Result approved'**
+  String get reviewApproved;
+
+  /// No description provided for @reviewStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start review'**
+  String get reviewStart;
+
+  /// No description provided for @reviewCriteria.
+  ///
+  /// In en, this message translates to:
+  /// **'Criteria and proof'**
+  String get reviewCriteria;
+
+  /// No description provided for @reviewTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluation team'**
+  String get reviewTeam;
+
+  /// No description provided for @reviewVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Official version / revision'**
+  String get reviewVersion;
+
+  /// No description provided for @reviewLegacyTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy attribution; actual job and formal sign-off are not recorded.'**
+  String get reviewLegacyTeam;
+
+  /// No description provided for @reviewNoTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'No team roster recorded'**
+  String get reviewNoTeam;
+
+  /// No description provided for @reviewSelfUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-audit comparison is not available for this participation.'**
+  String get reviewSelfUnavailable;
+
+  /// No description provided for @dialogueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments and feedback'**
+  String get dialogueTitle;
+
+  /// No description provided for @dialogueOfficialDirective.
+  ///
+  /// In en, this message translates to:
+  /// **'Directorate directive'**
+  String get dialogueOfficialDirective;
+
+  /// No description provided for @dialogueReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get dialogueReply;
+
+  /// No description provided for @dialogueSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send message'**
+  String get dialogueSend;
+
+  /// No description provided for @dialogueClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Discussion closed'**
+  String get dialogueClosed;
+
+  /// No description provided for @dialogueClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close discussion'**
+  String get dialogueClose;
+
+  /// No description provided for @dialogueReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen discussion'**
+  String get dialogueReopen;
+
+  /// No description provided for @dialogueEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet'**
+  String get dialogueEmpty;
+
+  /// No description provided for @dialogueEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Load earlier messages'**
+  String get dialogueEarlier;
+
+  /// No description provided for @syncSavedOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device'**
+  String get syncSavedOnDevice;
+
+  /// No description provided for @syncAwaitingUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to sync'**
+  String get syncAwaitingUpload;
+
+  /// No description provided for @syncConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Another user changed this item. Reload the current version and review your draft before retrying.'**
+  String get syncConflict;
+
+  /// No description provided for @syncReconnectToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect to confirm this action'**
+  String get syncReconnectToConfirm;
+
+  /// No description provided for @deadlineMuscat.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline (Muscat time)'**
+  String get deadlineMuscat;
+
+  /// No description provided for @directorateUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This server does not yet support this workflow.'**
+  String get directorateUnavailable;
+
+  /// No description provided for @reviewCached.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached copy — reconnect and reload before a decision'**
+  String get reviewCached;
+
+  /// No description provided for @reviewSyncedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Loaded at'**
+  String get reviewSyncedAt;
+
+  /// No description provided for @evidenceNotDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect to download this proof'**
+  String get evidenceNotDownloaded;
+
+  /// No description provided for @reviewDecisionConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision confirmed'**
+  String get reviewDecisionConfirmed;
+
+  /// No description provided for @reviewDecisionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision note'**
+  String get reviewDecisionNote;
+
+  /// No description provided for @campaignDraftRetained.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign draft saved; publication still needs confirmation.'**
+  String get campaignDraftRetained;
+
+  /// No description provided for @validationNonnegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number of zero or more'**
+  String get validationNonnegative;
+
+  /// No description provided for @dialogueMessageTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 8,000 characters or fewer'**
+  String get dialogueMessageTooLong;
+
+  /// No description provided for @campaignExactDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact period dates'**
+  String get campaignExactDates;
+
+  /// No description provided for @centerEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact email'**
+  String get centerEmail;
+
+  /// No description provided for @centerPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact phone'**
+  String get centerPhone;
+
+  /// No description provided for @campaignCentreCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No eligible centres} =1{1 eligible centre} other{{count} eligible centres}}'**
+  String campaignCentreCount(int count);
+
+  /// No description provided for @dialogueMessageCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No messages} =1{1 message} other{{count} messages}}'**
+  String dialogueMessageCount(int count);
+
+  /// No description provided for @reviewRequiredProofMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Required proof is missing. Request revisions so the evaluation team can attach it.'**
+  String get reviewRequiredProofMissing;
+
+  /// No description provided for @reviewIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete and submit the evaluation before approval.'**
+  String get reviewIncomplete;
+
+  /// No description provided for @directorateOverviewNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get directorateOverviewNav;
+
+  /// No description provided for @syncCachedCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached copy'**
+  String get syncCachedCopy;
+
+  /// No description provided for @centerHeadRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Head of Centre'**
+  String get centerHeadRole;
+
+  /// No description provided for @centerQualityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My centre quality'**
+  String get centerQualityTitle;
+
+  /// No description provided for @centerJoinCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Join assessment'**
+  String get centerJoinCampaign;
+
+  /// No description provided for @centerContinueSelfAudit.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue self-audit'**
+  String get centerContinueSelfAudit;
+
+  /// No description provided for @selfAuditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-audit'**
+  String get selfAuditTitle;
+
+  /// No description provided for @selfAuditInternalOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-reported readiness'**
+  String get selfAuditInternalOnly;
+
+  /// No description provided for @selfAuditIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete self-audit'**
+  String get selfAuditIncomplete;
+
+  /// No description provided for @selfAuditReadiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Readiness score'**
+  String get selfAuditReadiness;
+
+  /// No description provided for @selfAuditSubmitSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit self-audit snapshot'**
+  String get selfAuditSubmitSnapshot;
+
+  /// No description provided for @selfAuditSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-audit submitted'**
+  String get selfAuditSubmitted;
+
+  /// No description provided for @selfAuditStartRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new self-audit version'**
+  String get selfAuditStartRevision;
+
+  /// No description provided for @selfAuditCopyProof.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy proof to this draft'**
+  String get selfAuditCopyProof;
+
+  /// No description provided for @selfAuditFrozen.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-audit frozen for official comparison'**
+  String get selfAuditFrozen;
+
+  /// No description provided for @selfAuditAddProof.
+  ///
+  /// In en, this message translates to:
+  /// **'Add compliance proof'**
+  String get selfAuditAddProof;
+
+  /// No description provided for @selfAuditNoBaseline.
+  ///
+  /// In en, this message translates to:
+  /// **'No submitted self-audit'**
+  String get selfAuditNoBaseline;
+
+  /// No description provided for @gapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-audit and official evaluation'**
+  String get gapTitle;
+
+  /// No description provided for @gapSelfScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Self score'**
+  String get gapSelfScore;
+
+  /// No description provided for @gapOfficialScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Official score'**
+  String get gapOfficialScore;
+
+  /// No description provided for @gapDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference (official − self)'**
+  String get gapDifference;
+
+  /// No description provided for @gapApplicabilityDiffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Applicability differs'**
+  String get gapApplicabilityDiffers;
+
+  /// No description provided for @gapOnlyDifferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Show differences only'**
+  String get gapOnlyDifferences;
+
+  /// No description provided for @gapProvisional.
+  ///
+  /// In en, this message translates to:
+  /// **'Provisional comparison'**
+  String get gapProvisional;
+
+  /// No description provided for @centerReplyToDirectorate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply to Directorate'**
+  String get centerReplyToDirectorate;
+
+  /// No description provided for @centerAddClarification.
+  ///
+  /// In en, this message translates to:
+  /// **'Add clarification'**
+  String get centerAddClarification;
+
+  /// No description provided for @selfAuditStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start self-audit'**
+  String get selfAuditStart;
+
+  /// No description provided for @selfAuditHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-audit history'**
+  String get selfAuditHistory;
+
+  /// No description provided for @selfAuditUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-audit is not available on this server yet'**
+  String get selfAuditUnavailable;
+
+  /// No description provided for @selfAuditNoSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'No self-audit has been started'**
+  String get selfAuditNoSnapshot;
+
+  /// No description provided for @selfAuditPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync all saved changes before submitting'**
+  String get selfAuditPending;
+
+  /// No description provided for @selfAuditIncompleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete every required score before submitting'**
+  String get selfAuditIncompleteError;
+
+  /// No description provided for @selfAuditProofFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a PDF, JPEG or PNG file up to 25 MiB'**
+  String get selfAuditProofFormat;
+
+  /// No description provided for @selfAuditProofPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof is waiting to upload'**
+  String get selfAuditProofPending;
+
+  /// No description provided for @selfAuditProofMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The saved proof file is unavailable. Attach it again.'**
+  String get selfAuditProofMissing;
+
+  /// No description provided for @selfAuditConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit this immutable snapshot for official comparison?'**
+  String get selfAuditConfirm;
+
+  /// No description provided for @selfAuditCompletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist completion'**
+  String get selfAuditCompletion;
+
+  /// No description provided for @selfAuditNoCentre.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a centre you manage'**
+  String get selfAuditNoCentre;
+
+  /// No description provided for @selfAuditUnjoined.
+  ///
+  /// In en, this message translates to:
+  /// **'Join online before opening this self-audit'**
+  String get selfAuditUnjoined;
+
+  /// No description provided for @selfAuditNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get selfAuditNoData;
+
+  /// No description provided for @centerActionsAllPeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'Open actions · all periods'**
+  String get centerActionsAllPeriods;
+
+  /// No description provided for @centerCompetencyReadiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff competency readiness'**
+  String get centerCompetencyReadiness;
+
+  /// No description provided for @centerSatisfactionRolling.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient satisfaction · last 12 months'**
+  String get centerSatisfactionRolling;
+
+  /// No description provided for @centerSatisfactionSuppressed.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer than 5 responses · result withheld'**
+  String get centerSatisfactionSuppressed;
+
+  /// No description provided for @centerLatestApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest approved official result'**
+  String get centerLatestApproved;
+
+  /// No description provided for @gapMissingAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Not answered'**
+  String get gapMissingAnswer;
+
+  /// No description provided for @gapApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved comparison'**
+  String get gapApproved;
+
+  /// No description provided for @gapNoOfficial.
+  ///
+  /// In en, this message translates to:
+  /// **'No approved official evaluation is available'**
+  String get gapNoOfficial;
+
+  /// No description provided for @gapProofReviewPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof review is not recorded yet'**
+  String get gapProofReviewPending;
+
+  /// No description provided for @gapChooseSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose submitted self-audit version'**
+  String get gapChooseSelf;
+
+  /// No description provided for @selfAuditConflictReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review saved changes'**
+  String get selfAuditConflictReview;
+
+  /// No description provided for @selfAuditKeepLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply my saved answer to this version'**
+  String get selfAuditKeepLocal;
+
+  /// No description provided for @selfAuditUseServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Use server answer'**
+  String get selfAuditUseServer;
+
+  /// No description provided for @selfAuditConflictHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare your saved answer with the current server answer before resolving the conflict.'**
+  String get selfAuditConflictHelp;
+
+  /// No description provided for @selfAuditCopyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Some proof could not be copied. Your draft is saved; check required proof.'**
+  String get selfAuditCopyFailed;
+
+  /// No description provided for @evidenceAvailableOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Available offline'**
+  String get evidenceAvailableOffline;
+
+  /// No description provided for @assessmentStructureMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'This item belongs to a different audit structure'**
+  String get assessmentStructureMismatch;
+
+  /// No description provided for @directorateFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Directorate feedback'**
+  String get directorateFeedback;
+
+  /// No description provided for @selfAuditProofUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof uploaded'**
+  String get selfAuditProofUploaded;
+
+  /// No description provided for @selfAuditServerAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Current synced self-answer'**
+  String get selfAuditServerAnswer;
+
+  /// No description provided for @evidenceCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof description (optional)'**
+  String get evidenceCaption;
+
+  /// No description provided for @selfAuditStorageFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Device storage is full. Free space and try attaching the proof again.'**
+  String get selfAuditStorageFull;
+
+  /// No description provided for @navMyCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'My Centre'**
+  String get navMyCenter;
+
+  /// No description provided for @auditTeamMissingJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded job not supplied'**
+  String get auditTeamMissingJob;
+
+  /// No description provided for @auditTeamNameJobRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the full name and actual job title'**
+  String get auditTeamNameJobRequired;
+
+  /// No description provided for @auditTeamDuplicateUser.
+  ///
+  /// In en, this message translates to:
+  /// **'This app account is already on the team'**
+  String get auditTeamDuplicateUser;
+
+  /// No description provided for @auditTeamSimilarName.
+  ///
+  /// In en, this message translates to:
+  /// **'A similar name is recorded. Check before adding another person.'**
+  String get auditTeamSimilarName;
+
+  /// No description provided for @auditTeamReload.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload server roster (local edits remain archived)'**
+  String get auditTeamReload;
+
+  /// No description provided for @auditProofNotReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Review not recorded'**
+  String get auditProofNotReviewed;
+
+  /// No description provided for @auditProofNoteRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain why this proof needs clarification or is not accepted'**
+  String get auditProofNoteRequired;
+
+  /// No description provided for @auditProofSourceMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof does not match this evaluation and criterion'**
+  String get auditProofSourceMismatch;
+
+  /// No description provided for @auditProofOpenFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Open and download the proof before recording your judgement'**
+  String get auditProofOpenFirst;
+
+  /// No description provided for @auditProofCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached proof and accepted reviews are counted separately'**
+  String get auditProofCounts;
+
+  /// No description provided for @auditSignedContentConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'The evaluation changed. Reload and review before signing.'**
+  String get auditSignedContentConflict;
+
+  /// No description provided for @auditSubmissionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Record the evaluation date'**
+  String get auditSubmissionDate;
+
+  /// No description provided for @auditSubmissionScores.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete this criterion score'**
+  String get auditSubmissionScores;
+
+  /// No description provided for @auditSubmissionUploads.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof uploads are not finalized'**
+  String get auditSubmissionUploads;
+
+  /// No description provided for @auditSubmissionPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes are waiting to sync or need attention. Your saved work is retained.'**
+  String get auditSubmissionPending;
+
+  /// No description provided for @auditResponseConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare the server answer with your saved answer'**
+  String get auditResponseConflict;
+
+  /// No description provided for @auditUseServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Use server answer'**
+  String get auditUseServer;
+
+  /// No description provided for @auditKeepLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep my answer with the current server revision'**
+  String get auditKeepLocal;
+
+  /// No description provided for @auditLegacyQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved work from an older app needs conflict review before syncing'**
+  String get auditLegacyQueue;
+
+  /// No description provided for @auditProofImmutable.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewed proof is retained. Attach a new file for a replacement.'**
+  String get auditProofImmutable;
+
+  /// No description provided for @auditObservationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use anonymized observations and interviews; omit patient identifiers'**
+  String get auditObservationHint;
+
+  /// No description provided for @auditNotSigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronic sign-off not recorded'**
+  String get auditNotSigned;
+
+  /// No description provided for @auditSignoffStatementVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-off statement version'**
+  String get auditSignoffStatementVersion;
+
+  /// No description provided for @auditSubmissionRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync and validate'**
+  String get auditSubmissionRefresh;
+
+  /// No description provided for @auditTeamTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluation team'**
+  String get auditTeamTitle;
+
+  /// No description provided for @auditTeamFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get auditTeamFullName;
+
+  /// No description provided for @auditTeamActualJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual clinical or administrative job title'**
+  String get auditTeamActualJob;
+
+  /// No description provided for @auditTeamResponsibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluation responsibility'**
+  String get auditTeamResponsibility;
+
+  /// No description provided for @auditTeamLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead auditor'**
+  String get auditTeamLead;
+
+  /// No description provided for @auditTeamMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Team member'**
+  String get auditTeamMember;
+
+  /// No description provided for @auditTeamGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Member without an app account'**
+  String get auditTeamGuest;
+
+  /// No description provided for @auditTeamLinkAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Link app account'**
+  String get auditTeamLinkAccount;
+
+  /// No description provided for @auditTeamLeadRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a lead auditor with an app account'**
+  String get auditTeamLeadRequired;
+
+  /// No description provided for @auditProofTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence and proof'**
+  String get auditProofTitle;
+
+  /// No description provided for @auditProofCenterSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre-supplied proof'**
+  String get auditProofCenterSource;
+
+  /// No description provided for @auditProofAuditorSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Auditor-supplied proof'**
+  String get auditProofAuditorSource;
+
+  /// No description provided for @auditProofAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get auditProofAccepted;
+
+  /// No description provided for @auditProofClarification.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs clarification'**
+  String get auditProofClarification;
+
+  /// No description provided for @auditProofNotAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not accepted'**
+  String get auditProofNotAccepted;
+
+  /// No description provided for @auditProofReviewNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence review note'**
+  String get auditProofReviewNote;
+
+  /// No description provided for @auditProofReviewedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewed by'**
+  String get auditProofReviewedBy;
+
+  /// No description provided for @auditPotentialFinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Potential finding on submission'**
+  String get auditPotentialFinding;
+
+  /// No description provided for @auditSubmissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and submit evaluation'**
+  String get auditSubmissionTitle;
+
+  /// No description provided for @auditSubmissionMissingProof.
+  ///
+  /// In en, this message translates to:
+  /// **'Required proof has not been accepted'**
+  String get auditSubmissionMissingProof;
+
+  /// No description provided for @auditSignoffConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'I confirm this evaluation reflects the evidence reviewed by the recorded team'**
+  String get auditSignoffConfirm;
+
+  /// No description provided for @auditSignoffLeadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'The recorded lead must sign off'**
+  String get auditSignoffLeadOnly;
+
+  /// No description provided for @auditSubmitForReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit to Directorate'**
+  String get auditSubmitForReview;
+
+  /// No description provided for @auditSubmittedForReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluation submitted for review'**
+  String get auditSubmittedForReview;
+
+  /// No description provided for @auditSignoffOverrideReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for Directorate submission'**
+  String get auditSignoffOverrideReason;
+
+  /// No description provided for @syncReviewConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Review changes'**
+  String get syncReviewConflict;
+
+  /// No description provided for @assessmentClosedReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment closed — saved work is read-only'**
+  String get assessmentClosedReadOnly;
+
+  /// No description provided for @auditorWorkNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get auditorWorkNav;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

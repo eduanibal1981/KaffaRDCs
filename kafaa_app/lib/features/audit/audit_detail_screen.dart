@@ -13,9 +13,12 @@ import '../../data/models/audit.dart';
 import '../../data/models/primitives.dart';
 import '../../data/repositories/analytics_repository.dart';
 import '../../data/repositories/audit_repository.dart';
+import '../../data/repositories/directorate_capabilities.dart';
 import '../../data/repositories/report_service.dart';
 import '../analytics/criterion_drilldown.dart';
 import '../auth/session.dart';
+import 'audit_general_info_sheet.dart';
+import '../../data/repositories/assessment_session_repository.dart';
 
 /// Read-only view of one assessment, plus the review actions and exports.
 class AuditDetailScreen extends ConsumerWidget {
@@ -32,14 +35,6 @@ class AuditDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.auditSummary),
         actions: [
-          if (summary.valueOrNull?.status == AuditStatus.draft &&
-              perms.canDeleteDraft)
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: KafaaColors.danger),
-              tooltip: l10n.auditDeleteDraft,
-              onPressed: () => _confirmDelete(
-                  context, ref, summary.valueOrNull!),
-            ),
           if (perms.canExportReports)
             PopupMenuButton<String>(
               icon: const Icon(Icons.ios_share),
@@ -99,12 +94,87 @@ class AuditDetailScreen extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
+                if (data.sessionId != null)
+                  TextButton.icon(
+                      onPressed: () =>
+                          context.push('/assessments/${data.sessionId}'),
+                      icon: const Icon(Icons.groups_outlined),
+                      label: Text(context.pick(
+                          data.sessionTitleEn, data.sessionTitleAr))),
+                if (data.sessionId != null &&
+                    perms.canReadSelfAudit(data.centerId) &&
+                    ref
+                            .watch(directorateCapabilitiesProvider)
+                            .valueOrNull?['self_audit'] ==
+                        true)
+                  Wrap(spacing: 8, runSpacing: 8, children: [
+                    TextButton(
+                        onPressed: () => context.push(
+                            '/assessments/${data.sessionId}/self-audit?centerId=${data.centerId}'),
+                        child: Text(l10n.selfAuditTitle)),
+                    TextButton(
+                        onPressed: () => context.push(
+                            '/assessments/${data.sessionId}/gap?centerId=${data.centerId}'),
+                        child: Text(l10n.gapTitle)),
+                  ]),
                 _Header(summary: data),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                    onPressed: () => showAuditGeneralInfo(context, data,
+                        onSaved: () =>
+                            ref.invalidate(auditSummaryProvider(auditId))),
+                    icon: const Icon(Icons.assignment_ind_outlined),
+                    label: Text(l10n.assessmentGeneralInfo)),
+                if (data.status == AuditStatus.approved &&
+                    perms.canApproveAudits)
+                  TextButton(
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                                    title: Text(l10n.assessmentCorrection),
+                                    content:
+                                        Text(l10n.assessmentCorrectionConfirm),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
+                                          child: Text(l10n.actionCancel)),
+                                      FilledButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          child:
+                                              Text(l10n.assessmentCorrection)),
+                                    ]));
+                        if (confirmed != true) return;
+                        try {
+                          final id = await ref
+                              .read(assessmentSessionRepositoryProvider)
+                              .createRevision(auditId);
+                          ref.invalidate(assessmentParticipantsProvider);
+                          ref.invalidate(auditListProvider);
+                          if (context.mounted) context.push('/audits/$id');
+                        } catch (error) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text(describeError(context, error))));
+                          }
+                        }
+                      },
+                      child: Text(l10n.assessmentCorrection)),
 
                 // The way into scoring sits directly under the score, not
                 // at the bottom of a long page.
-                if (data.status.isEditable &&
-                    perms.canAuditCenter(data.centerId)) ...[
+                if (perms.canDiscussAudit(data.centerId) &&
+                    ref
+                            .watch(directorateCapabilitiesProvider)
+                            .valueOrNull?['formal_signoff'] ==
+                        true)
+                  OutlinedButton.icon(
+                      onPressed: () => context.push('/audits/$auditId/team'),
+                      icon: const Icon(Icons.groups_outlined),
+                      label: Text(l10n.auditTeamTitle)),
+                if (data.isEditable && perms.canAuditCenter(data.centerId)) ...[
                   const SizedBox(height: 14),
                   FilledButton.icon(
                     onPressed: () => context.push('/audits/$auditId/run'),
@@ -130,60 +200,22 @@ class AuditDetailScreen extends ConsumerWidget {
                 if (perms.canApproveAudits &&
                     (data.status == AuditStatus.submitted ||
                         data.status == AuditStatus.underReview))
-                  _ReviewActions(summary: data),
+                  FilledButton.icon(
+                      onPressed: () => context.push('/audits/$auditId/review'),
+                      icon: const Icon(Icons.fact_check_outlined),
+                      label: Text(l10n.reviewTitle)),
+                if (perms.canDiscussAudit(data.centerId))
+                  OutlinedButton.icon(
+                      onPressed: () =>
+                          context.push('/audits/$auditId/dialogue'),
+                      icon: const Icon(Icons.forum_outlined),
+                      label: Text(l10n.dialogueTitle)),
               ],
             ),
           );
         },
       ),
     );
-  }
-
-  Future<void> _confirmDelete(
-      BuildContext context, WidgetRef ref, AuditSummary data) async {
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.auditDeleteDraftTitle),
-        content: Text(l10n.auditDeleteDraftConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.actionCancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: KafaaColors.danger,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l10n.actionDelete),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      try {
-        await ref.read(auditRepositoryProvider).deleteDraft(data.auditId);
-        ref.invalidate(auditListProvider);
-        ref.invalidate(auditPeriodsProvider);
-        ref.invalidate(auditSummaryProvider(data.auditId));
-        if (context.mounted) {
-          context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.auditDraftDeleted)),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(describeError(context, e))),
-          );
-        }
-      }
-    }
   }
 }
 
@@ -215,8 +247,7 @@ class _Header extends StatelessWidget {
           ScoreRing(
             points: summary.totalPoints,
             maxPoints: summary.maxPoints,
-            gradeLabel:
-                context.pick(summary.gradeNameEn, summary.gradeNameAr),
+            gradeLabel: context.pick(summary.gradeNameEn, summary.gradeNameAr),
             size: 190,
           ),
           const SizedBox(height: 18),
@@ -368,98 +399,6 @@ class _SectionList extends ConsumerWidget {
           ],
         );
       },
-    );
-  }
-}
-
-class _ReviewActions extends ConsumerStatefulWidget {
-  const _ReviewActions({required this.summary});
-  final AuditSummary summary;
-
-  @override
-  ConsumerState<_ReviewActions> createState() => _ReviewActionsState();
-}
-
-class _ReviewActionsState extends ConsumerState<_ReviewActions> {
-  final _notes = TextEditingController();
-  bool _busy = false;
-
-  @override
-  void dispose() {
-    _notes.dispose();
-    super.dispose();
-  }
-
-  Future<void> _decide(AuditStatus status) async {
-    final l10n = context.l10n;
-    setState(() => _busy = true);
-    try {
-      await ref.read(auditRepositoryProvider).setStatus(
-            widget.summary.auditId,
-            status,
-            reviewNotes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
-          );
-      ref.invalidate(auditSummaryProvider(widget.summary.auditId));
-      ref.invalidate(auditListProvider);
-      ref.invalidate(rankingProvider);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(status == AuditStatus.approved
-              ? l10n.auditApprovedSuccess
-              : l10n.auditRejectedSuccess),
-        ));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(describeError(context, e))),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: KafaaCard(
-        title: l10n.auditReviewNotes,
-        child: Column(
-          children: [
-            TextField(
-              controller: _notes,
-              minLines: 2,
-              maxLines: 4,
-              decoration: InputDecoration(hintText: l10n.auditReviewNotes),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed:
-                        _busy ? null : () => _decide(AuditStatus.rejected),
-                    icon: const Icon(Icons.undo),
-                    label: Text(l10n.actionReject),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed:
-                        _busy ? null : () => _decide(AuditStatus.approved),
-                    icon: const Icon(Icons.check),
-                    label: Text(l10n.actionApprove),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

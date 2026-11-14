@@ -25,3 +25,19 @@ kafaa_app/.flutter-plugins
 kafaa_app/.flutter-plugins-dependencies
 kafaa_app/.pub/
 kafaa_app/.pub-cache/
+/tools/safari-preview/
+/.local/
+
+/supabase/.temp/
+
+# Directorate QA generated protocol and sanitized runtime outputs
+/tools/directorate-qa/protocol/
+/tools/directorate-qa/*.json
+
+# Centre Head QA generated logs/protocol
+/tools/center-head-qa/*.log
+/tools/center-head-qa/*.json
+/docs/evidence/center-head-baseline-tests.txt
+
+/tools/auditor-qa/*.log
+/tools/auditor-qa/*.json

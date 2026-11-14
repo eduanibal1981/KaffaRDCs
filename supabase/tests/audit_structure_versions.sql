@@ -58,7 +58,7 @@ begin
   exception when raise_exception then if sqlerrm='Saved version deleted' then raise; end if;
   end;
   begin
-    insert into public.audits(template_id,center_id) values(partial_id,'c0000000-0000-0000-0000-000000000001');
+    perform public.create_assessment_session(gen_random_uuid(),partial_id,'QA','semiannual','2091-01-01','2091-06-30','QA draft structure');
     raise exception 'Assessment accepted a draft structure';
   exception when raise_exception then if sqlerrm='Assessment accepted a draft structure' then raise; end if;
   end;

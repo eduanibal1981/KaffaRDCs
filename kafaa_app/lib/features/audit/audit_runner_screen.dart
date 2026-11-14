@@ -1,5 +1,9 @@
-import 'dart:io';
-
+import '../../core/offline/sync_service.dart';
+import '../../data/models/evidence_review.dart';
+import '../../data/repositories/evidence_review_repository.dart';
+import 'evidence/criterion_proof_panel.dart';
+import 'package:go_router/go_router.dart';
+import '../../data/repositories/directorate_capabilities.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,7 +18,10 @@ import '../../data/models/assessment.dart';
 import '../../data/models/primitives.dart';
 import '../../data/repositories/audit_repository.dart';
 import '../auth/session.dart';
+import '../admin/role_simulation.dart';
+import '../admin/testing/tester_workspace.dart';
 import 'audit_controller.dart';
+import 'audit_general_info_sheet.dart';
 import 'criterion_sheet.dart';
 import 'scale_choice_row.dart';
 
@@ -33,6 +40,7 @@ class AuditRunnerScreen extends ConsumerStatefulWidget {
 class _AuditRunnerScreenState extends ConsumerState<AuditRunnerScreen> {
   _Filter _filter = _Filter.all;
   bool _plainLanguage = false;
+  String? _selectedCriterion;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +51,24 @@ class _AuditRunnerScreenState extends ConsumerState<AuditRunnerScreen> {
       appBar: AppBar(
         title: Text(l10n.auditsTitle),
         actions: [
+          if (ref
+                  .watch(directorateCapabilitiesProvider)
+                  .valueOrNull?['formal_signoff'] ==
+              true)
+            IconButton(
+                icon: const Icon(Icons.groups_outlined),
+                tooltip: l10n.auditTeamTitle,
+                onPressed: () =>
+                    context.push('/audits/${widget.auditId}/team')),
+          if (state.valueOrNull != null)
+            IconButton(
+                icon: const Icon(Icons.assignment_ind_outlined),
+                tooltip: l10n.assessmentGeneralInfo,
+                onPressed: () => showAuditGeneralInfo(
+                    context, state.valueOrNull!.summary,
+                    onSaved: () => ref
+                        .read(auditRunnerProvider(widget.auditId).notifier)
+                        .load())),
           IconButton(
             tooltip: _plainLanguage
                 ? l10n.criterionShowClinical
@@ -52,14 +78,6 @@ class _AuditRunnerScreenState extends ConsumerState<AuditRunnerScreen> {
                 : Icons.translate),
             onPressed: () => setState(() => _plainLanguage = !_plainLanguage),
           ),
-          if (state.valueOrNull?.summary.status == AuditStatus.draft &&
-              ref.watch(permissionsProvider).canDeleteDraft)
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: KafaaColors.danger),
-              tooltip: l10n.auditDeleteDraft,
-              onPressed: () =>
-                  _confirmDelete(context, state.valueOrNull!.summary.auditId),
-            ),
         ],
       ),
       body: AsyncView(
@@ -67,17 +85,77 @@ class _AuditRunnerScreenState extends ConsumerState<AuditRunnerScreen> {
         onRetry: () =>
             ref.read(auditRunnerProvider(widget.auditId).notifier).load(),
         builder: (data) {
-          final locked = data.summary.status.isLocked;
+          final locked = !data.summary.isEditable;
           final canEdit = !locked &&
               ref
                   .watch(permissionsProvider)
                   .canAuditCenter(data.summary.centerId);
 
-          return Column(
-            children: [
+          if (MediaQuery.sizeOf(context).width >= 1000) {
+            final items = data.blueprint.scorable;
+            final selected =
+                items.where((c) => c.id == _selectedCriterion).firstOrNull ??
+                    items.firstOrNull;
+            return Column(children: [
               _ProgressHeader(state: data),
+              Expanded(
+                  child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                    SizedBox(
+                        width: 220,
+                        child: ListView(children: [
+                          for (final c in items)
+                            ListTile(
+                                selected: c.id == selected?.id,
+                                title: Text(c.code),
+                                subtitle:
+                                    Text(context.pick(c.textEn, c.textAr)),
+                                onTap: () =>
+                                    setState(() => _selectedCriterion = c.id))
+                        ])),
+                    const VerticalDivider(width: 1),
+                    Expanded(
+                        child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  if (selected != null)
+                                    CriterionTile(
+                                        auditId: widget.auditId,
+                                        criterion: selected,
+                                        response: data.responses[selected.id],
+                                        saving: data.savingCriterionIds
+                                            .contains(selected.id),
+                                        plainLanguage: _plainLanguage,
+                                        canEdit: canEdit,
+                                        centerId: data.summary.centerId),
+                                  if (selected != null &&
+                                      ref
+                                              .watch(
+                                                  directorateCapabilitiesProvider)
+                                              .valueOrNull?['formal_signoff'] ==
+                                          true)
+                                    CriterionProofPanel(
+                                        contextKey: CriterionProofKey(
+                                            widget.auditId, selected.id),
+                                        canEdit: canEdit)
+                                ])))
+                  ]))
+            ]);
+          }
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(child: _ProgressHeader(state: data)),
+              if (ref.watch(syncServiceProvider).pending > 0)
+                SliverToBoxAdapter(
+                    child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(l10n.syncSavedOnDevice))),
               if (locked)
-                Container(
+                SliverToBoxAdapter(
+                    child: Container(
                   width: double.infinity,
                   color: KafaaColors.infoLight,
                   padding:
@@ -98,81 +176,33 @@ class _AuditRunnerScreenState extends ConsumerState<AuditRunnerScreen> {
                       ),
                     ],
                   ),
-                ),
-              _FilterRow(
+                )),
+              SliverToBoxAdapter(
+                  child: _FilterRow(
                 filter: _filter,
                 state: data,
                 onChanged: (f) => setState(() => _filter = f),
-              ),
-              Expanded(
-                  child: _CriteriaList(
+              )),
+              _CriteriaList(
                 state: data,
                 filter: _filter,
                 plainLanguage: _plainLanguage,
                 canEdit: canEdit,
                 auditId: widget.auditId,
-              )),
+              ),
             ],
           );
         },
       ),
       bottomNavigationBar: state.maybeWhen(
-        data: (data) => data.summary.status.isLocked
+        data: (data) => !data.summary.isEditable
             ? null
             : _SubmitBar(state: data, auditId: widget.auditId),
         orElse: () => null,
       ),
     );
   }
-
-  Future<void> _confirmDelete(BuildContext context, String auditId) async {
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.auditDeleteDraftTitle),
-        content: Text(l10n.auditDeleteDraftConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.actionCancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: KafaaColors.danger,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l10n.actionDelete),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      try {
-        await ref.read(auditRepositoryProvider).deleteDraft(auditId);
-        ref.invalidate(auditListProvider);
-        ref.invalidate(auditPeriodsProvider);
-        ref.invalidate(auditSummaryProvider(auditId));
-        if (context.mounted) {
-          Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.auditDraftDeleted)),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(describeError(context, e))),
-          );
-        }
-      }
-    }
-  }
 }
-
-// ---------------------------------------------------------------------------
 
 class _ProgressHeader extends StatelessWidget {
   const _ProgressHeader({required this.state});
@@ -187,62 +217,54 @@ class _ProgressHeader extends StatelessWidget {
         ? KafaaColors.forPercent(state.percent)
         : KafaaColors.forPercent(state.percent);
 
+    final score =
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('${formatPoints(state.points)} / ${formatPoints(state.maxPoints)}',
+          style: theme.textTheme.headlineSmall
+              ?.copyWith(color: color, fontWeight: FontWeight.w800)),
+      Text(formatPercent(state.percent), style: theme.textTheme.bodySmall),
+    ]);
+    final progress =
+        Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(l10n.auditProgress(state.answeredItems, state.totalItems),
+          style: theme.textTheme.bodySmall),
+      const SizedBox(height: 6),
+      LevelDistributionBar(
+          met: state.countAtLevel(ScoreLevel.met),
+          partial: state.countAtLevel(ScoreLevel.partiallyMet),
+          notMet: state.countAtLevel(ScoreLevel.notMet),
+          unscored: state.unscored.length),
+    ]);
     return Container(
-      color: theme.colorScheme.surface,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${formatPoints(state.points)} / '
-                    '${formatPoints(state.maxPoints)}',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  Text(
-                    formatPercent(state.percent),
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ],
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.auditProgress(state.answeredItems, state.totalItems),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 6),
-                    LevelDistributionBar(
-                      met: state.countAtLevel(ScoreLevel.met),
-                      partial: state.countAtLevel(ScoreLevel.partiallyMet),
-                      notMet: state.countAtLevel(ScoreLevel.notMet),
-                      unscored: state.unscored.length,
-                    ),
-                  ],
-                ),
-              ),
-              if (band != null) ...[
-                const SizedBox(width: 12),
-                StatusPill(
-                  label: context.pick(band.nameEn, band.nameAr),
-                  color: color,
-                  dense: true,
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
+        color: theme.colorScheme.surface,
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+        child: LayoutBuilder(builder: (context, constraints) {
+          final stacked = constraints.maxWidth < 500 ||
+              MediaQuery.textScalerOf(context).scale(16) > 22;
+          return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (stacked) ...[
+                  score,
+                  const SizedBox(height: 12),
+                  progress
+                ] else
+                  Row(children: [
+                    score,
+                    const SizedBox(width: 16),
+                    Expanded(child: progress)
+                  ]),
+                if (band != null)
+                  Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: StatusPill(
+                              label: context.pick(band.nameEn, band.nameAr),
+                              color: color,
+                              dense: true))),
+              ]);
+        }));
   }
 }
 
@@ -264,7 +286,7 @@ class _FilterRow extends StatelessWidget {
         state.countAtLevel(ScoreLevel.notMet);
 
     return SizedBox(
-      height: 50,
+      height: MediaQuery.textScalerOf(context).scale(28) + 24,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -335,17 +357,18 @@ class _CriteriaList extends ConsumerWidget {
     }
 
     if (groups.isEmpty) {
-      return EmptyView(
-        message:
-            filter == _Filter.findings ? l10n.ncrNoneOpen : l10n.homeNoData,
-        icon: Icons.checklist_rtl,
-      );
+      return SliverToBoxAdapter(
+          child: EmptyView(
+              message: filter == _Filter.findings
+                  ? l10n.ncrNoneOpen
+                  : l10n.homeNoData,
+              icon: Icons.checklist_rtl));
     }
 
-    return ListView.builder(
+    return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      itemCount: groups.length,
-      itemBuilder: (context, i) {
+      sliver: SliverList(
+          delegate: SliverChildBuilderDelegate((context, i) {
         final group = groups[i];
         final domain = blueprint.domainById(group.section.domainId);
         final answered = state.sectionAnswered(group.section.id);
@@ -410,7 +433,7 @@ class _CriteriaList extends ConsumerWidget {
             ),
           ),
         );
-      },
+      }, childCount: groups.length)),
     );
   }
 }
@@ -475,9 +498,19 @@ class CriterionTile extends ConsumerWidget {
     final selectedLevel = response?.level as ScoreLevel?;
     final isNa = response?.isNotApplicable as bool? ?? false;
     final evidenceCount = response?.evidenceCount as int? ?? 0;
+    final reviewed = ref
+            .watch(directorateCapabilitiesProvider)
+            .valueOrNull?['formal_signoff'] ==
+        true;
+    final acceptedCount = reviewed
+        ? (ref
+                .watch(auditAcceptedProofCountsProvider(auditId))
+                .valueOrNull?[criterion.id] ??
+            0)
+        : evidenceCount;
     final needsEvidence = criterion.evidenceRequired &&
         (selectedLevel != null || isNa) &&
-        evidenceCount == 0 &&
+        acceptedCount == 0 &&
         !isNa;
 
     return Container(
@@ -577,6 +610,9 @@ class CriterionTile extends ConsumerWidget {
             spacing: 8,
             runSpacing: 4,
             children: [
+              if (selectedLevel?.raisesFinding == true)
+                Text(l10n.auditPotentialFinding),
+              if (reviewed) Text('${l10n.auditProofAccepted}: $acceptedCount'),
               if (needsEvidence)
                 StatusPill(
                   label: l10n.criterionEvidenceRequired,
@@ -632,7 +668,8 @@ class _SubmitBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final perms = ref.watch(permissionsProvider);
-    if (!perms.canAuditCenter(state.summary.centerId)) {
+    if (!state.summary.isEditable ||
+        !perms.canAuditCenter(state.summary.centerId)) {
       return const SizedBox.shrink();
     }
 
@@ -649,117 +686,18 @@ class _SubmitBar extends ConsumerWidget {
   }
 
   Future<void> _review(BuildContext context, WidgetRef ref) async {
-    final l10n = context.l10n;
-    final unscored = state.unscored.length;
-    final missingEvidence = state.missingEvidence.length;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.auditSubmitConfirmTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.auditSubmitConfirmBody),
-            const SizedBox(height: 16),
-            _ReviewLine(
-              icon: Icons.checklist,
-              label: l10n.auditProgress(state.answeredItems, state.totalItems),
-              ok: unscored == 0,
-            ),
-            if (unscored > 0)
-              _ReviewLine(
-                icon: Icons.error_outline,
-                label: l10n.auditSubmitIncomplete(unscored),
-                ok: false,
-              ),
-            if (missingEvidence > 0)
-              _ReviewLine(
-                icon: Icons.attach_file,
-                label: l10n.auditMissingEvidence(missingEvidence),
-                ok: false,
-              ),
-            const SizedBox(height: 12),
-            Text(
-              '${l10n.scoreOverall}: ${formatPoints(state.points)} / '
-              '${formatPoints(state.maxPoints)} '
-              '(${formatPercent(state.percent)})',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.actionCancel),
-          ),
-          FilledButton(
-            // Mandatory-field validation: an incomplete checklist cannot
-            // be submitted, but missing evidence is only a warning since
-            // some proof arrives after the visit.
-            onPressed: unscored > 0 ? null : () => Navigator.pop(context, true),
-            child: Text(l10n.actionSubmit),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !context.mounted) return;
-
-    try {
-      await ref.read(auditRunnerProvider(auditId).notifier).submit();
-      ref.invalidate(auditListProvider);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.auditSubmitted_success)),
-        );
-        Navigator.of(context).maybePop();
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(describeError(context, e))),
-        );
-      }
+    if (ref
+            .read(directorateCapabilitiesProvider)
+            .valueOrNull?['formal_signoff'] !=
+        true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.syncReconnectToConfirm)));
+      return;
     }
+    await context.push('/audits/$auditId/submit');
   }
 }
 
-class _ReviewLine extends StatelessWidget {
-  const _ReviewLine({
-    required this.icon,
-    required this.label,
-    required this.ok,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool ok;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = ok ? KafaaColors.success : KafaaColors.warning;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Icon(ok ? Icons.check_circle_outline : icon, size: 18, color: color),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              style:
-                  Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Shared evidence picker used by the criterion sheet.
 Future<void> pickAndAttachEvidence(
   BuildContext context,
   WidgetRef ref, {
@@ -771,44 +709,43 @@ Future<void> pickAndAttachEvidence(
   EvidenceMethod? method,
 }) async {
   final repo = ref.read(auditRepositoryProvider);
-  File? file;
-  String? name;
+  XFile file;
+  String name;
   String? mime;
 
   try {
-    switch (source) {
-      case EvidenceSource.camera:
-      case EvidenceSource.gallery:
-        final picked = await ImagePicker().pickImage(
-          source: source == EvidenceSource.camera
-              ? ImageSource.camera
-              : ImageSource.gallery,
-          imageQuality: 82,
-          maxWidth: 2000,
-        );
-        if (picked == null) return;
-        file = File(picked.path);
-        name = picked.name;
-        mime = picked.mimeType ?? 'image/jpeg';
+    if (ref.read(roleSimulationProvider) != null) {
+      final fixture = ref.read(testerScenarioProvider);
+      file = XFile.fromData(fixture.sampleProof(arabic: context.isArabic),
+          name: 'SAMPLE-testing-mode.txt');
+      name = 'SAMPLE-testing-mode.txt';
+      mime = 'text/plain';
+    } else {
+      switch (source) {
+        case EvidenceSource.camera:
+        case EvidenceSource.gallery:
+          final picked = await ImagePicker().pickImage(
+            source: source == EvidenceSource.camera
+                ? ImageSource.camera
+                : ImageSource.gallery,
+            imageQuality: 82,
+            maxWidth: 2000,
+          );
+          if (picked == null) return;
+          file = picked;
+          name = picked.name;
+          mime = picked.mimeType ?? 'image/jpeg';
 
-      case EvidenceSource.file:
-        final result = await FilePicker.pickFile(
-          type: FileType.custom,
-          allowedExtensions: const [
-            'pdf',
-            'doc',
-            'docx',
-            'xls',
-            'xlsx',
-            'png',
-            'jpg'
-          ],
-        );
-        final path = result?.path;
-        if (result == null || path == null) return;
-        file = File(path);
-        name = result.name;
-        mime = _mimeFor(name);
+        case EvidenceSource.file:
+          final result = await FilePicker.pickFile(
+            type: FileType.custom,
+            allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
+          );
+          if (result == null) return;
+          file = result.xFile;
+          name = result.name;
+          mime = _mimeFor(name);
+      }
     }
 
     await repo.attachEvidence(

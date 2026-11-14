@@ -1,124 +1,51 @@
--- =====================================================================
--- Migration 0012 : Assessment periods
--- ---------------------------------------------------------------------
--- An evaluation covers a period — a month, a quarter, a half-year or a
--- year — not a single day. The evaluation date stays (the printed form
--- asks for it), but the period is what results are grouped, compared and
--- filtered by.
---
--- Safe to run on a populated database: existing audits keep their dates
--- and are backfilled with the frequency implied by their own span.
--- =====================================================================
-
-do $$
-begin
-  if not exists (select 1 from pg_type where typname = 'period_frequency') then
-    create type public.period_frequency as enum (
-      'monthly','quarterly','semiannual','annual','custom'
-    );
+-- Assessment periods. Existing stored date ranges are carried forward.
+-- Classify exact calendar periods while preserving stored review dates.
+do $$ begin
+  if not exists (select 1 from pg_type where typnamespace='public'::regnamespace and typname='period_frequency') then
+    create type public.period_frequency as enum ('monthly','quarterly','semiannual','annual','custom');
   end if;
 end $$;
-
--- The Kafa'a checklist reads "the evaluation will be done for last 6
--- months", so half-yearly is the default. Administrators can change it
--- per template and per assessment.
-alter table public.assessment_templates
-  add column if not exists default_frequency public.period_frequency
-    not null default 'semiannual';
-
-alter table public.audits
-  add column if not exists period_frequency public.period_frequency
-    not null default 'semiannual';
-
--- Stable grouping key: 2026-03 · 2026-Q1 · 2026-H1 · 2026
-alter table public.audits
-  add column if not exists period_key text;
-
--- ---------------------------------------------------------------------
--- Snap an assessment to its period and derive the key.
--- ---------------------------------------------------------------------
-create or replace function app.set_audit_period()
-returns trigger
-language plpgsql
-as $$
-declare
-  v_anchor date;
-  v_start  date;
-  v_months integer;
-begin
-  -- Prefer an explicitly supplied period end, else the evaluation date.
-  v_anchor := coalesce(new.period_end, new.evaluation_date, current_date);
-
-  if new.period_frequency = 'custom' then
-    -- Bespoke span: leave the dates exactly as given.
-    new.period_start := coalesce(new.period_start, v_anchor);
-    new.period_end   := coalesce(new.period_end, v_anchor);
-    new.period_key   := to_char(new.period_end, 'YYYY-MM-DD');
-    return new;
-  end if;
-
-  v_months := case new.period_frequency
-                when 'monthly'    then 1
-                when 'quarterly'  then 3
-                when 'semiannual' then 6
-                else 12
-              end;
-
-  v_start := case new.period_frequency
-               when 'monthly'   then date_trunc('month', v_anchor)::date
-               when 'quarterly' then date_trunc('quarter', v_anchor)::date
-               when 'annual'    then date_trunc('year', v_anchor)::date
-               else make_date(
-                      extract(year from v_anchor)::int,
-                      case when extract(month from v_anchor)::int <= 6 then 1 else 7 end,
-                      1)
-             end;
-
-  new.period_start := v_start;
-  new.period_end   := (v_start + make_interval(months => v_months) - interval '1 day')::date;
-
-  new.period_key := case new.period_frequency
-    when 'monthly' then
-      to_char(v_start, 'YYYY-MM')
-    when 'quarterly' then
-      to_char(v_start, 'YYYY') || '-Q' || to_char(v_start, 'Q')
-    when 'semiannual' then
-      to_char(v_start, 'YYYY') || '-H' ||
-        (case when extract(month from v_start)::int <= 6 then '1' else '2' end)
-    else
-      to_char(v_start, 'YYYY')
-  end;
-
-  return new;
-end $$;
-
+alter table public.assessment_templates add column if not exists default_frequency public.period_frequency not null default 'semiannual';
+alter table public.audits add column if not exists period_frequency public.period_frequency not null default 'semiannual';
+alter table public.audits add column if not exists period_key text;
 drop trigger if exists trg_audit_period on public.audits;
-create trigger trg_audit_period
-  before insert or update of period_frequency, period_start, period_end, evaluation_date
-  on public.audits
-  for each row execute function app.set_audit_period();
 
-create index if not exists idx_audits_period
-  on public.audits(center_id, period_key);
-create index if not exists idx_audits_period_key
-  on public.audits(period_key);
+create or replace function app.calendar_period_key(p_frequency public.period_frequency, p_start date, p_end date)
+returns text language sql immutable set search_path='' as $$
+ select case
+  when p_frequency='monthly' and p_start=date_trunc('month',p_start)::date and p_end=(p_start+interval '1 month'-interval '1 day')::date then to_char(p_start,'YYYY-MM')
+  when p_frequency='quarterly' and p_start=date_trunc('quarter',p_start)::date and p_end=(p_start+interval '3 months'-interval '1 day')::date then to_char(p_start,'YYYY')||'-Q'||to_char(p_start,'Q')
+  when p_frequency='semiannual' and extract(month from p_start) in (1,7) and extract(day from p_start)=1 and p_end=(p_start+interval '6 months'-interval '1 day')::date then to_char(p_start,'YYYY')||'-H'||case when extract(month from p_start)=1 then '1' else '2' end
+  when p_frequency='annual' and p_start=date_trunc('year',p_start)::date and p_end=(p_start+interval '1 year'-interval '1 day')::date then to_char(p_start,'YYYY')
+  else null end;
+$$;
 
--- ---------------------------------------------------------------------
--- Backfill: infer the frequency each existing audit was really run at,
--- then let the trigger normalise the dates and fill the key.
--- ---------------------------------------------------------------------
-update public.audits
-   set period_frequency = case
-         when period_start is null or period_end is null then 'semiannual'
-         when (period_end - period_start) <= 45  then 'monthly'
-         when (period_end - period_start) <= 135 then 'quarterly'
-         when (period_end - period_start) <= 270 then 'semiannual'
-         else 'annual'
-       end::public.period_frequency
- where period_key is null;
+-- Preserve legacy workflow timestamps during metadata backfill.
+alter table public.audits disable trigger trg_audit_workflow;
+update public.audits set
+ period_frequency=case
+  when app.calendar_period_key('monthly',period_start,period_end) is not null then 'monthly'::public.period_frequency
+  when app.calendar_period_key('quarterly',period_start,period_end) is not null then 'quarterly'::public.period_frequency
+  when app.calendar_period_key('semiannual',period_start,period_end) is not null then 'semiannual'::public.period_frequency
+  when app.calendar_period_key('annual',period_start,period_end) is not null then 'annual'::public.period_frequency
+  else 'custom'::public.period_frequency end,
+ period_key=coalesce(app.calendar_period_key('monthly',period_start,period_end),app.calendar_period_key('quarterly',period_start,period_end),app.calendar_period_key('semiannual',period_start,period_end),app.calendar_period_key('annual',period_start,period_end),'custom:'||coalesce(period_start::text,'')||'/'||coalesce(period_end::text,''))
+where period_key is null;
+alter table public.audits enable trigger trg_audit_workflow;
 
--- Touch every row so the trigger computes period_key for it.
-update public.audits set evaluation_date = evaluation_date where period_key is null;
+create or replace function app.set_audit_period() returns trigger
+language plpgsql set search_path='' as $$
+begin
+ new.period_key:=app.calendar_period_key(new.period_frequency,new.period_start,new.period_end);
+ if new.period_key is null then
+  new.period_frequency:='custom';
+  new.period_key:='custom:'||coalesce(new.period_start::text,'')||'/'||coalesce(new.period_end::text,'');
+ end if;
+ return new;
+end $$;
+create trigger trg_audit_period before insert or update of period_frequency,period_start,period_end on public.audits for each row execute function app.set_audit_period();
+create index if not exists idx_audits_period on public.audits(center_id,period_key);
+create index if not exists idx_audits_period_key on public.audits(period_key);
 
 -- =====================================================================
 -- Views

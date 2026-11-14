@@ -3,18 +3,20 @@
 ## Run order
 
 **Fastest path:** paste `kafaa_full_schema.sql` into the SQL Editor and run it.
-That is migrations 1–12, seeds 1, 2, 3 and 5, then the Audit Structure version migration.
+The generated installer includes the numbered migrations, reference seeds,
+Audit Structure versions, shared assessments and the shared-only upgrade.
 
 **To review as you go**, run the numbered files individually — see
 [`../docs/SETUP.md`](../docs/SETUP.md) §2.
 
-Either way, `seed/0004_demo_data.sql` is separate and optional. Run it for five
-demo centres with two evaluation cycles each; skip it for a production project.
+Optional `seed/0004_demo_data.sql` supplies four centres, staff and surveys.
+After granting an app Super Admin, `seed/0006_shared_assessment_demo.sql` creates
+two shared periods with joined scoring, submission and approval examples.
 
 ## Schema at a glance
 
 ```
-organizations ─┬─ centers ─┬─ audits ─┬─ audit_responses ─┬─ audit_evidence
+organizations ─┬─ centers ─┬─ assessment_participations ── audits ─┬─ audit_responses ─┬─ audit_evidence
                │           │          │                   └─ ncrs ─┬─ ncr_updates
                │           │          ├─ audit_samples             └─ ncr_evidence
                │           │          └─ audit_team_members
@@ -32,6 +34,11 @@ assessment_templates ─┬─ assessment_domains ─── assessment_sections
 profiles ── user_roles          terminology_map    notifications    activity_log
 ```
 
+Shared sessions reference a saved template. Each participation links a session
+and centre, and every audit requires that participation. Publishing creates
+eligibility, joining creates the scoring record, and corrections retain the
+same participation.
+
 ## Where the rules live
 
 | Rule | Enforced by |
@@ -46,28 +53,16 @@ profiles ── user_roles          terminology_map    notifications    activity
 | A manager cannot rename their centre | `app.guard_center_columns()` |
 | Survey cooldown cannot be bypassed | `public.submit_survey()` is the only write path |
 | Who can see what | RLS policies in `0010_rls_policies.sql` |
-| Period boundaries and grouping key | `app.set_audit_period()` |
+| Period boundaries and grouping key | `app.calendar_period_key()` and shared-session guards |
+| Shared participation required | `audits.participation_id NOT NULL`, its foreign key, RLS and `app.guard_shared_audit()` |
 
 ## Assessment periods
 
-An assessment covers a **period**, not a day. `audits.period_frequency` is one
-of `monthly`, `quarterly`, `semiannual`, `annual` or `custom`; a trigger snaps
-`period_start` / `period_end` to that frequency's real boundaries and derives
-`period_key`:
+Shared sessions choose a complete monthly, quarterly, semiannual or annual
+calendar period. Their centre audits inherit the same dates, frequency and
+period key. Shared guards reject a mismatched centre, structure or period.
 
-| Frequency | Key | Reads as |
-|---|---|---|
-| monthly | `2026-03` | March 2026 |
-| quarterly | `2026-Q1` | Q1 2026 |
-| semiannual | `2026-H1` | H1 2026 |
-| annual | `2026` | 2026 |
-
-Because the trigger owns the boundaries, two assessments of the same period can
-never disagree about where it starts. `v_audit_periods` lists the periods that
-actually hold assessments, which is what the filter offers.
-
-The Kafa'a checklist says "the evaluation will be done for last 6 months", so
-`semiannual` is the default on both the template and each assessment.
+The default frequency is `semiannual`.
 
 ## Security notes
 
@@ -131,3 +126,27 @@ The version migration is `migrations/20261112090000_audit_structure_versions.sql
 The original checklist is Audit Structure v 1.00; saved versions are immutable,
 and assessment references continue to point at their original template UUID.
 See `../docs/ADMIN_GUIDE.md` and `tests/audit_structure_versions.sql`.
+
+
+## Centre Head self-audits
+
+Plan 3 is deployed as `20261113221319_center_self_audits`, followed by
+`20261113221701_center_self_template_index` and
+`20261113222745_center_self_deadline_guard`. Self headers/responses/proof remain
+separate from official audits. The first official submission pins an optional
+submitted self snapshot; official corrections inherit that identity.
+
+Use `tests/center_self_audits.sql` for rolled-back authenticated role tests.
+`tests/self_audit_storage.sql` contains local-only object metadata fixtures and
+must run only in the disposable Kafaa database. Production object bytes use the
+Storage API. The complete installer includes all three additions, for fresh
+instances only. Do not replay older migrations on hosted Kafaa to reconcile the
+previously documented migration drift. See `../tools/center-head-qa/README.md`.
+
+
+Proof reservation retry verification: `20261113225856_center_self_proof_retries`
+normalizes all permitted metadata to typed values before comparing retry
+identity. Identical capture instants expressed with `Z` or `+04:00` now match;
+changing/omitting an existing value is rejected. The regression failed before
+this correction, then passed in local Storage tests and hosted authenticated
+rollback tests. No hosted object bytes or existing records were changed.

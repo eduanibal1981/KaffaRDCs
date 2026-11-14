@@ -11,14 +11,18 @@ import '../../core/widgets/common.dart';
 import '../../core/widgets/score_ring.dart';
 import '../../data/models/analytics.dart';
 import '../../data/models/audit.dart';
+import '../../data/models/assessment_session.dart';
 import '../../data/repositories/analytics_repository.dart';
+import '../../data/repositories/assessment_session_repository.dart';
+import '../../core/l10n/period_format.dart';
 import '../../data/repositories/report_service.dart';
 import 'criterion_drilldown.dart';
 
 /// Side-by-side comparison: ranking table, radar across the main areas,
 /// grouped bars, and trend lines. Every chart drills down to criteria.
 class CompareScreen extends ConsumerStatefulWidget {
-  const CompareScreen({super.key});
+  const CompareScreen({super.key, this.sessionId});
+  final String? sessionId;
 
   @override
   ConsumerState<CompareScreen> createState() => _CompareScreenState();
@@ -26,7 +30,8 @@ class CompareScreen extends ConsumerStatefulWidget {
 
 class _CompareScreenState extends ConsumerState<CompareScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 4, vsync: this);
+  late final TabController _tabs =
+      TabController(length: widget.sessionId == null ? 4 : 3, vsync: this);
   final Set<String> _selected = {};
 
   @override
@@ -38,7 +43,26 @@ class _CompareScreenState extends ConsumerState<CompareScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final ranking = ref.watch(rankingProvider);
+    if (widget.sessionId == null) {
+      return AsyncView(
+        value: ref.watch(assessmentSessionsProvider),
+        onRetry: () => ref.invalidate(assessmentSessionsProvider),
+        builder: (sessions) {
+          final latest = comparisonAssessments(sessions).firstOrNull;
+          return latest == null
+              ? Scaffold(
+                  appBar: AppBar(title: Text(l10n.compareTitle)),
+                  body: EmptyView(message: l10n.assessmentEmpty))
+              : CompareScreen(key: ValueKey(latest.id), sessionId: latest.id);
+        },
+      );
+    }
+    final ranking = widget.sessionId == null
+        ? ref.watch(rankingProvider)
+        : ref.watch(sessionRankingProvider(widget.sessionId!));
+    final session = widget.sessionId == null
+        ? null
+        : ref.watch(assessmentSessionProvider(widget.sessionId!)).valueOrNull;
 
     return Scaffold(
       appBar: AppBar(
@@ -47,9 +71,8 @@ class _CompareScreenState extends ConsumerState<CompareScreen>
         leading: IconButton(
           icon: const BackButtonIcon(),
           tooltip: l10n.navCentres,
-          onPressed: () => context.canPop()
-              ? context.pop()
-              : context.go(Routes.centres),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(Routes.centres),
         ),
         title: Text(l10n.compareTitle),
         bottom: TabBar(
@@ -60,7 +83,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen>
             Tab(text: l10n.compareRanking),
             Tab(text: l10n.scoreDomains),
             Tab(text: l10n.compareByArea),
-            Tab(text: l10n.compareTrend),
+            if (widget.sessionId == null) Tab(text: l10n.compareTrend),
           ],
         ),
         actions: [
@@ -72,16 +95,19 @@ class _CompareScreenState extends ConsumerState<CompareScreen>
               if (rows == null || rows.isEmpty) return;
               await ref
                   .read(reportServiceProvider)
-                  .exportComparisonCsv(context, rows);
+                  .exportComparisonCsv(context, rows, session: session);
             },
           ),
         ],
       ),
       body: AsyncView(
         value: ranking,
-        onRetry: () => ref.invalidate(rankingProvider),
+        onRetry: () {
+          ref.invalidate(rankingProvider);
+          ref.invalidate(sessionRankingProvider);
+        },
         builder: (rows) {
-          if (rows.isEmpty) {
+          if (rows.isEmpty && widget.sessionId == null) {
             return EmptyView(message: l10n.homeNoData);
           }
 
@@ -95,6 +121,15 @@ class _CompareScreenState extends ConsumerState<CompareScreen>
 
           return Column(
             children: [
+              if (session != null)
+                Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: KafaaCard(
+                        title: context.pick(session.titleEn, session.titleAr),
+                        subtitle:
+                            '${context.pick(session.templateNameEn, session.templateNameAr)} · ${formatPeriodKey(context, session.periodKey)}',
+                        child: Text(
+                            '${l10n.assessmentApprovedCount} ${session.approvedCount}/${session.eligibleCount}'))),
               _CentreSelector(
                 rows: rows,
                 selected: _selected,
@@ -108,10 +143,10 @@ class _CompareScreenState extends ConsumerState<CompareScreen>
                 child: TabBarView(
                   controller: _tabs,
                   children: [
-                    _RankingTab(rows: rows),
+                    _RankingTab(rows: rows, sessionId: widget.sessionId),
                     _RadarTab(rows: chosen),
                     _BarsTab(rows: chosen),
-                    _TrendTab(rows: chosen),
+                    if (widget.sessionId == null) _TrendTab(rows: chosen),
                   ],
                 ),
               ),
@@ -166,18 +201,37 @@ class _CentreSelector extends StatelessWidget {
 
 // ---------------------------------------------------------------------------
 
-class _RankingTab extends StatelessWidget {
-  const _RankingTab({required this.rows});
+class _RankingTab extends ConsumerWidget {
+  const _RankingTab({required this.rows, this.sessionId});
   final List<CenterRanking> rows;
+  final String? sessionId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       children: [
+        if (sessionId != null)
+          AsyncView(
+            value: ref.watch(assessmentParticipantsProvider(sessionId!)),
+            onRetry: () =>
+                ref.invalidate(assessmentParticipantsProvider(sessionId!)),
+            builder: (participants) => Column(children: [
+              for (final participant
+                  in participants.where((p) => p.officialAuditId == null))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: KafaaCard(
+                    title: context.pick(
+                        participant.centerNameEn, participant.centerNameAr),
+                    child: Text(l10n.centreNotInvolved),
+                  ),
+                ),
+            ]),
+          ),
         KafaaCard(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: SingleChildScrollView(
@@ -191,7 +245,8 @@ class _RankingTab extends StatelessWidget {
                 DataColumn(label: Text(l10n.scoreTitle), numeric: true),
                 DataColumn(label: Text(l10n.scorePercent), numeric: true),
                 DataColumn(label: Text(l10n.scoreGrade)),
-                DataColumn(label: Text(l10n.compareSatisfaction), numeric: true),
+                DataColumn(
+                    label: Text(l10n.compareSatisfaction), numeric: true),
                 DataColumn(label: Text(l10n.homeOpenActions), numeric: true),
               ],
               rows: [
@@ -205,8 +260,8 @@ class _RankingTab extends StatelessWidget {
                         SizedBox(
                           width: 160,
                           child: Text(
-                            context.pick(r.summary.centerNameEn,
-                                r.summary.centerNameAr),
+                            context.pick(
+                                r.summary.centerNameEn, r.summary.centerNameAr),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -218,8 +273,8 @@ class _RankingTab extends StatelessWidget {
                       DataCell(Text(formatPercent(r.summary.percent))),
                       DataCell(
                         StatusPill(
-                          label: context.pick(r.summary.gradeNameEn,
-                              r.summary.gradeNameAr),
+                          label: context.pick(
+                              r.summary.gradeNameEn, r.summary.gradeNameAr),
                           color: KafaaColors.forPercent(r.summary.percent),
                           dense: true,
                         ),
@@ -402,7 +457,8 @@ class _BarsTab extends ConsumerWidget {
                     ref,
                     auditId: audit.auditId,
                     domainCode: domain.code,
-                    title: '${context.pick(audit.centerNameEn, audit.centerNameAr)}'
+                    title:
+                        '${context.pick(audit.centerNameEn, audit.centerNameAr)}'
                         ' — ${categories[categoryIndex]}',
                   );
                 },
@@ -423,9 +479,7 @@ class _BarsTab extends ConsumerWidget {
                   ChartSeries(
                     label: l10n.surveySatisfaction,
                     color: KafaaColors.teal,
-                    values: [
-                      for (final r in rows) r.satisfactionPercent ?? 0
-                    ],
+                    values: [for (final r in rows) r.satisfactionPercent ?? 0],
                   ),
                 ],
               ),
@@ -480,8 +534,9 @@ class _TrendTab extends ConsumerWidget {
           ));
         }
 
-        final movers = [...relevant]..sort((a, b) =>
-            (b.deltaPercent ?? 0).compareTo(a.deltaPercent ?? 0));
+        final movers = [
+          ...relevant
+        ]..sort((a, b) => (b.deltaPercent ?? 0).compareTo(a.deltaPercent ?? 0));
 
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -508,17 +563,17 @@ class _TrendTab extends ConsumerWidget {
                             ? KafaaColors.success
                             : KafaaColors.danger,
                       ),
-                      title: Text(
-                          context.pick(p.centerNameEn, p.centerNameAr)),
+                      title: Text(context.pick(p.centerNameEn, p.centerNameAr)),
                       subtitle: Text(p.cycleLabel ?? ''),
                       trailing: Text(
                         '${p.improved ? '+' : ''}'
                         '${(p.deltaPercent ?? 0).toStringAsFixed(1)}%',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: p.improved
-                                  ? KafaaColors.success
-                                  : KafaaColors.danger,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: p.improved
+                                      ? KafaaColors.success
+                                      : KafaaColors.danger,
+                                ),
                       ),
                     ),
                 ],

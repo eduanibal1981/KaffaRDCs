@@ -1,18 +1,20 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
+import 'package:cross_file/cross_file.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/offline/durable_evidence.dart';
 
 import '../../core/offline/local_store.dart';
+import '../../core/offline/network_error.dart';
 import '../../core/offline/sync_service.dart';
 import '../models/audit.dart';
 import '../models/primitives.dart';
 import '../supabase/supabase_providers.dart';
-import '../supabase/audit_draft_write.dart';
 
 class AuditFilter {
   const AuditFilter({
@@ -86,44 +88,31 @@ class AuditRepository {
           filter.limit,
         ])}';
     try {
-      List<Map<String, dynamic>> rows;
-      try {
-        rows = await _listQuery(filter)
-            .order('evaluation_date', ascending: false)
-            .order('audit_id', ascending: true)
-            .limit(filter.limit);
-      } on PostgrestException catch (error) {
-        // Older deployments expose period dates but not the derived key.
-        // Use the same inference as the cards and picker in that case only.
-        if (filter.periodKey == null ||
-            error.code != '42703' ||
-            !error.message.contains('v_audit_summary.period_key')) {
-          rethrow;
-        }
-        rows = await _listLegacyPeriod(filter);
-      }
+      final rows = await _listQuery(filter)
+          .order('evaluation_date', ascending: false)
+          .order('audit_id', ascending: true)
+          .limit(filter.limit);
       await _store.putCache(cacheKey, rows);
-      return await _withPendingDrafts(
-          rows.map(AuditSummary.fromMap).toList(), filter);
-    } catch (_) {
+      return _sharedSummaries(rows);
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
       final cached = await _store.readCache<List<dynamic>>(cacheKey);
-      if (cached == null &&
-          !(await _store.pending())
-              .any((entry) => entry.kind == OutboxKind.auditCreate)) {
-        rethrow;
-      }
-      final list = (cached ?? [])
-          .cast<Map<String, dynamic>>()
-          .map(AuditSummary.fromMap)
-          .toList();
-      return _withPendingDrafts(list, filter);
+      if (cached == null) rethrow;
+      return _sharedSummaries(cached.cast<Map<String, dynamic>>());
     }
   }
 
+  List<AuditSummary> _sharedSummaries(List<Map<String, dynamic>> rows) => rows
+      .map(AuditSummary.fromMap)
+      .where((summary) => summary.isShared)
+      .toList();
+
   PostgrestFilterBuilder<List<Map<String, dynamic>>> _listQuery(
-      AuditFilter filter,
-      {bool includePeriod = true}) {
-    var query = _client.from('v_audit_summary').select();
+      AuditFilter filter) {
+    var query = _client.rest
+        .from('v_audit_summary')
+        .select()
+        .not('participation_id', 'is', null);
     if (filter.centerId != null) {
       query = query.eq('center_id', filter.centerId!);
     }
@@ -133,125 +122,42 @@ class AuditRepository {
     if (filter.cycleLabel != null) {
       query = query.eq('cycle_label', filter.cycleLabel!);
     }
-    if (includePeriod && filter.periodKey != null) {
+    if (filter.periodKey != null) {
       query = query.eq('period_key', filter.periodKey!);
     }
     return query;
   }
 
-  Future<List<Map<String, dynamic>>> _listLegacyPeriod(
-      AuditFilter filter) async {
-    const pageSize = 200;
-    final matches = <Map<String, dynamic>>[];
-    var offset = 0;
-    while (matches.length < filter.limit) {
-      final page = await _listQuery(filter, includePeriod: false)
-          .order('evaluation_date', ascending: false)
-          .order('audit_id', ascending: true)
-          .range(offset, offset + pageSize - 1);
-      matches.addAll(page.where(
-          (row) => AuditSummary.fromMap(row).periodKey == filter.periodKey));
-      // Advance by the received count, including when a server caps page size.
-      if (page.isEmpty) break;
-      offset += page.length;
-    }
-    return matches.take(filter.limit).toList();
-  }
-
-  Future<List<AuditSummary>> _withPendingDrafts(
-      List<AuditSummary> rows, AuditFilter filter) async {
-    final byId = {for (final row in rows) row.auditId: row};
-    for (final entry in await _store.pending()) {
-      if (entry.kind != OutboxKind.auditCreate) continue;
-      final id = entry.payload['id'] as String?;
-      if (id == null || byId.containsKey(id)) continue;
-      final cached =
-          await _store.readCache<Map<String, dynamic>>('audit.summary.$id');
-      if (cached == null) continue;
-      final draft = AuditSummary.fromMap(cached);
-      if (filter.centerId != null && draft.centerId != filter.centerId) {
-        continue;
-      }
-      if (filter.status != null && draft.status != filter.status) continue;
-      if (filter.cycleLabel != null && draft.cycleLabel != filter.cycleLabel) {
-        continue;
-      }
-      if (filter.periodKey != null && draft.periodKey != filter.periodKey) {
-        continue;
-      }
-      byId[id] = draft;
-    }
-    return (byId.values.toList()
-          ..sort((a, b) => (b.evaluationDate ?? DateTime(1900))
-              .compareTo(a.evaluationDate ?? DateTime(1900))))
-        .take(filter.limit)
-        .toList();
-  }
-
-  /// The periods that actually hold assessments, newest first — the
-  /// options offered by the period filter.
-  Future<List<AuditPeriod>> periods({String? centerId}) async {
-    final cacheKey = 'audit.periods.${centerId ?? 'all'}';
-    try {
-      var query = _client.from('v_audit_summary').select();
-      if (centerId != null) query = query.eq('center_id', centerId);
-      final rows = await query.order('evaluation_date', ascending: false);
-      await _store.putCache(cacheKey, rows);
-
-      return _decodePeriods(rows);
-    } catch (_) {
-      final cached = await _store.readCache<List<dynamic>>(cacheKey);
-      if (cached != null) {
-        return _decodePeriods(cached.cast<Map<String, dynamic>>());
-      }
-      return const [];
-    }
-  }
-
-  List<AuditPeriod> _decodePeriods(List<dynamic> rows) {
-    final byKey = <String, AuditPeriod>{};
-    for (final raw in rows) {
-      if (raw is! Map<String, dynamic>) continue;
-      final summary = AuditSummary.fromMap(raw);
-      final key = summary.periodKey;
-      if (key == null || key.isEmpty) continue;
-
-      final existing = byKey[key];
-      byKey[key] = AuditPeriod(
-        key: key,
-        frequency: summary.periodFrequency,
-        periodEnd:
-            summary.periodEnd ?? summary.periodStart ?? summary.evaluationDate,
-        auditCount: (existing?.auditCount ?? 0) + 1,
-      );
-    }
-
-    return byKey.values.toList()
-      ..sort((a, b) => (b.periodEnd ?? DateTime(1900))
-          .compareTo(a.periodEnd ?? DateTime(1900)));
-  }
-
   Future<AuditSummary?> summary(String auditId) async {
     final cacheKey = 'audit.summary.$auditId';
     try {
-      final row = await _client
+      final row = await _client.rest
           .from('v_audit_summary')
           .select()
           .eq('audit_id', auditId)
           .maybeSingle();
-      if (row != null) await _store.putCache(cacheKey, row);
-      if (row != null) return AuditSummary.fromMap(row);
-      final isPending = (await _store.pending()).any((entry) =>
-          entry.kind == OutboxKind.auditCreate &&
-          entry.payload['id'] == auditId);
-      if (!isPending) return null;
-      final cached = await _store.readCache<Map<String, dynamic>>(cacheKey);
-      return cached == null ? null : AuditSummary.fromMap(cached);
-    } catch (_) {
+      if (row == null || !AuditSummary.fromMap(row).isShared) return null;
+      await _store.putCache(cacheKey, row);
+      return AuditSummary.fromMap(await _mergePendingHeader(row));
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
       final cached = await _store.readCache<Map<String, dynamic>>(cacheKey);
       if (cached == null) rethrow;
-      return AuditSummary.fromMap(cached);
+      final summary = AuditSummary.fromMap(await _mergePendingHeader(cached));
+      return summary.isShared ? summary : null;
     }
+  }
+
+  Future<Map<String, dynamic>> _mergePendingHeader(
+      Map<String, dynamic> row) async {
+    final merged = Map<String, dynamic>.of(row);
+    for (final entry in await _store.pending()) {
+      if (entry.kind == OutboxKind.auditUpdate &&
+          entry.payload['id'] == row['audit_id']) {
+        merged.addAll(Map<String, dynamic>.of(entry.payload)..remove('id'));
+      }
+    }
+    return merged;
   }
 
   /// Responses keyed by criterion id, merged with anything still sitting
@@ -260,13 +166,14 @@ class AuditRepository {
     final cacheKey = 'audit.responses.$auditId';
     List<Map<String, dynamic>> rows;
     try {
-      final fetched = await _client
+      final fetched = await _client.rest
           .from('audit_responses')
           .select('*, audit_evidence(count)')
           .eq('audit_id', auditId);
       rows = fetched.cast<Map<String, dynamic>>();
       await _store.putCache(cacheKey, rows);
-    } catch (_) {
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
       final cached = await _store.readCache<List<dynamic>>(cacheKey);
       if (cached == null) rethrow;
       rows = cached.cast<Map<String, dynamic>>();
@@ -283,6 +190,16 @@ class AuditRepository {
       result[response.criterionId] = response;
     }
 
+    final accepted = await _store.readCache<Map<String, dynamic>>(
+            'official.responses.accepted.$auditId') ??
+        {};
+    for (final r in accepted.values) {
+      final known = result[r['criterion_id']];
+      if (known == null || (r['row_version'] as num) > known.rowVersion) {
+        result[r['criterion_id']] =
+            AuditResponse.fromMap(Map<String, dynamic>.from(r));
+      }
+    }
     // Unsynced local edits win over the server copy.
     for (final entry in await _store.pending()) {
       if (entry.kind != OutboxKind.responseUpsert) continue;
@@ -300,14 +217,36 @@ class AuditRepository {
 
   Future<List<EvidenceItem>> evidence(String auditId,
       {String? responseId}) async {
-    var query = _client.from('audit_evidence').select().eq('audit_id', auditId);
-    if (responseId != null) query = query.eq('response_id', responseId);
-    final rows = await query.order('uploaded_at');
-    return rows.map(EvidenceItem.fromMap).toList();
+    final key = 'audit.evidence.$auditId';
+    List<dynamic> rows;
+    try {
+      rows = await _client.rest
+          .from('audit_evidence')
+          .select()
+          .eq('audit_id', auditId)
+          .order('uploaded_at');
+      await _store.putCache(key, rows);
+    } catch (e) {
+      if (!isNetworkError(e)) rethrow;
+      rows = await _store.readCache<List<dynamic>>(key) ?? [];
+    }
+    final byId = {
+      for (final r in rows) r['id'] as String: Map<String, dynamic>.from(r)
+    };
+    final accepted = await _store.readCache<Map<String, dynamic>>(
+            'official.evidence.accepted.$auditId') ??
+        {};
+    for (final r in accepted.values) {
+      byId[r['id']] = Map<String, dynamic>.from(r);
+    }
+    return byId.values
+        .where((r) => responseId == null || r['response_id'] == responseId)
+        .map(EvidenceItem.fromMap)
+        .toList();
   }
 
   Future<List<AuditSample>> samples(String auditId) async {
-    final rows = await _client
+    final rows = await _client.rest
         .from('audit_samples')
         .select()
         .eq('audit_id', auditId)
@@ -319,119 +258,157 @@ class AuditRepository {
   // Writing
   // -------------------------------------------------------------------
 
-  /// Creates a draft. The client-generated uuid makes a retried create
-  /// idempotent, so a flaky connection cannot produce two audits.
-  Future<String> createDraft({
-    required String templateId,
-    required String centerId,
-    required String cycleLabel,
-    required DateTime evaluationDate,
-    required PeriodFrequency frequency,
-    DateTime? periodStart,
-    DateTime? periodEnd,
-    String? title,
-    String? evaluatorName,
-    int? registeredPatients,
-    int? dialysisBeds,
-  }) async {
-    final clientUuid = _uuid.v4();
-    final payload = {
-      'id': clientUuid,
-      'client_uuid': clientUuid,
-      'template_id': templateId,
-      'center_id': centerId,
-      'title': title,
-      'cycle_label': cycleLabel,
-      'evaluation_date': _date(evaluationDate),
-      'period_frequency': frequency.wire,
-      // The database snaps these to the frequency's boundaries and derives
-      // the grouping key, so the two can never disagree.
-      'period_start': periodStart == null ? null : _date(periodStart),
-      'period_end': periodEnd == null ? null : _date(periodEnd),
-      'evaluator_name': evaluatorName,
-      'registered_patients': registeredPatients,
-      'dialysis_beds': dialysisBeds,
-      'status': 'draft',
-    };
-
-    try {
-      final rows = await writeAuditDraft(_client, payload);
-      return rows.single['id'] as String;
-    } on SocketException {
-      await _cacheDraft(
-          payload, frequency, evaluationDate, periodStart, periodEnd);
-      await _store.enqueue(OutboxKind.auditCreate, payload,
-          dedupeKey: 'audit:$clientUuid');
-      await _sync.refreshPendingCount();
-      _sync.scheduleSync();
-      return clientUuid;
-    }
-  }
-
-  Future<void> _cacheDraft(
-      Map<String, dynamic> payload,
-      PeriodFrequency frequency,
-      DateTime evaluationDate,
-      DateTime? periodStart,
-      DateTime? periodEnd) async {
-    final id = payload['id'] as String;
-    final centers =
-        await _store.readCache<List<dynamic>>('centers.active') ?? [];
-    final center = centers
-        .cast<Map<String, dynamic>>()
-        .where((row) => row['id'] == payload['center_id'])
-        .firstOrNull;
-    final anchor = periodEnd ?? evaluationDate;
-    final period = frequency.periodFor(anchor);
-    await _store.putCache('audit.summary.$id', {
-      ...payload,
-      'audit_id': id,
-      'center_code': center?['code'],
-      'center_name_en': center?['name_en'],
-      'center_name_ar': center?['name_ar'],
-      'short_name_en': center?['short_name_en'],
-      'short_name_ar': center?['short_name_ar'],
-      'period_start': _date(frequency == PeriodFrequency.custom
-          ? periodStart ?? anchor
-          : period.start),
-      'period_end': _date(frequency == PeriodFrequency.custom
-          ? periodEnd ?? anchor
-          : period.end),
-      'period_key': frequency.keyFor(anchor),
-    });
-    await _store.putCache('audit.responses.$id', <Map<String, dynamic>>[]);
-  }
-
   /// Saves a score. Written to the outbox first so it survives the app
   /// being killed, then pushed as soon as there is a connection.
-  Future<void> saveResponse(AuditResponse response) async {
-    final payload = {
+  Future<void> _responseSaves = Future<void>.value();
+  Future<void> saveResponse(AuditResponse response) {
+    final next = _responseSaves
+        .catchError((Object _) {})
+        .then((_) => _saveResponse(response));
+    _responseSaves = next;
+    return next;
+  }
+
+  Future<void> _saveResponse(AuditResponse response) async {
+    final entries = (await _store.pending())
+        .where((e) =>
+            e.kind == OutboxKind.responseUpsert &&
+            e.payload['audit_id'] == response.auditId &&
+            (e.payload['p_criterion_id'] ?? e.payload['criterion_id']) ==
+                response.criterionId)
+        .toList();
+    if (entries.any((e) => !e.payload.containsKey('p_expected_version'))) {
+      throw StateError('KAFAA_LEGACY_RESPONSE_RECONCILIATION');
+    }
+    final accepted = await _store.readCache<Map<String, dynamic>>(
+            'official.responses.accepted.${response.auditId}') ??
+        {};
+    final previous = entries.isNotEmpty
+        ? Map<String, dynamic>.from(entries.last.payload['_local_response'])
+        : accepted[response.criterionId] as Map<String, dynamic>?;
+    final expected = max(
+        response.rowVersion, (previous?['row_version'] as num?)?.toInt() ?? 0);
+    final id = previous?['id'] as String? ?? response.id ?? _uuid.v4();
+    final mutation = _uuid.v4();
+    final values = Map<String, dynamic>.from(response.toUpsertMap())
+      ..remove('audit_id')
+      ..remove('criterion_id');
+    final local = {
       ...response.toUpsertMap(),
-      // Retain the optimistic score when reopening offline. This metadata
-      // is stripped before sending; Postgres still owns authoritative points.
-      '_local_response': {
-        'level': response.level?.wire,
-        'points': response.points
-      },
+      'id': id,
+      'row_version': expected + 1,
+      'level': response.level?.wire,
+      'points': response.points
     };
-    await _store.enqueue(
-      OutboxKind.responseUpsert,
-      payload,
-      // One pending write per criterion, however many times it is edited.
-      dedupeKey: 'response:${response.auditId}:${response.criterionId}',
-    );
+    await _store.enqueueWithCache(
+        OutboxKind.responseUpsert,
+        {
+          'audit_id': response.auditId,
+          'p_id': id,
+          'p_audit_id': response.auditId,
+          'p_criterion_id': response.criterionId,
+          'p_expected_version': expected,
+          'p_mutation_id': mutation,
+          'p_payload': values,
+          '_local_response': local,
+          'entity_key': 'response:${response.auditId}:${response.criterionId}',
+          'depends_on': entries.map((e) => e.id).toList(),
+        },
+        cacheKey: 'official.response.local.$id',
+        cacheValue: local);
     await _sync.refreshPendingCount();
     _sync.scheduleSync();
   }
 
+  Future<AuditResponse?> pendingResponse(
+      String auditId, String criterionId) async {
+    final entries = (await _store.pending())
+        .where((e) =>
+            e.kind == OutboxKind.responseUpsert &&
+            e.payload['audit_id'] == auditId &&
+            e.payload['p_criterion_id'] == criterionId)
+        .toList();
+    if (entries.isNotEmpty) {
+      return AuditResponse.fromMap(
+          Map<String, dynamic>.from(entries.last.payload['_local_response']));
+    }
+    final ack = await _store.readCache<Map<String, dynamic>>(
+        'official.responses.accepted.$auditId');
+    return ack?[criterionId] == null
+        ? null
+        : AuditResponse.fromMap(Map<String, dynamic>.from(ack![criterionId]));
+  }
+
+  Future<Map<String, dynamic>?> currentResponse(
+          String auditId, String criterionId) =>
+      _client.rest
+          .from('audit_responses')
+          .select()
+          .eq('audit_id', auditId)
+          .eq('criterion_id', criterionId)
+          .maybeSingle();
+  Future<void> reconcileResponse(AuditResponse local,
+      {required bool keepLocal}) async {
+    final server = await currentResponse(local.auditId, local.criterionId);
+    final entries = (await _store.pending())
+        .where((e) =>
+            e.kind == OutboxKind.responseUpsert &&
+            e.payload['audit_id'] == local.auditId &&
+            (e.payload['p_criterion_id'] ?? e.payload['criterion_id']) ==
+                local.criterionId)
+        .toList();
+    await _store.putCache('official.conflict.archive.${_uuid.v4()}',
+        entries.map((e) => e.payload).toList());
+    for (final e in entries) {
+      await _store.remove(e.id, expected: e);
+    }
+    final accepted = await _store.readCache<Map<String, dynamic>>(
+            'official.responses.accepted.${local.auditId}') ??
+        {};
+    accepted.remove(local.criterionId);
+    if (server != null) accepted[local.criterionId] = server;
+    await _store.putCache(
+        'official.responses.accepted.${local.auditId}', accepted);
+    if (keepLocal) {
+      await saveResponse(local.copyWith(
+          id: server?['id'] as String?,
+          rowVersion: (server?['row_version'] as num?)?.toInt() ?? 0));
+      final canonical = await pendingResponse(local.auditId, local.criterionId);
+      final parents = (await _store.pending())
+          .where((e) =>
+              e.kind == OutboxKind.responseUpsert &&
+              e.payload['p_id'] == canonical?.id)
+          .map((e) => e.id)
+          .toList();
+      for (final e in await _store.pending()) {
+        if (e.kind == OutboxKind.evidenceUpload &&
+            e.payload['audit_id'] == local.auditId &&
+            e.payload['response_id'] == local.id) {
+          final payload = {
+            ...e.payload,
+            'response_id': canonical?.id,
+            'depends_on': parents
+          };
+          if (local.id != canonical?.id) {
+            payload['storage_path'] = (payload['storage_path'] as String)
+                .replaceFirst('/${local.id}/', '/${canonical?.id}/');
+          }
+          await _store.replacePending(e, payload);
+        }
+      }
+    }
+    await _sync.refreshPendingCount();
+  }
+
   Future<void> flushNow({String? auditId}) async {
-    await _sync.sync();
+    await _responseSaves;
+    await _sync.sync(auditId: auditId);
     final pending = await _store.pending();
     if (pending.any((entry) =>
         auditId == null ||
         entry.payload['audit_id'] == auditId ||
-        ((entry.kind == OutboxKind.auditCreate ||
-                entry.kind == OutboxKind.auditUpdate) &&
+        entry.payload['p_audit_id'] == auditId ||
+        (entry.kind == OutboxKind.auditUpdate &&
             entry.payload['id'] == auditId))) {
       throw StateError(
           'Some assessment changes have not synced. Reconnect and retry before submitting.');
@@ -451,17 +428,12 @@ class AuditRepository {
   /// Status transitions go straight to the server: the auditor needs to
   /// know immediately whether a submission was accepted.
   Future<void> setStatus(String auditId, AuditStatus status,
-      {String? reviewNotes}) async {
-    await _client.from('audits').update({
-      'status': status.wire,
-      if (reviewNotes != null) 'review_notes': reviewNotes,
-    }).eq('id', auditId);
-  }
-
-  Future<void> deleteDraft(String auditId) async {
-    await _client.from('audits').delete().eq('id', auditId);
-    await _store.clearCache();
-  }
+          {String? reviewNotes}) =>
+      _client.rpc('set_assessment_audit_status', params: {
+        'p_audit_id': auditId,
+        'p_status': status.wire,
+        'p_review_notes': reviewNotes,
+      });
 
   // -------------------------------------------------------------------
   // Evidence
@@ -471,7 +443,7 @@ class AuditRepository {
     required String auditId,
     required String centerId,
     String? responseId,
-    required File file,
+    required XFile file,
     required String fileName,
     String? mimeType,
     EvidenceMethod? method,
@@ -484,17 +456,35 @@ class AuditRepository {
       '${_uuid.v4()}${p.extension(fileName)}',
     );
 
+    final persisted =
+        await persistEvidence(_client, file, 'official/$storagePath');
+    final id = _uuid.v4();
+    final dependencies = (await _store.pending())
+        .where((e) =>
+            e.kind == OutboxKind.responseUpsert &&
+            e.payload['audit_id'] == auditId &&
+            (responseId == null || e.payload['p_id'] == responseId))
+        .map((e) => e.id)
+        .toList();
     await _store.enqueue(
       OutboxKind.evidenceUpload,
       {
-        'local_path': file.path,
+        ...persisted,
+        'id': id,
+        'entity_key': 'proof:$id',
+        'depends_on': dependencies,
         'storage_bucket': 'audit-evidence',
         'storage_path': storagePath,
         'audit_id': auditId,
         'response_id': responseId,
         'center_id': centerId,
         'file_name': fileName,
-        'mime_type': mimeType,
+        'mime_type': mimeType ??
+            (fileName.toLowerCase().endsWith('.pdf')
+                ? 'application/pdf'
+                : fileName.toLowerCase().endsWith('.png')
+                    ? 'image/png'
+                    : 'image/jpeg'),
         'size_bytes': await file.length(),
         'evidence_method': method?.wire,
         'caption': caption,
@@ -505,6 +495,42 @@ class AuditRepository {
     _sync.scheduleSync(delay: const Duration(milliseconds: 500));
   }
 
+  Future<Uint8List> downloadEvidence(EvidenceItem item) async {
+    final key = 'official.proof.download.${item.id}';
+    try {
+      final visible = await _client.rest
+          .from('audit_evidence')
+          .select('id')
+          .eq('id', item.id)
+          .maybeSingle();
+      if (visible == null) throw StateError('KAFAA_ACCESS_DENIED');
+      final bytes =
+          await _client.storage.from(item.bucket).download(item.storagePath);
+      await _store.putCache(
+          key,
+          await persistEvidence(_client, XFile.fromData(bytes),
+              'downloads/official/${item.id}/${item.fileName}'));
+      return bytes;
+    } catch (e) {
+      if (!isNetworkError(e)) rethrow;
+      final data = await _store.readCache<Map<String, dynamic>>(key);
+      if (data == null) throw StateError('KAFAA_PROOF_NOT_DOWNLOADED');
+      return readPersistedEvidence(data);
+    }
+  }
+
+  Future<bool> availableOffline(EvidenceItem item) async {
+    final data = await _store
+        .readCache<Map<String, dynamic>>('official.proof.download.${item.id}');
+    if (data == null) return false;
+    try {
+      await readPersistedEvidence(data);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<String> signedEvidenceUrl(EvidenceItem item,
       {Duration validFor = const Duration(minutes: 30)}) {
     return _client.storage
@@ -513,8 +539,13 @@ class AuditRepository {
   }
 
   Future<void> deleteEvidence(EvidenceItem item) async {
+    await _client.rest
+        .from('audit_evidence')
+        .delete()
+        .eq('id', item.id)
+        .select('id')
+        .single();
     await _client.storage.from(item.bucket).remove([item.storagePath]);
-    await _client.from('audit_evidence').delete().eq('id', item.id);
   }
 
   // -------------------------------------------------------------------
@@ -547,10 +578,14 @@ class AuditRepository {
     };
 
     try {
-      final row =
-          await _client.from('audit_samples').insert(payload).select().single();
+      final row = await _client.rest
+          .from('audit_samples')
+          .insert(payload)
+          .select()
+          .single();
       return AuditSample.fromMap(row);
-    } on SocketException {
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
       await _store.enqueue(OutboxKind.sampleInsert, payload);
       await _sync.refreshPendingCount();
       _sync.scheduleSync();
@@ -567,10 +602,6 @@ class AuditRepository {
       );
     }
   }
-
-  static String _date(DateTime d) => '${d.year.toString().padLeft(4, '0')}-'
-      '${d.month.toString().padLeft(2, '0')}-'
-      '${d.day.toString().padLeft(2, '0')}';
 }
 
 /// Deterministic sample selection, mirroring draw_random_sample() in SQL.
@@ -602,11 +633,4 @@ final auditListProvider =
 
 final auditSummaryProvider = FutureProvider.family<AuditSummary?, String>(
   (ref, auditId) => ref.watch(auditRepositoryProvider).summary(auditId),
-);
-
-/// Periods available to filter by. Family key is the centre, or null for
-/// every centre the viewer can see.
-final auditPeriodsProvider = FutureProvider.family<List<AuditPeriod>, String?>(
-  (ref, centerId) =>
-      ref.watch(auditRepositoryProvider).periods(centerId: centerId),
 );

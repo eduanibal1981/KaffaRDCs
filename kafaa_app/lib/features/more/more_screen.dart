@@ -10,6 +10,7 @@ import '../../core/widgets/common.dart';
 import '../../data/repositories/center_repository.dart';
 import '../../shell/navigation.dart';
 import '../auth/session.dart';
+import '../admin/role_simulation.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
@@ -21,9 +22,8 @@ class MoreScreen extends ConsumerWidget {
     final perms = ref.watch(permissionsProvider);
     final centres = ref.watch(centersByIdProvider);
 
-    final myCentre = perms.homeCenterId == null
-        ? null
-        : centres[perms.homeCenterId!];
+    final myCentre =
+        perms.homeCenterId == null ? null : centres[perms.homeCenterId!];
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navMore)),
@@ -35,8 +35,10 @@ class MoreScreen extends ConsumerWidget {
               children: [
                 CircleAvatar(
                   radius: 26,
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.12),
                   child: Text(
                     (session?.displayName ?? '?')
                         .characters
@@ -98,6 +100,16 @@ class MoreScreen extends ConsumerWidget {
               onTap: () => context.go(item.route),
             ),
 
+          if (perms.isDirectorate) ...[
+            _Tile(
+                icon: Icons.dashboard_outlined,
+                title: l10n.directorateOverview,
+                onTap: () => context.push('/directorate')),
+            _Tile(
+                icon: Icons.local_hospital_outlined,
+                title: l10n.centerRegistryTitle,
+                onTap: () => context.push('/directorate/centers')),
+          ],
           if (perms.canCompareAllCentres)
             _Tile(
               icon: Icons.insights_outlined,
@@ -125,9 +137,14 @@ class MoreScreen extends ConsumerWidget {
           if (perms.canConfigureTemplate)
             _Tile(
               icon: Icons.tune,
-              title: l10n.adminTitle,
+              title: l10n.adminOwnerTitle,
               onTap: () => context.go(Routes.admin),
             ),
+          if (ref.watch(roleSimulationProvider) != null)
+            _Tile(
+                icon: Icons.science_outlined,
+                title: l10n.adminTesterToolbox,
+                onTap: () => context.go('/more/admin/tester')),
           _Tile(
             icon: Icons.settings_outlined,
             title: l10n.settingsTitle,

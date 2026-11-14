@@ -1,0 +1,283 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Muscat",
+  "project": {
+    "name": "kaffaDB",
+    "reference": "onzmwoajiyennqtjcjez",
+    "api": "https://onzmwoajiyennqtjcjez.supabase.co",
+    "connection": "kafaa_db",
+    "read_only_defaults_preserved": true
+  },
+  "migration": {
+    "version": "20261113111316",
+    "name": "directorate_workflows",
+    "source": "supabase/migrations/20261113111316_directorate_workflows.sql",
+    "applied": true,
+    "local_filename_reconciled": true,
+    "sha256": "3b8206684dc369bc4d202226b4cd5ccb6fd043cc3ae5d76b1afb15e038f46575"
+  },
+  "authorization": {
+    "read_only_url_verified": true,
+    "command_local_write_url_verified": true,
+    "persistent_connection_changes": false
+  },
+  "data_preservation": {
+    "original_hashes_match": true,
+    "excluded_new_fields": [
+      "centers.row_version",
+      "audits.row_version",
+      "audits.last_review_request_id"
+    ],
+    "counts": {
+      "centers": 4,
+      "profiles": 5,
+      "grants": 5,
+      "audits": 7,
+      "responses": 500
+    },
+    "hashes": {
+      "audits": "ceb22d8ed1cb9cc15226632df3db6271",
+      "responses": "c1f14ac177aac9f058829b0fdaa1650b",
+      "centers": "c541b975023db87774bca27c31c66e6b",
+      "profiles": "9a5a8619023ab040aded102ee7dada46",
+      "grants": "c16b91e315f590827df92add1bc73f03"
+    },
+    "remaining_hosted_qa_users": 0,
+    "hosted_discussions": 0,
+    "hosted_messages": 0
+  },
+  "backend": {
+    "new_tables_rls": true,
+    "new_client_rpcs_invoker": true,
+    "new_workflow_view_invoker": true,
+    "pre_deploy_rollback": [
+      "directorate_registry.sql",
+      "audit_discussions_and_review.sql"
+    ],
+    "post_deploy_rollback": [
+      "directorate_registry.sql",
+      "audit_discussions_and_review.sql"
+    ],
+    "local_postgres": "17",
+    "local_suites": [
+      "full installer",
+      "directorate_registry.sql",
+      "audit_discussions_and_review.sql",
+      "shared_assessments.sql",
+      "role_access_administration.sql"
+    ],
+    "concurrency": {
+      "different_request_ids": {
+        "successes": 1,
+        "stale_rejections": 1,
+        "approval_messages": 1
+      },
+      "same_request_id": {
+        "successes": 2,
+        "approval_messages": 1
+      }
+    },
+    "installer_contains_exact_migration": true,
+    "disposable_container_removed": true
+  },
+  "advisors": {
+    "security": {
+      "before": [
+        {
+          "name": "security_definer_view",
+          "count": 1,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0010_security_definer_view"
+        },
+        {
+          "name": "function_search_path_mutable",
+          "count": 10,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable"
+        },
+        {
+          "name": "anon_security_definer_function_executable",
+          "count": 1,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable"
+        },
+        {
+          "name": "authenticated_security_definer_function_executable",
+          "count": 1,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable"
+        },
+        {
+          "name": "auth_leaked_password_protection",
+          "count": 1,
+          "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"
+        }
+      ],
+      "after": [
+        {
+          "name": "security_definer_view",
+          "count": 1,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0010_security_definer_view"
+        },
+        {
+          "name": "function_search_path_mutable",
+          "count": 10,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable"
+        },
+        {
+          "name": "anon_security_definer_function_executable",
+          "count": 1,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable"
+        },
+        {
+          "name": "authenticated_security_definer_function_executable",
+          "count": 1,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable"
+        },
+        {
+          "name": "auth_leaked_password_protection",
+          "count": 1,
+          "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"
+        }
+      ]
+    },
+    "performance": {
+      "before": [
+        {
+          "name": "unindexed_foreign_keys",
+          "count": 42,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys"
+        },
+        {
+          "name": "auth_rls_initplan",
+          "count": 5,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0003_auth_rls_initplan"
+        },
+        {
+          "name": "unused_index",
+          "count": 15,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index"
+        },
+        {
+          "name": "multiple_permissive_policies",
+          "count": 27,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies"
+        }
+      ],
+      "after": [
+        {
+          "name": "unindexed_foreign_keys",
+          "count": 42,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys"
+        },
+        {
+          "name": "auth_rls_initplan",
+          "count": 5,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0003_auth_rls_initplan"
+        },
+        {
+          "name": "unused_index",
+          "count": 21,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index"
+        },
+        {
+          "name": "multiple_permissive_policies",
+          "count": 25,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies"
+        }
+      ]
+    },
+    "health": {
+      "before": [],
+      "after": []
+    }
+  },
+  "flutter": {
+    "analyze": "passed",
+    "tests": 239,
+    "final_run": "passed",
+    "widgets": {
+      "locales": [
+        "en",
+        "ar"
+      ],
+      "widths": [
+        390,
+        1024
+      ],
+      "text_scale": 2,
+      "keyboard": true,
+      "preview_live_requests": 0,
+      "rendered_images": "docs/evidence/directorate/"
+    },
+    "android": {
+      "configured_launcher": true,
+      "built": true,
+      "installed": true,
+      "supabase_initialized": true,
+      "preserved_app_data": false,
+      "native_navigation_visually_verified": false,
+      "requires_sign_in": true
+    },
+    "web": {
+      "build": "passed on final source",
+      "published_preview_updated": false
+    }
+  },
+  "limits": [
+    "Production self-audit, pinned baseline and self/official gaps depend on Plan 3.",
+    "Actual-job roster editing, electronic lead sign-off and accepted-proof provenance depend on Plan 4; capabilities self_audit and formal_signoff remain false.",
+    "Approval retains existing evaluation/submission checks and adds Storage-backed required proof checks; Bausher's submitted mock lacks proof/team rows.",
+    "Private proof downloads are on demand; durable private download caching is not implemented.",
+    "External email/push delivery is not enabled.",
+    "CUA could not bind the native emulator. Physical capture/download/share, iOS runtime and the published Safari preview remain unverified."
+  ],
+  "owner_api_check_before_final_install": {
+    "project_ref": "onzmwoajiyennqtjcjez",
+    "authenticated": true,
+    "requests": {
+      "rpc/directorate_capabilities": {
+        "status": 200,
+        "rows": null
+      },
+      "centers": {
+        "status": 200,
+        "rows": 4
+      },
+      "v_assessment_workflow_counts": {
+        "status": 200,
+        "rows": 3
+      },
+      "v_audit_summary": {
+        "status": 200,
+        "rows": 1
+      },
+      "rpc/load_audit_review": {
+        "status": 200,
+        "rows": null
+      },
+      "audit_discussions": {
+        "status": 200,
+        "rows": 0
+      }
+    },
+    "capabilities": {
+      "review": true,
+      "registry": true,
+      "discussion": true,
+      "self_audit": false,
+      "formal_signoff": false,
+      "workflow_counts": true
+    },
+    "review_counts": {
+      "responses": 79,
+      "evidence": 0,
+      "team": 0,
+      "ncrs": 22
+    }
+  },
+  "verification_incident": {
+    "action": "flutter install -d emulator-5554 --debug",
+    "result": "The command uninstalled the old app before installing, clearing the emulator Kafaa sign-in and local storage.",
+    "hosted_data_unchanged": true,
+    "device_only_cache_and_outbox_recovery": "No verified recovery; prior device-only contents cannot be confirmed.",
+    "follow_up": "Configured launcher installed and launched the app again; user sign-in is required. Future updates must use scripts/run-kafaa rather than flutter install.",
+    "user_informed": true
+  }
+}

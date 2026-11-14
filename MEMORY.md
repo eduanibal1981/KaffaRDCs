@@ -1,6 +1,6 @@
 # Kafaa project memory
 
-Last updated: 12 November 2026 (Asia/Muscat).
+Last updated: 14 November 2026 (Asia/Muscat).
 
 ## Confirmed identity and separation
 
@@ -41,6 +41,13 @@ Last updated: 12 November 2026 (Asia/Muscat).
   the parent workspace. The launcher remains available for CLI connections.
 - Do not store temporary authorization URLs or tokens here.
 - Setup and permanent links: `docs/SUPABASE_CONNECTION.md`.
+- On 13 November 2026, the user's regular terminal could not find `codex`.
+  The CLI is installed inside the macOS Codex VS Code extension. The project
+  launcher now checks PATH, then the extension's matching macOS binary without
+  requiring a global installation or shell-profile change. With PATH limited
+  to `/usr/bin:/bin`, version, login help and `mcp get kafaa_db` succeeded;
+  the configured endpoint still matches the exact Kafaa read-only URL. This
+  launcher repair did not run OAuth or reverify live database authorization.
 
 ## Verified work from the first repair pass
 
@@ -77,7 +84,7 @@ Last updated: 12 November 2026 (Asia/Muscat).
 
 - Use the verified dedicated Kafaa MCP connection for the hosted review.
 - Inspect the hosted schema and policies against the twelve local migrations.
-- Verify survey hosting/deep links; bundle Arabic PDF fonts; make queued evidence
+- Verify survey hosting/deep links; make queued evidence
   files persistent; configure production Android signing.
 - Resolve the directorate's scoring/translation decisions in `docs/ASSUMPTIONS.md`.
 
@@ -98,6 +105,20 @@ Last updated: 12 November 2026 (Asia/Muscat).
   and all 137 tests passed after the launch changes.
 - A full relaunch is required for changed Dart defines. MCP OAuth and Flutter
   build-time configuration are separate; neither substitutes for the other.
+- An unsigned arm64 iPhone debug build succeeded on 12 November 2026 with
+  `env/dev.json`. Xcode saw the paired iPhone 13 as offline. A signing team
+  still needs to be selected for the device install. See `docs/SETUP.md`.
+- An unsigned iOS release archive (1.0.0 build 1) also built with
+  `env/dev.json`. TestFlight distribution still needs an authorized Apple
+  Developer Program team, signing and an App Store Connect app record.
+- The Flutter web build was published as the owner-private Kafaa Safari
+  preview at `https://kafaa-safari-preview.daintyloon4096.chatgpt.site`.
+  Site ID: `appgprj_6af5c5614c3081919be468cf75f5d23c`. The Site checkout
+  is in `tools/safari-preview/`. The build uses Kafaa's browser-safe public
+  API key and the existing Kafaa password sign-in. Onboarding opened in
+  iPhone Simulator Safari. The owner's authenticated session and real-device
+  evidence and export workflows were not exercised. Flutter analysis was
+  clean and all 160 tests passed.
 
 Keep this memory factual, project-local, and free of secrets. Do not import
 unrelated project history or mark an action complete before verification.
@@ -235,3 +256,483 @@ unrelated project history or mark an action complete before verification.
 - Fresh verification passed with clean Flutter analysis, 160 Flutter tests and
   five recovery callback tests. Gitleaks reported no secrets in staged changes.
   Configured local credential values were also absent from the tracked snapshot.
+
+## Shared assessment participation planning
+
+- On 12 November 2026, the user requested one assessment created for all centres
+  with centres able to join. The proposed database/app/rollout plan is in
+  `docs/SHARED_ASSESSMENTS_PLAN.md`. The subsequent database deployment is
+  recorded below; application runtime verification is still pending.
+- Read-only investigation reverified the configured scoped endpoint and exact
+  Kafaa API URL. SQL used `supabase_read_only_user`. Actual counts were four
+  active centres and nine audits, with eight approved and one draft. Hosted
+  migration history returned an empty list. Shared session/participation tables
+  and the period enum/columns are absent.
+- Historical approved audits have distinct rolling date ranges. Local migration
+  0012 invokes date normalization during backfill despite its introductory
+  preservation claim. A reviewed additive period migration must carry those
+  dates forward. Do not infer shared historical membership from cycle labels.
+- Proposed defaults give directorate creation/publication, centre managers
+  joining for their own centres, and auditors scoring within scope. First-time
+  joining receives online confirmation, then joined audits support offline
+  work. These are planning recommendations, with centre self-scoring reserved
+  for an explicit product decision.
+
+## Shared assessment MCP deployment — 13 November 2026
+
+- The dedicated `kafaa_db` tools are available in this chat. Both the configured
+  endpoint and MCP `get_project_url` matched `onzmwoajiyennqtjcjez` before
+  investigation. Initial read-only checks confirmed the SQL Editor run was a
+  rollback test: shared tables and period columns were absent. The SQL log
+  ended in `rollback` followed by the success message in the user's screenshot.
+- A command-local `read_only=false` override retained the exact project and
+  feature scope. Its separate OAuth flow completed successfully; write-mode
+  MCP returned the exact Kafaa API URL again. No global/shared connection or
+  project configuration changed; `.codex/config.toml` and `scripts/kafaa-codex`
+  still default to read-only.
+- Applied `supabase/migrations/20261112194009_shared_assessments.sql` through
+  MCP `apply_migration`, using an ephemeral local Codex app-server control
+  thread without a model turn. Hosted history now contains
+  `20261112202324_shared_assessments`. Earlier dashboard-installed migrations
+  remain untracked, and MCP's assigned version differs from the source filename;
+  reconcile verified contents before using CLI migration push. Do not replay it.
+- Migration plus regression tests passed in a rollback transaction before
+  deployment; tests also passed against the committed schema. Test fixtures
+  rolled back completely. At deployment verification, shared
+  sessions/participations contained zero rows and no production assessment had
+  been created or joined.
+- Before/after hashes confirmed all existing fields of nine audits, 633
+  responses, 43 NCRs, centres, templates, criteria and evidence were preserved.
+  Only new period/membership fields and template default frequency are excluded
+  from those comparisons. Eight rolling periods are classified `custom`, one
+  exact calendar period `semiannual`; historical dates, scores, workflow stamps
+  and membership were not rewritten or inferred.
+- Both new tables have RLS; new views and all six public lifecycle RPCs use
+  invoker rights. The RPCs deny anonymous execution and pin search paths.
+  Security advisor categories/counts are unchanged from the pre-deployment
+  baseline; the existing notices remain unresolved.
+- Evidence: `docs/evidence/shared-assessments-mcp-verification.json`.
+  No app source was changed or Flutter/device/UI verification performed in
+  this database deployment. Application rollout and end-to-end API/UI checks
+  remain separate work.
+
+## Shared-only workflow planning — 13 November 2026
+
+- The user requested a plan before removing the standalone centre-assessment
+  workflow from the application and database. The user subsequently approved
+  the plan, confirmed all existing data is mock, waived backups and requested
+  new shared-flow mock data. The implementation is recorded below.
+- Reverified the configured scoped endpoint and exact Kafaa API URL. Read-only
+  inspection now finds one open shared session, four eligibility rows and zero
+  joined/shared audit records. The nine standalone audits comprise eight
+  approved and one draft, with 633 responses, 43 NCRs, three NCR updates and
+  seven assessment-linked centre badges. They have no audit evidence, samples,
+  team members or NCR evidence.
+- The Centre assessments tab lists audit history across origins. The current
+  New assessment form already creates a shared session. Standalone
+  `AuditRepository.createDraft`, its `auditCreate` outbox handling, legacy
+  schema fallbacks and unlinked audit database permissions still exist.
+- Shared joining and correction RPCs also use `audits` and its scoring tables.
+  A shared-only implementation must require valid participation for every audit
+  and remove standalone creation paths. Plan review has made no application or
+  hosted database changes.
+
+## Shared-only assessments — 13 November 2026
+
+- Removed the Centre assessments tab and standalone draft creation, deletion,
+  legacy schema retries, period-history filter and audit-create outbox replay.
+  Assessments opens shared sessions directly. Status changes use the shared
+  lifecycle RPC. Cached standalone records fail the model/repository guards.
+- Device SQLite version 3 clears the old mock cache/outbox once for each
+  signed-in project/account. A separate scope marker survives cache clearing,
+  so later shared offline work survives relaunch/sign-out. Unowned rows and
+  other scopes are excluded from the selected account's reset. Regression
+  coverage includes upgrading a version-2 mock queue containing `auditCreate`.
+- Reverified the exact scoped endpoint/API URL, deployed schema, roles,
+  policies, functions, triggers, views, logs, advisors and migration history.
+  A transactional rehearsal covered the strict migration, shared lifecycle
+  tests, seeded mock data and a duplicate-free seed retry. Applied through the
+  dedicated write-mode Kafaa MCP without changing the read-only defaults.
+- Hosted migration `20261112204526_shared_assessments_only` matches the local
+  source filename. The CLI generated the migration first, and its filename
+  was aligned with MCP's verified assigned version after deployment. Earlier
+  migration-history discrepancies remain as documented.
+- As explicitly authorized, removed nine standalone mock assessments (eight
+  approved/one draft), 633 responses, 43 NCRs, three NCR updates and seven linked
+  badges, plus their old notification/activity links. No backup was created.
+  `audits.participation_id` is now NOT NULL with its existing foreign key;
+  policies and guards reject standalone clients. Shared tables/views retain
+  RLS/invoker behavior. Security advisor categories/counts match the baseline.
+- `supabase/seed/0006_shared_assessment_demo.sql` uses existing app Super Admin
+  identity and the normal authenticated create/publish/join/review RPCs. It
+  targets saved Audit Structure v 1.00, 79 items/237 points. H1 2026 has four
+  approved results and is closed. H2 has Quriyat approved (228/237), Bausher
+  submitted (215/237), Seeb draft (26/79 answered) and Al Amerat eligible to
+  join. The existing annual shared session remains available.
+- Verified live totals are seven shared-linked audits, 500 responses and 148
+  automatically generated mock NCRs. There are zero standalone audits, orphan
+  responses/NCRs or QA fixtures. Baseline scoring remains 79 items/237 points.
+  Removed the standalone assessment content from the old demo seed and the
+  broad legacy reset script. Rebuilt the combined installer with the strict
+  upgrade. Setup/admin workflow instructions now follow shared assessments.
+- Flutter analysis is clean and all 169 tests passed. The configured launcher
+  built, installed and launched the updated Android app on emulator-5554.
+  Read-only API checks used the emulator's existing Kafaa session in memory:
+  shared progress and audit summary returned HTTP 200 with three sessions and
+  seven linked audits; anonymous session access returned 401. Tokens and keys
+  were not exported or logged. Native emulator navigation could not be
+  controlled by CUA; widget tests cover shared-only English/Arabic navigation.
+- Evidence: `docs/evidence/shared-only-assessments-verification.json`.
+
+## Centre card data sources — 13 November 2026
+
+- Read-only MCP verification confirmed the cards use each centre's latest
+  approved shared result, ordered by evaluation date. Quriyat shows H2 2026
+  (228/237); Bousher, Al Amerat and Seeb show H1 (208, 203 and 199/237).
+- Orange action counts are centre-wide NCRs in open/in_progress/
+  submitted_for_review, across assessment periods. Quriyat's 25 comprises
+  16 H1 findings plus nine H2 findings. Status overdue is counted separately.
+  Patient/bed counts come from the centre record; satisfaction is a rolling
+  12-month survey average. The calendar icon is the result's evaluation date.
+- At diagnosis, the card omitted the source assessment title/period. Hosted
+  `v_center_ranking` retains its older explicit column list without the new
+  shared metadata exposed by `v_audit_summary`. The application now matches
+  those rows by audit_id to display the source, as recorded below.
+
+## Source assessment on centre cards — 13 November 2026
+
+- Centre cards show the bilingual shared assessment name and formatted period
+  above the score. Tapping that label opens the exact approved audit shown by
+  the card. The grade, score, source and evaluation date share one summary.
+- Analytics ranking loads source summaries in one batch from v_audit_summary,
+  matching the selected ranking audit IDs. This supports the existing deployed
+  ranking view and caches enriched results for offline use. Authorization
+  errors surface instead of falling back to cached ranking data. An older
+  offline cache lacking a title shows the generic latest-approved label until
+  its next successful refresh.
+- Reverified the dedicated endpoint/API URL. Authenticated read-only Data API
+  checks matched all four current cards to approved sources: Quriyat H2 2026,
+  Bousher/Al Amerat/Seeb H1 2026. Credentials stayed in process memory. Hosted
+  schema and records were not changed for this display update.
+- Flutter analysis is clean and all 173 tests passed. Four new regressions
+  cover exact-ID metadata matching, offline source caching, denied access and
+  long English/Arabic source labels opening the correct audit on a phone.
+  The Android debug APK was rebuilt and installed with scripts/run-kafaa.
+
+## Centre audit filtering — 13 November 2026
+
+- Centres has bilingual name search and a published-audit selector. Latest audit
+  is the default, ordered by period start and then publication time. Draft
+  sessions are excluded. Manual audit selection also scopes Compare centres.
+- Cards and comparison use only approved official results within that session.
+  A centre without an approved result shows "Not involved yet", including
+  drafts, submissions awaiting approval and centres that have not joined.
+  Earlier periods are not substituted. The general comparison route also
+  resolves the latest published session, including when no results are approved.
+- Session action counts now query only the selected official audit IDs.
+  Patient/bed profile data and survey satisfaction retain their own sources.
+- All 176 Flutter tests passed, covering default selection, audit changes,
+  name filtering, draft exclusion, comparison routing, pending centres with no
+  approved results, scoped findings and Arabic/English source navigation.
+
+## Simplified Centres page — 13 November 2026
+
+- At the user's request, removed the Compare centres banner and name-search
+  text field from the Centres page, including its search state/predicate.
+  The audit selector, latest-audit default, source links and pending-centre
+  behavior remain available on that page.
+- Flutter analysis is clean and all 176 tests passed. The existing filter
+  regression now verifies the absence of search/comparison controls and the
+  continued audit selection and pending-centre behavior. The configured
+  launcher rebuilt and installed the updated Android debug app.
+
+## Role UI implementation plans — 13 November 2026
+
+- Created `docs/ROLE_UI_IMPLEMENTATION_PLANS.md` and five linked documents under
+  `docs/plans/`: a shared technical contract plus Admin/owner tester,
+  Directorate, Head of Centre and Auditor/reviewer plans. The user's pasted
+  explainer is reflected in data/RLS/RPC contracts, providers/repositories,
+  routes/files, bilingual phone/tablet layouts and incremental tests.
+- The user explicitly requested Head of Centre self-audits using the official
+  checklist. The proposed design stores these separately from official
+  `audits`, pins them to shared participation/template, and freezes a submitted
+  baseline at first official submission. Admin previews use isolated sample
+  repositories/stores without changing real credentials or grants.
+- Source review confirmed baseline default scale 3/2/1 and five scoring domains,
+  versus the attachment's Not Met 0/variable partial and six-domain wording.
+  The plans preserve existing saved scales, per-criterion N/A permissions and
+  NCR generation after official submission; a scoring change needs an explicit
+  clinical product decision and a new saved structure version.
+- Documentation only: no hosted investigation/migration, role feature,
+  authorization change or deployment. New SQL/guards/policies and future tests
+  in the pack are proposed, not deployed or passed. Connection settings remain
+  project-scoped and read-only by default.
+- Current working-tree baseline checks passed: clean `flutter analyze` and all
+  176 Flutter tests. Existing uncommitted implementation work was preserved.
+
+
+## Admin, owner and tester — 13 November 2026
+
+- Implemented Plan 1 in `docs/plans/01_ADMIN_OWNER_TESTER.md`. More →
+  Administration includes View as, users/access and the tester toolbox. Actual
+  permissions stay tied to the signed-in identity. Four simulated profiles
+  control preview navigation and scoped routes, with persistent Exit preview
+  controls above full-screen navigators.
+- Preview uses an independent Riverpod container, socket-free in-process
+  REST/RPC adapter, synthetic UUIDs and an ephemeral store. Repository/store
+  expiry checks prevent stale callbacks from using a later workspace. Normal
+  project/account queues retain their own storage and resume on preview exit.
+- The toolbox provides sample joining, separate self-scores, generated proof,
+  teams/jobs, discussion, official scoring, revisions and approval. Switching
+  profiles retains the current scenario. Reset creates a fresh namespace.
+  Fixtures use four criteria, 12 maximum points and synthetic 3/2/1 options.
+  Production self-audit/team/dialogue implementation is tracked in Plans 2–4.
+- Simulated offline operation covers reads, writes, RPC acknowledgement and
+  queue replay. The inspector shows sanitized pending/failed metadata. Sample
+  capture creates marked proof bytes, and sample exports include testing marks.
+  Cairo Regular/Bold are bundled with their OFL license for offline Arabic PDFs.
+- Users/access reads existing app profiles and multiple grants. UUID-based
+  invoker grant/revoke RPCs and direct-write guards validate active owner,
+  role/scope, immutable grant identity, actor logging and last-active-owner
+  preservation. Owner revocation/deletion and profile deactivation are guarded.
+- Dedicated OAuth refresh initially failed, then the user reauthorized it.
+  Read-only and command-local write MCP calls returned the exact Kafaa API URL.
+  Hosted schema/policies/functions/triggers, migration history, log-source
+  counts and advisors were reviewed before deploying access administration as
+  `20261113031403_role_access_administration`. Its local source filename was
+  reconciled to that assigned version using the exact submitted SQL.
+  The project config and launcher retain the scoped read-only endpoint.
+- Hosted rollback role tests passed. Before/after hashes matched all five
+  profiles, five grants, seven audits and 500 responses. Security advisor
+  categories/counts matched the existing baseline. Unused-index performance
+  notices decreased from 16 to 15; health advisors returned an empty result.
+- The complete installer and access/shared SQL tests passed in a disposable
+  Kafaa-labelled PostgreSQL 17 container. Audit Structure checks used a synthetic
+  owner and deterministic multi-item source section. Concurrent raw owner
+  revocations retained one active owner and rejected the other transaction.
+- Flutter analysis is clean and all **218 tests passed**, including Arabic/
+  English 390px/1024px layouts at 200% text, full-screen scoring with keyboard,
+  preview exit/restore, repository isolation and denied-cache refreshes.
+- The configured launcher built, installed and opened the Android debug app.
+  Native owner dashboard and Administration were visually checked. Head of
+  Centre preview, the centre catalogue, toolbox, sample joining and self-audit
+  form were also checked. Follow-up hosted hashes matched after the sample join.
+  Preview exit restored Administration. The existing-users page showed live
+  profiles, grants and enabled server-verified access controls. The user's
+  current default v 1.01 displays 30 criteria and 92 points. Physical-device
+  evidence/share-sheet delivery, iOS runtime and the published Safari preview
+  need verification for this change.
+- Details and evidence are in `docs/PROJECT_REVIEW.md`,
+  `docs/SUPABASE_CONNECTION.md` and
+  `docs/evidence/admin-owner-tester-verification.json`.
+
+
+## Directorate workflow — 13 November 2026
+
+- Implemented Plan 2: registry CRUD/deactivation, persisted campaign drafts and
+  retry identity, exclusive campaign progress, review hub with criterion proof,
+  recorded team, discussion and version-checked revision/approval decisions.
+  Directorate opens Overview; owners use More → Directorate overview / Centre
+  registry. The simplified Centres page remains intact.
+- Dedicated read-only and command-local write MCP URLs returned the exact Kafaa
+  project. Inspected deployed schema/policies/functions/triggers, history, logs
+  and advisors; hosted rollback rehearsals passed before applying
+  `20261113111316_directorate_workflows`. The local filename matches that assigned
+  version. Earlier migration drift remains; do not replay all local SQL.
+- Registry guards allow Directorate identity/location edits and restrict managers
+  to their own active centre's contact/count fields. Optimistic revisions,
+  normalized unique codes, scoped drafts/outbox and retained centre history are
+  enforced. Discussion tables have RLS; RPCs/count views use invoker rights;
+  private triggers derive authors, enforce append-only history, record old/new
+  client decisions and deduplicate in-app notifications.
+- Original centre/profile/grant/audit/response hashes match (four/five/five/seven/
+  500 rows), excluding only new revision/request fields. No QA identities,
+  discussions or messages remain hosted. Security advisor counts are unchanged;
+  health is empty. Performance unused indexes rose 15→21; overlapping-policy
+  notices fell 27→25. Default Kafaa MCP configuration remains read-only.
+- The full installer and registry/review/shared/access SQL suites passed in an
+  isolated Kafaa PostgreSQL 17 container. Concurrent different-request approvals
+  admitted one and rejected one stale revision; concurrent same-request retries
+  returned twice with one approval event. Hosted registry/review rollback tests
+  passed after deployment too.
+- Flutter analysis is clean and the final full suite passed 239 tests.
+  Bilingual 390px/1024px layouts at 200% text and keyboard passed; sample UI
+  actions made zero live requests. Test-rendered Cairo evidence is in
+  `docs/evidence/directorate/`. The initial configured Android launch built/installed/opened
+  successfully. Before the final installation incident below, owner-session API
+  reads returned HTTP 200
+  for capabilities, four centres, three campaigns, a submitted 79-response
+  review and discussion reads. CUA could not bind the emulator, so the new
+  native screens and physical proof sharing were not visually verified.
+- Self-audit/baseline/gaps (Plan 3) and actual-job team editing, electronic lead
+  sign-off and evidence acceptance provenance (Plan 4) remain dependencies.
+  Capabilities report `self_audit=false`, `formal_signoff=false`; no historical
+  jobs/signatures were fabricated. Approval keeps existing evaluation metadata
+  checks and requires finalized required proof. The Bausher submitted mock has
+  zero evidence/team rows, so its proof must be supplied through revisions.
+  Private proof-download caching, external push/email, iOS runtime and updating
+  the published Safari preview remain outside verified delivery.
+- Details: `docs/PROJECT_REVIEW.md`, `docs/SUPABASE_CONNECTION.md` and
+  `docs/evidence/directorate-verification.json`.
+
+
+### Directorate verification — emulator data loss correction
+
+- During final verification on 13 November 2026, `flutter install --debug` was
+  mistakenly used after the initial data-preserving configured launch. The
+  installed Flutter CLI source confirms that this command uninstalls first.
+  It cleared Kafaa's emulator sign-in and local storage; a read-only preference
+  check confirmed the saved Kafaa session was absent. The user was informed.
+- Hosted records/hashes remain unchanged. Previous device-only cache/outbox
+  contents cannot be verified or recovered from the available evidence. Do not
+  claim that unsynced work survived. Earlier successful owner-session API checks
+  preceded this incident.
+- The final configured launcher installed/launched Kafaa again; user sign-in is
+  required. For future updates use `./scripts/run-kafaa`, never routine
+  `flutter install`. The application source does not introduce a new cache reset.
+
+
+## Configured launch repeated — 14 November 2026
+
+- The user supplied a successful Android build log and the unconfigured-app
+  screen. Local checks confirmed the existing ignored `env/dev.json` still has
+  the exact Kafaa API URL and a nonempty public key; neither value was changed
+  or exposed. The shown run omitted the required build defines.
+- Relaunched with `./scripts/run-kafaa -d emulator-5554`. APK build/install and
+  runtime “Supabase init completed” were confirmed. The log contained no
+  uninstall; no clear-data/reset command or database operation was performed.
+- The missing-configuration explanation now gives the exact workspace launcher
+  and app-folder `--dart-define-from-file=env/dev.json` command, including the
+  requirement to stop/relaunch when changing build settings. Existing VS Code
+  launch profiles already pass the file. Toolchain warnings did not block this
+  build; no Gradle/Java/AGP upgrade was made.
+
+Final verification for the 14 November launch repair: clean `flutter analyze`
+and all 239 Flutter tests passed.
+
+
+## Head of Centre — 14 November 2026
+
+- Implemented Plan 3: My Centre dashboard with explicit multi-centre selection,
+  campaign join-to-self routing, separate scores/proof, durable offline edits,
+  snapshots/revisions/history, pinned final and explicit provisional gaps, shared
+  dialogue and durable CAPA replies/proof. Official and self runners share the
+  pure calculator; saved scales, N/A, grading and official NCR rules are intact.
+- Self cache/outbox edits commit atomically. Native files are owned by project/
+  user; web queues retain bytes. Stable revisioned response mutations and proof
+  dependencies preserve work on failures. Hard errors stop automatic retry;
+  conflict reconciliation is explicit. Finalization retries skip finalized
+  object writes. Proof copy uses new IDs/paths; removal is logical only.
+- First official submission pins the latest submitted self version under the
+  campaign lock. Draft/missing self work is not auto-submitted and does not
+  block the auditor. Rejection never reopens self editing; corrections inherit
+  the baseline. Final comparison uses the latest approved official version and
+  its pinned self snapshot, even when newer submitted self work exists.
+- Exact dedicated endpoint/project URL were reverified before inspection and
+  each write-mode session. OAuth refresh initially failed and the first local
+  callback expired; the user completed fresh dedicated authorization. Applied
+  `20261113221319_center_self_audits`,
+  `20261113221701_center_self_template_index` and
+  `20261113222745_center_self_deadline_guard`; local filenames match history.
+  Workspace config/launcher retain scoped read-only defaults. Earlier migration
+  drift remains; do not push/replay all local migrations or baseline seeds.
+- Three new tables have RLS/column-limited writes, APIs/views use invoker rights,
+  proof has its own private PDF/JPEG/PNG 25 MiB bucket, and direct score/baseline
+  forgery is denied. Deadline guards check actual clock passage within long
+  transactions. CAPA note retries derive actors and reject changed payloads.
+- Hosted rollback tests and owner-session Data API checks passed (authenticated
+  200, anonymous self table/RPC 401). Existing hashes match seven official
+  audits, 500 responses, 148 NCRs, four centres, five profiles/grants and 109
+  criteria. Zero QA identities/self rows remain. Security advisor counts match
+  baseline; health is empty. Template FK indexing restored the pre-existing 42
+  unindexed-FK notices. No credentials were exported/logged.
+- Clean analysis; **256 Flutter tests passed**. Fresh local PostgreSQL 17
+  installer and five SQL suites passed. Concurrent self versions/submissions,
+  native picker-source deletion plus SQLite restart, account isolation, ACK
+  recovery, dependency/conflict handling and bilingual 390/1024px 200% text/
+  keyboard layouts passed. Rendered Cairo screenshots were visually inspected.
+- Configured Android launcher built/installed/launched the app; Supabase init
+  and resumed MainActivity were verified without uninstall/clear-data commands.
+  Configured web build passed. Existing Safari preview was not republished.
+  Real camera/picker/share-sheet behavior, real-device proof recovery, iOS and
+  browser quota/offline PDF rendering still need manual QA. Local Storage tests
+  use metadata fixtures and do not claim a hosted file-byte upload.
+- Owner review: Administration → View as → Head of Centre → Campaign scenario.
+  New self repositories run in the isolated preview with zero live requests.
+  Plan 4 team jobs, formal sign-off and official proof-review provenance remain
+  pending; gaps show proof review as not recorded. Details/evidence:
+  `docs/PROJECT_REVIEW.md`, `docs/plans/03_CENTER_HEAD.md` and
+  `docs/evidence/center-head-verification.json`.
+
+
+Proof reservation retry verification: `20261113225856_center_self_proof_retries`
+normalizes all permitted metadata to typed values before comparing retry
+identity. Identical capture instants expressed with `Z` or `+04:00` now match;
+changing/omitting an existing value is rejected. The regression failed before
+this correction, then passed in local Storage tests and hosted authenticated
+rollback tests. No hosted object bytes or existing records were changed.
+
+Local QA container `kafaa-center-head-qa` was stopped after final verification.
+It contains only disposable synthetic fixtures; start it explicitly for a rerun.
+
+
+## Auditors and reviewers — 14 November 2026
+
+- Implemented Plan 4: Work navigation; scoped team/jobs/lead registration,
+  criterion proof sources and immutable judgements, revisioned official scores,
+  conflict comparison, durable queues/downloads, preflight and electronic lead
+  sign-off. Directorate can submit only with an explicit override reason. The
+  statement is `kafaa-evaluation-v1`; this is authenticated attribution, not a
+  drawn signature or claimed regulated certificate.
+- Content changes clear sign-off; lifecycle-only review changes retain it.
+  Approval checks signed content. Corrections copy roster snapshots (legacy
+  missing fields remain incomplete), preserve old history/baseline and require
+  fresh sign-off and proof confirmation. Existing historical attribution was
+  not fabricated. Saved scoring/N/A/clinical mapping remains unchanged.
+- Latest accepted finalized proof counts; later rejection supersedes acceptance.
+  Accepted centre proof links by source ID without copying self scores/files.
+  Reviewed objects/metadata cannot be replaced/deleted. Official uploads reserve
+  metadata, upload without overwrite and finalize; local failed uploads have
+  explicit retry/cancellation. Retain orphan owned bytes until acknowledged.
+- Old official response queues are preserved and require explicit reconciliation;
+  source IDs/mutation identities/revisions survive restart. Target audit flushes
+  ignore unrelated failures. After another device submits, exact accepted server
+  rows can clear lost ACKs through authorized reads; changed rows remain saved
+  conflicts. Automatic NCR deletion now preserves any CAPA notes/proof; no new
+  NCRs are generated while a draft/rejected evaluation is being edited.
+- Applied only `20261114113748_auditor_workflows` after exact-project inspection,
+  fresh local tests and hosted rollback rehearsal. CLI filename was reconciled
+  to MCP's assigned version. Full installer includes this migration; prior
+  history drift remains, so never replay all local SQL/seed on kaffaDB.
+- The dedicated read-only tool session returned an OAuth refresh parse error;
+  ephemeral `kafaa_db` control sessions with the same project restriction worked
+  and reverified the exact URL. No new login was needed and no global/shared
+  settings changed. Workspace and launcher default URLs remain read-only.
+- Hosted hashes match audits7, responses500, NCRs148, centres4, profiles5,
+  grants5 and criteria109. New self/team/evidence/review rows and QA users are0.
+  Security advisor counts match baseline; health is empty. Unindexed FKs42→41;
+  unused indexes29→37 on new empty paths. Anonymous review/preflight401, owner
+  read APIs200, formal_signoff capability true for active staff. Credentials
+  were never exported/logged.
+- Clean Flutter analysis and **275 passing tests**. Nine SQL suites and local
+  concurrency tests passed, including the cross-role snapshot → official proof
+  review → revision/dialogue/CAPA → resubmission → approval journey. Hosted
+  committed-schema role tests rolled back all fixtures. Bilingual 390/1024px,
+  200% text/keyboard/offline sign-off layouts made zero live preview requests.
+- Configured Android launcher built/installed/launched without uninstall/reset;
+  Supabase initialization/resumed activity and preserved owner-session API reads
+  were verified. Configured web build passed. PDF/CSV attribution includes actual
+  jobs, team responsibility, signature and campaign/structure/version. Bundled
+  Cairo rendering and mixed-language jobs were visually inspected.
+- Current published Safari preview was not republished. CUA had no emulator
+  surface and its browser host was unavailable. Hardware camera/picker/share
+  sheet, iOS, browser quota/offline PDF and actual hosted byte uploads remain
+  manual QA. Storage object tests are local metadata fixtures only.
+- Owner preview: Administration → View as → Auditor (all centres or scoped) →
+  review/campaign scenario → evaluation → Team / Review and submit. Details in
+  `docs/plans/04_AUDITORS_REVIEWERS.md`, `docs/PROJECT_REVIEW.md`,
+  `docs/SUPABASE_CONNECTION.md` and `docs/evidence/auditor-verification.json`.
+
+Final Auditor QA container `kafaa-center-head-qa` was stopped after verification.
+It contains only disposable Kafaa synthetic fixtures. Export rendering also
+checks that empty optional sections do not create a spare report page.

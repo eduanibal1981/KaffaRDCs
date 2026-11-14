@@ -1,0 +1,160 @@
+{
+  "date": "2026-11-14",
+  "timezone": "Asia/Muscat",
+  "project_ref": "onzmwoajiyennqtjcjez",
+  "migration": {
+    "version": "20261114113748",
+    "name": "auditor_workflows",
+    "sha256": "537a999ef8a033ae454ac267aa39a95f0f39f1816796df4ed45fa0de040e98b6"
+  },
+  "installer_sha256": "5a7ad731de7774baa26d6e2caaa4452eb9c6ae719b212feccdb87a969ed7a9cc",
+  "database": {
+    "empty": {
+      "self": 0,
+      "team": 0,
+      "reviews": 0,
+      "evidence": 0,
+      "qa_users": 0
+    },
+    "hashes": [
+      {
+        "hash": "9364b9d3d471cc92f5c88e4696ee3d3e",
+        "count": 7,
+        "table_name": "audits"
+      },
+      {
+        "hash": "c9d1f8486c3f91e87af4537d84c83aed",
+        "count": 500,
+        "table_name": "responses"
+      },
+      {
+        "hash": "c3493652347109c943fa1af403c9e589",
+        "count": 148,
+        "table_name": "ncrs"
+      },
+      {
+        "hash": "599997658c512eb2bcbd032e045f0f21",
+        "count": 4,
+        "table_name": "centers"
+      },
+      {
+        "hash": "b937ade61c666692ca958a24410e0560",
+        "count": 5,
+        "table_name": "profiles"
+      },
+      {
+        "hash": "0aa6584583155b952002fd7da5e0fbbf",
+        "count": 5,
+        "table_name": "grants"
+      },
+      {
+        "hash": "2681f7bf5030825b7fb8d2eacfd81307",
+        "count": 109,
+        "table_name": "criteria"
+      }
+    ],
+    "permissions": {
+      "forge_reviewer": false,
+      "forge_signature": false,
+      "anonymous_submit": false,
+      "anonymous_review_read": false
+    },
+    "view_invoker": [
+      "security_invoker=true"
+    ]
+  },
+  "advisors": {
+    "security": {
+      "before": {
+        "security_definer_view": 1,
+        "function_search_path_mutable": 10,
+        "anon_security_definer_function_executable": 1,
+        "authenticated_security_definer_function_executable": 1,
+        "auth_leaked_password_protection": 1
+      },
+      "post-": {
+        "security_definer_view": 1,
+        "function_search_path_mutable": 10,
+        "anon_security_definer_function_executable": 1,
+        "authenticated_security_definer_function_executable": 1,
+        "auth_leaked_password_protection": 1
+      }
+    },
+    "performance": {
+      "before": {
+        "unindexed_foreign_keys": 42,
+        "auth_rls_initplan": 5,
+        "unused_index": 29,
+        "multiple_permissive_policies": 25
+      },
+      "post-": {
+        "unindexed_foreign_keys": 41,
+        "auth_rls_initplan": 5,
+        "unused_index": 37,
+        "multiple_permissive_policies": 25
+      }
+    },
+    "health": {
+      "before": {},
+      "post-": {}
+    }
+  },
+  "api": {
+    "project_ref": "onzmwoajiyennqtjcjez",
+    "requests": {
+      "anonymous_audit_evidence_reviews": 401,
+      "anonymous_rpc/validate_assessment_submission": 401,
+      "rpc/directorate_capabilities": 200,
+      "audit_evidence_reviews": 200,
+      "v_audit_reviewed_proof": 200,
+      "audit_team_members": 200,
+      "rpc/validate_assessment_submission": 200,
+      "rpc/load_audit_attribution": 200,
+      "rpc/audit_team_accounts": 200
+    },
+    "authenticated": true
+  },
+  "checks": {
+    "flutter_analyze": "clean",
+    "flutter_tests": 275,
+    "sql_suites": 9,
+    "fresh_installer": "passed",
+    "concurrency": "passed: separate criteria, stale same criterion, serialized lead transfers, content edit versus signoff",
+    "hosted_rollback_rehearsal": "passed",
+    "hosted_committed_schema_role_tests": "passed",
+    "android": {
+      "package": "om.gov.moh.muscat.kafaa_app",
+      "running": true,
+      "supabase_initialized": true,
+      "resumed": true,
+      "uninstall_command_used": false,
+      "clear_data_command_used": false
+    },
+    "configured_web_build": "passed",
+    "preview_live_requests": 0,
+    "phone_tablet_large_text_keyboard": "en/ar 390/1024px at 200%",
+    "reports": "bundled Cairo, mixed-language names/jobs and all rendered pages visually inspected"
+  },
+  "qa_container": "kafaa-center-head-qa stopped; synthetic local fixtures only",
+  "manual_limits": [
+    "Physical camera, picker and share-sheet delivery",
+    "Physical-device proof recovery",
+    "iOS runtime",
+    "Browser quota and offline PDF rendering",
+    "Actual hosted file-byte upload"
+  ],
+  "browser_host": "CUA browser host unavailable; no emulator surface exposed",
+  "published_preview": "not republished",
+  "data_preservation": "All original logical hashes match. New derived/schema fields excluded as in the recorded comparison. No hosted QA users or source/proof/review rows remain.",
+  "credential_handling": "Client storage/process memory only; no credentials recorded.",
+  "artifacts": {
+    "docs/evidence/auditor/ar-1024-submission.png": "0e1a694589f04966b236f1fc4e2b3fce15f85d656fed9750ebf7e216f0fa1b79",
+    "docs/evidence/auditor/ar-390-submission.png": "03b3702d3e34848fcf0262e4653216a9e701e74d2d5a74bca01522e5d7fc2f79",
+    "docs/evidence/auditor/ar-attribution.pdf": "52b8a5e09c3145bd9f1215ee1d6e4eb01d0ad5f369eb997488677d3bdbe20bd3",
+    "docs/evidence/auditor/ar-report-page-1.png": "5895f1633342f5c3082f7dedcb994e2d420ec8ca091b05b23f056dfd393cb284",
+    "docs/evidence/auditor/en-1024-submission.png": "caa135db232d2548945ebe0a4b2e17e4f68b6691ac3b019ca6e2605885095f5f",
+    "docs/evidence/auditor/en-390-submission.png": "5baa29f4e03ec0df72662a8ba91ef59ac1f670448748b5312b57649ef56371da",
+    "docs/evidence/auditor/en-attribution.pdf": "7ef72eb478caf451f8d041b0ab8c27218ffe7faefcffa5fa6a0c14e7ddfd1989",
+    "docs/evidence/auditor/en-report-page-1.png": "ebc3428326775a3bbfd4f9d011a3f10ea007f5c3701136fd08344f45a4b40fc5"
+  }
+}

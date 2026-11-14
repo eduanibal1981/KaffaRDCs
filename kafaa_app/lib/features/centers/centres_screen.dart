@@ -4,11 +4,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/l10n/enum_labels.dart';
 import '../../core/l10n/l10n_extensions.dart';
+import '../../core/l10n/period_format.dart';
 import '../../core/routing/app_router.dart';
 import '../../core/theme/kafaa_colors.dart';
 import '../../core/widgets/common.dart';
 import '../../core/widgets/score_ring.dart';
 import '../../data/models/center.dart';
+import '../../data/models/audit.dart';
+import '../../data/models/analytics.dart';
+import '../../data/models/assessment_session.dart';
+import '../../data/repositories/assessment_session_repository.dart';
 import '../../data/repositories/analytics_repository.dart';
 import '../../data/repositories/center_repository.dart';
 import '../auth/session.dart';
@@ -21,136 +26,119 @@ class CentresScreen extends ConsumerStatefulWidget {
 }
 
 class _CentresScreenState extends ConsumerState<CentresScreen> {
-  String _query = '';
+  String? _selectedSessionId;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final centres = ref.watch(centersProvider);
-    final ranking = ref.watch(rankingProvider).valueOrNull ?? const [];
-    final satisfaction = ref.watch(satisfactionProvider).valueOrNull ?? const {};
+    final sessions = ref.watch(assessmentSessionsProvider);
+    final satisfaction =
+        ref.watch(satisfactionProvider).valueOrNull ?? const {};
     final perms = ref.watch(permissionsProvider);
-
-    final byCenter = {for (final r in ranking) r.summary.centerId: r};
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.centresTitle)),
       body: AsyncView(
-        value: centres,
-        onRetry: () => ref.invalidate(centersProvider),
-        builder: (all) {
-          final visible = all
-              .where((c) => perms.canReadCenter(c.id))
-              .where((c) => _matches(c))
-              .toList()
-            // Reads as a league table: best first, unassessed last.
-            ..sort((a, b) {
-              final ra = byCenter[a.id]?.rankOverall ?? 1 << 20;
-              final rb = byCenter[b.id]?.rankOverall ?? 1 << 20;
-              if (ra != rb) return ra.compareTo(rb);
-              return a.nameEn.compareTo(b.nameEn);
-            });
+        value: sessions,
+        onRetry: () => ref.invalidate(assessmentSessionsProvider),
+        builder: (sessions) {
+          final options = comparisonAssessments(sessions);
+          final selected =
+              options.where((s) => s.id == _selectedSessionId).firstOrNull ??
+                  options.firstOrNull;
+          final ranking = selected == null
+              ? const AsyncData<List<CenterRanking>>([])
+              : ref.watch(sessionRankingProvider(selected.id));
+          return AsyncView(
+            value: ranking,
+            onRetry: () => ref.invalidate(sessionRankingProvider),
+            builder: (ranking) {
+              final byCenter = {for (final r in ranking) r.summary.centerId: r};
+              return AsyncView(
+                value: centres,
+                onRetry: () => ref.invalidate(centersProvider),
+                builder: (all) {
+                  final visible =
+                      all.where((c) => perms.canReadCenter(c.id)).toList()
+                        // Reads as a league table: best first, unassessed last.
+                        ..sort((a, b) {
+                          final ra = byCenter[a.id]?.rankOverall ?? 1 << 20;
+                          final rb = byCenter[b.id]?.rankOverall ?? 1 << 20;
+                          if (ra != rb) return ra.compareTo(rb);
+                          return a.nameEn.compareTo(b.nameEn);
+                        });
 
-          return Column(
-            children: [
-              if (perms.canCompareAllCentres && all.length > 1)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: KafaaCard(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 12),
-                    accent: KafaaColors.teal,
-                    onTap: () => context.go(Routes.compare),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: KafaaColors.teal.withValues(alpha: 0.14),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.insights,
-                              color: KafaaColors.teal, size: 22),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.compareTitle,
-                                style:
-                                    Theme.of(context).textTheme.titleMedium,
-                              ),
-                              Text(
-                                l10n.compareSelectCentres,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right),
-                      ],
-                    ),
-                  ),
-                ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: l10n.centresSearchHint,
-                    prefixIcon: const Icon(Icons.search),
-                    isDense: true,
-                  ),
-                  onChanged: (v) => setState(() => _query = v.trim()),
-                ),
-              ),
-              Expanded(
-                child: visible.isEmpty
-                    ? EmptyView(
-                        message: l10n.emptyCentres,
-                        icon: Icons.local_hospital_outlined,
-                      )
-                    : RefreshIndicator(
-                        onRefresh: () async {
-                          ref.invalidate(centersProvider);
-                          ref.invalidate(rankingProvider);
-                        },
-                        child: ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-                          itemCount: visible.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, i) {
-                            final centre = visible[i];
-                            final rank = byCenter[centre.id];
-                            return _CentreCard(
-                              centre: centre,
-                              percent: rank?.summary.percent,
-                              points: rank?.summary.totalPoints,
-                              maxPoints: rank?.summary.maxPoints,
-                              gradeLabel: rank == null
-                                  ? null
-                                  : context.pick(rank.summary.gradeNameEn,
-                                      rank.summary.gradeNameAr),
-                              satisfaction: satisfaction[centre.id]
-                                  ?.satisfactionPercent,
-                              lastAssessed: rank?.summary.evaluationDate,
-                              openActions: rank?.openNcrCount,
-                            );
-                          },
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: DropdownButtonFormField<String>(
+                          key: ValueKey(_selectedSessionId),
+                          initialValue:
+                              options.any((s) => s.id == _selectedSessionId)
+                                  ? _selectedSessionId
+                                  : '',
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                              labelText: l10n.centreAuditFilter),
+                          items: [
+                            DropdownMenuItem(
+                                value: '',
+                                child: Text(
+                                    options.isEmpty
+                                        ? l10n.centreLatestAudit
+                                        : '${l10n.centreLatestAudit} · ${formatPeriodKey(context, options.first.periodKey)}',
+                                    overflow: TextOverflow.ellipsis)),
+                            for (final option in options)
+                              DropdownMenuItem(
+                                  value: option.id,
+                                  child: Text(
+                                      '${context.pick(option.titleEn, option.titleAr)} · ${formatPeriodKey(context, option.periodKey)}',
+                                      overflow: TextOverflow.ellipsis)),
+                          ],
+                          onChanged: (id) => setState(
+                              () => _selectedSessionId = id == '' ? null : id),
                         ),
                       ),
-              ),
-            ],
+                      Expanded(
+                        child: visible.isEmpty
+                            ? EmptyView(
+                                message: l10n.emptyCentres,
+                                icon: Icons.local_hospital_outlined,
+                              )
+                            : RefreshIndicator(
+                                onRefresh: () async {
+                                  ref.invalidate(centersProvider);
+                                  ref.invalidate(assessmentSessionsProvider);
+                                  ref.invalidate(sessionRankingProvider);
+                                },
+                                child: ListView.separated(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                                  itemCount: visible.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 12),
+                                  itemBuilder: (context, i) {
+                                    final centre = visible[i];
+                                    final rank = byCenter[centre.id];
+                                    return _CentreCard(
+                                      centre: centre,
+                                      assessment: rank?.summary,
+                                      auditSelected: selected != null,
+                                      satisfaction: satisfaction[centre.id]
+                                          ?.satisfactionPercent,
+                                      openActions: rank?.openNcrCount,
+                                    );
+                                  },
+                                ),
+                              ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
           );
         },
       ),
@@ -163,41 +151,33 @@ class _CentresScreenState extends ConsumerState<CentresScreen> {
           : null,
     );
   }
-
-  bool _matches(RenalCenter c) {
-    if (_query.isEmpty) return true;
-    final q = _query.toLowerCase();
-    return [c.nameEn, c.nameAr, c.wilayatEn, c.wilayatAr, c.code]
-        .whereType<String>()
-        .any((s) => s.toLowerCase().contains(q));
-  }
 }
 
 class _CentreCard extends StatelessWidget {
   const _CentreCard({
     required this.centre,
-    this.percent,
-    this.points,
-    this.maxPoints,
-    this.gradeLabel,
+    this.assessment,
+    this.auditSelected = false,
     this.satisfaction,
-    this.lastAssessed,
     this.openActions,
   });
 
   final RenalCenter centre;
-  final double? percent;
-  final double? points;
-  final double? maxPoints;
-  final String? gradeLabel;
+  final AuditSummary? assessment;
+  final bool auditSelected;
   final double? satisfaction;
-  final DateTime? lastAssessed;
   final int? openActions;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    final percent = assessment?.percent;
+    final gradeLabel =
+        context.pick(assessment?.gradeNameEn, assessment?.gradeNameAr);
+    final assessmentTitle =
+        context.pick(assessment?.sessionTitleEn, assessment?.sessionTitleAr);
+    final lastAssessed = assessment?.evaluationDate;
     final color = KafaaColors.forPercent(percent);
 
     return KafaaCard(
@@ -226,24 +206,54 @@ class _CentreCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (gradeLabel != null && gradeLabel!.isNotEmpty)
-                StatusPill(label: gradeLabel!, color: color, dense: true),
+              if (gradeLabel.isNotEmpty)
+                StatusPill(label: gradeLabel, color: color, dense: true),
             ],
           ),
           const SizedBox(height: 14),
           if (percent == null)
             Text(
-              l10n.centreNoAudit,
+              auditSelected ? l10n.centreNotInvolved : l10n.centreNoAudit,
               style: theme.textTheme.bodyMedium
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             )
           else ...[
+            TextButton(
+              onPressed: () => context.push('/audits/${assessment!.auditId}'),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                alignment: AlignmentDirectional.centerStart,
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.assignment_outlined, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          assessmentTitle.isEmpty
+                              ? l10n.centreLatestApprovedAssessment
+                              : l10n.centreResultFrom(assessmentTitle),
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        if (assessment!.periodKey != null)
+                          Text(formatPeriodKey(context, assessment!.periodKey),
+                              style: theme.textTheme.labelSmall),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
             Row(
               children: [
-                Expanded(child: ScoreBar(percent: percent!)),
+                Expanded(child: ScoreBar(percent: percent)),
                 const SizedBox(width: 12),
                 Text(
-                  '${formatPoints(points ?? 0)}/${formatPoints(maxPoints ?? 0)}',
+                  '${formatPoints(assessment!.totalPoints)}/${formatPoints(assessment!.maxPoints)}',
                   style: theme.textTheme.labelLarge
                       ?.copyWith(color: color, fontSize: 13),
                 ),
@@ -319,7 +329,8 @@ class _Meta extends StatelessWidget {
             const SizedBox(width: 5),
             Text(
               value,
-              style: theme.textTheme.labelLarge?.copyWith(fontSize: 13, color: c),
+              style:
+                  theme.textTheme.labelLarge?.copyWith(fontSize: 13, color: c),
             ),
           ],
         ),

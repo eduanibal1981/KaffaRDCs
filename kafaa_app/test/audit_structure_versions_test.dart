@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,15 +7,14 @@ import 'package:kafaa_app/data/models/assessment.dart';
 import 'package:kafaa_app/data/models/center.dart';
 import 'package:kafaa_app/data/repositories/assessment_repository.dart';
 import 'package:kafaa_app/data/repositories/center_repository.dart';
-import 'package:kafaa_app/data/supabase/audit_draft_write.dart';
 import 'package:kafaa_app/features/admin/audit_structures_screen.dart';
 import 'package:kafaa_app/features/admin/structure_editor_screen.dart';
 import 'package:kafaa_app/features/audit/new_audit_screen.dart';
 import 'package:kafaa_app/features/auth/session.dart';
 import 'package:kafaa_app/l10n/app_localizations.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'helpers/fixtures.dart';
+import 'package:kafaa_app/core/offline/local_store.dart';
 import 'helpers/repository_harness.dart';
 
 AssessmentTemplate version(String id, int number,
@@ -47,6 +45,7 @@ final admin = Permissions([
 Widget app(Widget child, List<Override> overrides, {String locale = 'en'}) =>
     ProviderScope(
         overrides: [
+          localStoreProvider.overrideWithValue(MemoryLocalStore()),
           sessionProvider.overrideWith((ref) async => null),
           permissionsProvider.overrideWithValue(admin),
           ...overrides
@@ -68,7 +67,7 @@ void main() {
       (tester) async {
     final old = version('old', 100, defaultVersion: true),
         newer = version('new', 101);
-    await tester.pumpWidget(app(const NewAuditScreen(centerId: 'centre'), [
+    await tester.pumpWidget(app(const NewAuditScreen(), [
       auditStructuresProvider.overrideWith((ref) async => [old, newer]),
       structureBlueprintProvider.overrideWith((ref, id) async =>
           blueprint(id == 'old' ? old : newer, id == 'old' ? 2 : 4)),
@@ -178,60 +177,5 @@ void main() {
     expect((await repo.loadStructures()).single.id, 'a');
     offline = true;
     expect((await repo.loadStructures()).single.versionLabel, '1.00');
-  });
-
-  for (final replay in [false, true]) {
-    test(
-        'legacy draft write preserves structure and stable identity (replay=$replay)',
-        () async {
-      var calls = 0;
-      final payload = {
-        'id': 'stable-id',
-        'client_uuid': 'stable-id',
-        'template_id': 'chosen-version',
-        'period_frequency': 'quarterly',
-        'period_start': '2026-10-01',
-        'period_end': '2026-12-31'
-      };
-      final h = RepositoryHarness((request) async {
-        final body = jsonDecode(request.body) as Map<String, dynamic>;
-        expect(body['template_id'], 'chosen-version');
-        expect(body['id'], 'stable-id');
-        expect(body['period_start'], '2026-10-01');
-        expect(body['period_end'], '2026-12-31');
-        if (calls++ == 0) {
-          expect(body['period_frequency'], 'quarterly');
-          return jsonResponse({
-            'code': 'PGRST204',
-            'message':
-                "Could not find the 'period_frequency' column of 'audits' in the schema cache"
-          }, status: 400);
-        }
-        expect(body.containsKey('period_frequency'), isFalse);
-        return jsonResponse(replay ? [] : {'id': 'stable-id'});
-      });
-      addTearDown(h.dispose);
-      final rows = await writeAuditDraft(h.client, payload, replay: replay);
-      expect(
-          rows,
-          replay
-              ? isEmpty
-              : [
-                  {'id': 'stable-id'}
-                ]);
-      expect(payload['period_frequency'], 'quarterly');
-      expect(calls, 2);
-    });
-  }
-  test('unrelated draft write errors are never retried', () async {
-    var calls = 0;
-    final h = RepositoryHarness((_) async {
-      calls++;
-      return jsonResponse({'code': '42501', 'message': 'denied'}, status: 403);
-    });
-    addTearDown(h.dispose);
-    await expectLater(writeAuditDraft(h.client, {'id': 'a'}),
-        throwsA(isA<PostgrestException>()));
-    expect(calls, 1);
   });
 }

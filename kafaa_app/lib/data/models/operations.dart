@@ -631,6 +631,7 @@ class AppNotification {
     required this.type,
     required this.titleEn,
     required this.titleAr,
+    this.payload = const {},
     this.bodyEn,
     this.bodyAr,
     required this.severity,
@@ -640,6 +641,7 @@ class AppNotification {
 
   final String id;
   final String type;
+  final Map<String, dynamic> payload;
   final String titleEn;
   final String titleAr;
   final String? bodyEn;
@@ -653,6 +655,7 @@ class AppNotification {
   factory AppNotification.fromMap(Map<String, dynamic> m) => AppNotification(
         id: asString(m['id']),
         type: asString(m['type']),
+        payload: Map<String, dynamic>.from(m['payload'] as Map? ?? {}),
         titleEn: asString(m['title_en']),
         titleAr: asString(m['title_ar']),
         bodyEn: asStringOrNull(m['body_en']),

@@ -1,0 +1,144 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Muscat",
+  "project_ref": "onzmwoajiyennqtjcjez",
+  "migration": "20261112204526_shared_assessments_only",
+  "source": "supabase/migrations/20261112204526_shared_assessments_only.sql",
+  "mock_seed": "supabase/seed/0006_shared_assessment_demo.sql",
+  "authorization": "User approved deleting existing standalone mock data without backup and requested shared-flow mock data.",
+  "removed": {
+    "standalone_assessments": 9,
+    "approved": 8,
+    "draft": 1,
+    "responses": 633,
+    "ncrs": 43,
+    "ncr_updates": 3,
+    "linked_badges": 7
+  },
+  "database": {
+    "ncrs": 148,
+    "audits": 7,
+    "results": [
+      {
+        "max": 237,
+        "centre": "RDC-QUR",
+        "points": 221,
+        "status": "approved",
+        "session": "2026-H1",
+        "answered": 79
+      },
+      {
+        "max": 237,
+        "centre": "RDC-QUR",
+        "points": 228,
+        "status": "approved",
+        "session": "2026-H2",
+        "answered": 79
+      },
+      {
+        "max": 237,
+        "centre": "RDC-BSH",
+        "points": 208,
+        "status": "approved",
+        "session": "2026-H1",
+        "answered": 79
+      },
+      {
+        "max": 237,
+        "centre": "RDC-BSH",
+        "points": 215,
+        "status": "submitted",
+        "session": "2026-H2",
+        "answered": 79
+      },
+      {
+        "max": 237,
+        "centre": "RDC-SEB",
+        "points": 199,
+        "status": "approved",
+        "session": "2026-H1",
+        "answered": 79
+      },
+      {
+        "max": 237,
+        "centre": "RDC-SEB",
+        "points": 65,
+        "status": "draft",
+        "session": "2026-H2",
+        "answered": 26
+      },
+      {
+        "max": 237,
+        "centre": "RDC-AMR",
+        "points": 203,
+        "status": "approved",
+        "session": "2026-H1",
+        "answered": 79
+      }
+    ],
+    "sessions": [
+      {
+        "id": "c5773c47-7cbf-f12a-2453-bb5983ddf69f",
+        "title": "Mock assessment · 2026-H1",
+        "joined": 4,
+        "status": "closed",
+        "approved": 4,
+        "eligible": 4,
+        "submitted": 4
+      },
+      {
+        "id": "7a3881e1-65e6-affc-908f-5c2bdb980c75",
+        "title": "Mock assessment · 2026-H2",
+        "joined": 3,
+        "status": "open",
+        "approved": 1,
+        "eligible": 4,
+        "submitted": 2
+      },
+      {
+        "id": "86c47792-128c-4711-b849-0e214259ddc3",
+        "title": "Audit 2026",
+        "joined": 0,
+        "status": "open",
+        "approved": 0,
+        "eligible": 4,
+        "submitted": 0
+      }
+    ],
+    "responses": 500,
+    "standalone": 0,
+    "participation_required": true
+  },
+  "integrity": {
+    "qa_users": 0,
+    "new_badges": 11,
+    "qa_centres": 0,
+    "standalone": 0,
+    "orphan_ncrs": 0,
+    "baseline_max": 237,
+    "views_invoker": true,
+    "baseline_items": 79,
+    "orphan_responses": 0,
+    "public_tables_rls": true
+  },
+  "security_advisor_counts_match": true,
+  "validation": {
+    "flutter_analysis": "No issues found",
+    "flutter_tests": 169,
+    "database_rehearsal": "Migration, shared lifecycle/role regression suite and twice-run demo seed passed in a rolled-back transaction.",
+    "committed_database": "Shared lifecycle/role regression suite and Audit Structure regression suite both passed with fixture rollback.",
+    "authenticated_data_api": {
+      "shared_sessions": 200,
+      "visible_sessions": 3,
+      "audit_summary": 200,
+      "visible_joined_assessments": 7,
+      "all_linked": true,
+      "anonymous_sessions": 401
+    },
+    "android": "Debug APK built, installed and launched on emulator-5554 with scripts/run-kafaa and project env/dev.json.",
+    "ui": "Shared-only navigation and Arabic/English flows covered by widget tests. Native emulator navigation was unavailable through the computer-use connection."
+  },
+  "local_cutover": "SQLite schema version 3 resets the pre-release mock cache and outbox once per project/account. A persistent scope marker preserves later shared offline work across relaunch and sign-out.",
+  "source_sha256": "2c7e22b2d7085e40fefb296fd3f42af21dc377f3b0eee98a1ac19987f59bab54",
+  "seed_sha256": "9da9414fdaddb9e04d83340a43bd00f08f6b2926c319ea165f4c16fbaa4e0e0b"
+}

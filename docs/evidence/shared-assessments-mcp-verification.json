@@ -1,0 +1,165 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Muscat",
+  "project_ref": "onzmwoajiyennqtjcjez",
+  "project_url": "https://onzmwoajiyennqtjcjez.supabase.co",
+  "source": "supabase/migrations/20261112194009_shared_assessments.sql",
+  "source_sha256": "683a13cebfd80f164e2f6580083f30c18cfa0934b9685268aec578aca9831ade",
+  "transport": "Dedicated kafaa_db MCP via an ephemeral Codex app-server control thread; no model turn",
+  "deployment": "apply_migration returned success=true",
+  "hosted_migrations": [
+    {
+      "version": "20261112202324",
+      "name": "shared_assessments"
+    }
+  ],
+  "checks": [
+    "MCP get_project_url matched exact Kafaa API URL before inspection and again on the write-enabled connection",
+    "Migration plus transactional regression suite passed before deployment and rolled back",
+    "Transactional regression suite passed against committed schema and rolled back",
+    "Preservation hashes exclude only new audits.period_frequency/period_key/participation_id and assessment_templates.default_frequency",
+    "All preservation hashes and counts match before/after",
+    "New public tables have RLS enabled; public views use security_invoker=true",
+    "All six public lifecycle RPCs use invoker rights, pin search_path, deny anon and permit authenticated execution",
+    "No QA users or centres remain; shared tables contain no production sessions or participations",
+    "Security advisor categories/counts unchanged after deployment",
+    "Workspace config and launcher retain the same read-only project-scoped default"
+  ],
+  "before": {
+    "ncrs_hash": "3e27bbba35f583b90855fa456cf588f0",
+    "ncrs_count": 43,
+    "audits_hash": "53b8aa3b36b86a14fc701cd37febc11a",
+    "audits_count": 9,
+    "centres_hash": "cbf5d354d6c7b6179370282144dfbd7a",
+    "criteria_hash": "fe03c4f1380d6697105e10a8fe9952b5",
+    "evidence_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "criteria_count": 109,
+    "evidence_count": 0,
+    "responses_hash": "16524de9411390f24f0747b568d37f48",
+    "templates_hash": "8b93acdc5786a243eddb9b44a4aa9628",
+    "responses_count": 633
+  },
+  "after": {
+    "role": "supabase_read_only_user",
+    "rpcs": [
+      {
+        "name": "create_assessment_revision",
+        "config": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "security_definer": false,
+        "authenticated_execute": true
+      },
+      {
+        "name": "create_assessment_session",
+        "config": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "security_definer": false,
+        "authenticated_execute": true
+      },
+      {
+        "name": "join_assessment",
+        "config": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "security_definer": false,
+        "authenticated_execute": true
+      },
+      {
+        "name": "publish_assessment",
+        "config": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "security_definer": false,
+        "authenticated_execute": true
+      },
+      {
+        "name": "set_assessment_audit_status",
+        "config": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "security_definer": false,
+        "authenticated_execute": true
+      },
+      {
+        "name": "set_assessment_state",
+        "config": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "security_definer": false,
+        "authenticated_execute": true
+      }
+    ],
+    "ncrs_hash": "3e27bbba35f583b90855fa456cf588f0",
+    "new_views": [
+      {
+        "view": "v_assessment_center_status",
+        "options": [
+          "security_invoker=true"
+        ]
+      },
+      {
+        "view": "v_assessment_progress",
+        "options": [
+          "security_invoker=true"
+        ]
+      },
+      {
+        "view": "v_audit_summary",
+        "options": [
+          "security_invoker=true"
+        ]
+      }
+    ],
+    "read_only": "on",
+    "ncrs_count": 43,
+    "new_tables": [
+      {
+        "rls": true,
+        "table": "assessment_participations"
+      },
+      {
+        "rls": true,
+        "table": "assessment_sessions"
+      }
+    ],
+    "audits_hash": "53b8aa3b36b86a14fc701cd37febc11a",
+    "audits_count": 9,
+    "centres_hash": "cbf5d354d6c7b6179370282144dfbd7a",
+    "criteria_hash": "fe03c4f1380d6697105e10a8fe9952b5",
+    "evidence_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "criteria_count": 109,
+    "evidence_count": 0,
+    "legacy_periods": [
+      {
+        "count": 8,
+        "frequency": "custom"
+      },
+      {
+        "count": 1,
+        "frequency": "semiannual"
+      }
+    ],
+    "responses_hash": "16524de9411390f24f0747b568d37f48",
+    "sessions_count": 0,
+    "templates_hash": "8b93acdc5786a243eddb9b44a4aa9628",
+    "responses_count": 633,
+    "qa_users_remaining": 0,
+    "participations_count": 0,
+    "qa_centres_remaining": 0,
+    "workflow_trigger_enabled": "O",
+    "legacy_membership_inferred": 0
+  },
+  "limitations": [
+    "Earlier dashboard-installed migrations remain absent from hosted migration history",
+    "MCP assigned hosted version 20261112202324 to the source migration 20261112194009; reconcile by verified content before any CLI push",
+    "Application UI, device install and end-to-end Data API workflows were not exercised in this database deployment"
+  ]
+}
