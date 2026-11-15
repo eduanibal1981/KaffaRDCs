@@ -151,9 +151,12 @@ class TesterFixtures {
       'tester_messages',
       'audit_discussions',
       'audit_messages',
+      'audit_section_comments',
       'center_self_audits',
       'center_self_responses',
       'center_self_evidence',
+      'center_self_shares',
+      'v_center_satisfaction_current',
       'tester_self_submissions'
     ]) {
       tables[name] = [];
@@ -171,6 +174,7 @@ class TesterFixtures {
   final sessionId = const Uuid().v4();
   final criterionIds = List.generate(4, (_) => const Uuid().v4());
   final Map<String, List<Map<String, dynamic>>> tables = {};
+  final eligibleIds = <(String, String), String>{};
   final evidence = <String, Uint8List>{};
   Map<String, dynamic> get manifest => {
         'scenario_id': simulation.scenarioId,

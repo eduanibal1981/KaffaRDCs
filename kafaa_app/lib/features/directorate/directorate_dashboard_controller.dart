@@ -54,6 +54,8 @@ class DirectorateCampaign {
 
 final directorateSelectedSessionProvider =
     StateProvider.autoDispose<String?>((ref) => null);
+final directoratePendingReviewsProvider = FutureProvider.autoDispose(
+    (ref) => ref.watch(assessmentSessionRepositoryProvider).pendingReviews());
 final directorateCampaignProvider = FutureProvider.autoDispose
     .family<DirectorateCampaign, String>((ref, id) async {
   final repo = ref.watch(assessmentSessionRepositoryProvider);

@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/audit_submission_issue.dart';
 import '../../../data/repositories/audit_repository.dart';
+import '../../../data/repositories/assessment_session_repository.dart';
 import '../../../data/supabase/supabase_providers.dart';
 
 final auditSubmissionIssuesProvider =
@@ -32,6 +33,9 @@ class AuditSubmissionController {
     });
     ref.invalidate(auditSummaryProvider(auditId));
     ref.invalidate(auditListProvider);
+    ref.invalidate(auditorParticipationsProvider);
+    ref.invalidate(assessmentParticipantsProvider);
+    ref.invalidate(assessmentSessionsProvider);
   }
 }
 

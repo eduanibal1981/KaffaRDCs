@@ -1,4 +1,3 @@
-import '../../data/models/primitives.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -123,11 +122,7 @@ class _AssessmentOverviewScreenState
           .loadBlueprint(session.templateId);
       _refresh();
       if (mounted) {
-        final head =
-            ref.read(permissionsProvider).primaryRole == AppRole.centerManager;
-        context.push(head
-            ? '/assessments/${session.id}/self-audit?centerId=${participation.centerId}'
-            : '/audits/$id');
+        context.push('/audits/$id');
       }
     } catch (error) {
       if (mounted) {
@@ -369,10 +364,8 @@ class _CentreParticipationCard extends ConsumerWidget {
             Text(l10n.auditProgress(p.answeredCount, p.scorableCount)),
             const SizedBox(height: 8),
             FilledButton.icon(
-                onPressed: () => context.push(perms.primaryRole ==
-                        AppRole.centerManager
-                    ? '/assessments/${session.id}/self-audit?centerId=${p.centerId}'
-                    : '/audits/${p.auditId}${canScore ? '/run' : ''}'),
+                onPressed: () => context
+                    .push('/audits/${p.auditId}${canScore ? '/run' : ''}'),
                 icon: Icon(
                     canScore ? Icons.edit_note : Icons.fact_check_outlined),
                 label: Text(canScore

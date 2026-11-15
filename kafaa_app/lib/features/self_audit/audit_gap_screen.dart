@@ -7,6 +7,7 @@ import '../../core/widgets/common.dart';
 import '../../data/models/audit.dart';
 import '../../data/models/assessment.dart';
 import '../../data/models/self_audit.dart';
+import '../../data/repositories/directorate_capabilities.dart';
 import '../../data/repositories/self_audit_repository.dart';
 import 'audit_gap_controller.dart';
 
@@ -32,6 +33,10 @@ class _AuditGapScreenState extends ConsumerState<AuditGapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final independent = ref
+            .watch(directorateCapabilitiesProvider)
+            .valueOrNull?['independent_self_assessments'] ==
+        true;
     final request =
         GapRequest(widget.contextKey, provisional: provisional, selfId: selfId);
     return Scaffold(
@@ -41,7 +46,7 @@ class _AuditGapScreenState extends ConsumerState<AuditGapScreen> {
               title: Text(context.l10n.gapProvisional),
               value: provisional,
               onChanged: (v) => setState(() => provisional = v)),
-          if (provisional)
+          if (provisional && !independent)
             AsyncView(
                 value: ref.watch(selfParticipationProvider(widget.contextKey)),
                 builder: (p) => AsyncView(
@@ -87,8 +92,17 @@ class _AuditGapScreenState extends ConsumerState<AuditGapScreen> {
                               child:
                                   Text(context.l10n.assessmentOfficialResult)),
                           TextButton(
-                              onPressed: () => context.push(
-                                  '/assessments/${widget.contextKey.sessionId}/self-audit?centerId=${widget.contextKey.centerId}&snapshotId=${gap.self!.id}'),
+                              onPressed: () => context.push(independent
+                                  ? SelfAuditContext.independent(
+                                          widget.contextKey.centerId,
+                                          gap.self!.assessmentId,
+                                          snapshotId: gap.self!.id)
+                                      .location
+                                  : SelfAuditContext(
+                                          widget.contextKey.sessionId,
+                                          widget.contextKey.centerId,
+                                          snapshotId: gap.self!.id)
+                                      .location),
                               child: Text(
                                   '${context.l10n.selfAuditTitle} · ${gap.self!.version}')),
                           for (final r in gap.rows

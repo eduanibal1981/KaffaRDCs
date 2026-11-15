@@ -8,11 +8,14 @@ import '../../core/offline/local_store.dart';
 import '../../data/models/self_audit.dart';
 import '../../data/models/assessment.dart';
 import '../../data/repositories/self_evidence_repository.dart';
+import '../../data/repositories/self_audit_repository.dart';
+import '../auth/session.dart';
 import '../audit/scale_choice_row.dart';
 import 'self_audit_controller.dart';
 import 'self_audit_snapshot_sheet.dart';
 import 'self_evidence_sheet.dart';
 import 'self_conflict_sheet.dart';
+import 'independent_self_assessment_screen.dart';
 
 final selfQueueProvider = FutureProvider.autoDispose
     .family<List<OutboxEntry>, String>((ref, id) async {
@@ -57,17 +60,29 @@ class _SelfAuditScreenState extends ConsumerState<SelfAuditScreen> {
     final controller = ref.read(provider.notifier);
     return Scaffold(
         appBar: AppBar(title: Text(context.l10n.selfAuditTitle), actions: [
-          IconButton(
+          if (widget.contextKey.assessmentId != null &&
+              ref
+                  .watch(permissionsProvider)
+                  .managesCenter(widget.contextKey.centerId))
+            IconButton(
               tooltip: context.l10n.selfAuditHistory,
               icon: const Icon(Icons.history),
-              onPressed: () => context.push(
-                  '/assessments/${widget.contextKey.sessionId}/self-audit/history?centerId=${widget.contextKey.centerId}'))
+              onPressed: () => context
+                  .push(selfAssessmentsLocation(widget.contextKey.centerId)),
+            )
+          else if (widget.contextKey.assessmentId == null)
+            IconButton(
+                tooltip: context.l10n.selfAuditHistory,
+                icon: const Icon(Icons.history),
+                onPressed: () => context.push(
+                    '/assessments/${widget.contextKey.sessionId}/self-audit/history?centerId=${widget.contextKey.centerId}'))
         ]),
         body: AsyncView(
             value: ref.watch(provider),
             onRetry: controller.load,
             builder: (s) {
               final h = s.header;
+              final independent = s.session == null;
               final calc = s.calculation;
               final criteria = s.blueprint.criteria
                   .where((c) =>
@@ -87,8 +102,14 @@ class _SelfAuditScreenState extends ConsumerState<SelfAuditScreen> {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                              '${context.pick(s.participation.centerNameEn, s.participation.centerNameAr)} · ${context.pick(s.session.titleEn, s.session.titleAr)}'),
+                          Text([
+                            context.pick(s.centerNameEn, s.centerNameAr),
+                            if (s.session case final session?)
+                              context.pick(session.titleEn, session.titleAr)
+                            else
+                              context.l10n.selfStructureVersion(
+                                  s.blueprint.template.versionLabel),
+                          ].join(' · ')),
                           Text(context.l10n.selfAuditInternalOnly),
                           Text(
                               '${context.l10n.selfAuditCompletion}: ${calc.answeredItems}/${calc.totalItems} · ${context.l10n.selfAuditReadiness}: ${calc.points}/${calc.maxPoints} (${calc.percent.toStringAsFixed(1)}%)'),
@@ -128,7 +149,10 @@ class _SelfAuditScreenState extends ConsumerState<SelfAuditScreen> {
                                         }),
                                 child: Text(
                                     '${context.l10n.selfAuditConflictReview} · ${s.blueprint.criterionById(e.payload['p_criterion_id'])?.code ?? ''}')),
-                          if (frozen) Text(context.l10n.selfAuditFrozen),
+                          if (frozen)
+                            Text(independent
+                                ? context.l10n.selfAssessmentReadOnly
+                                : context.l10n.selfAuditFrozen),
                           Wrap(spacing: 8, runSpacing: 8, children: [
                             if (h == null && s.editable)
                               FilledButton(
@@ -148,12 +172,26 @@ class _SelfAuditScreenState extends ConsumerState<SelfAuditScreen> {
                                           }),
                                   child: Text(
                                       context.l10n.selfAuditSubmitSnapshot)),
-                            if (h?.submitted == true && s.preparationOpen)
+                            if (h?.submitted == true &&
+                                s.preparationOpen &&
+                                (!independent ||
+                                    s.versions.firstOrNull?.id == h?.id))
                               TextButton(
                                   onPressed: busy
                                       ? null
-                                      : () => act(
-                                          () => controller.start(parent: h)),
+                                      : () => act(() async {
+                                            await controller.start(parent: h);
+                                            if (context.mounted &&
+                                                independent &&
+                                                widget.contextKey.snapshotId !=
+                                                    null) {
+                                              context.pushReplacement(
+                                                  SelfAuditContext.independent(
+                                                widget.contextKey.centerId,
+                                                h?.assessmentId,
+                                              ).location);
+                                            }
+                                          }),
                                   child: Text(
                                       context.l10n.selfAuditStartRevision)),
                             if (h?.parentId != null && s.editable)
@@ -161,14 +199,15 @@ class _SelfAuditScreenState extends ConsumerState<SelfAuditScreen> {
                                   onPressed: busy
                                       ? null
                                       : () => act(() async {
-                                            final parent = s.versions
-                                                .singleWhere(
-                                                    (v) => v.id == h!.parentId);
+                                            final parent = await ref
+                                                .read(
+                                                    selfAuditRepositoryProvider)
+                                                .loadHeader(h!.parentId!);
                                             final failed = await ref
                                                 .read(
                                                     selfEvidenceRepositoryProvider)
                                                 .copyProofToDraft(
-                                                    parent, h!, s.responses);
+                                                    parent, h, s.responses);
                                             await controller.load();
                                             if (context.mounted &&
                                                 failed.isNotEmpty) {
@@ -191,10 +230,22 @@ class _SelfAuditScreenState extends ConsumerState<SelfAuditScreen> {
                                             await controller.load();
                                           }),
                                   child: Text(context.l10n.actionRefresh)),
-                            if (s.participation.auditId != null)
+                            if (h?.submitted == true &&
+                                independent &&
+                                ref
+                                    .watch(permissionsProvider)
+                                    .managesCenter(widget.contextKey.centerId))
+                              TextButton(
+                                onPressed: busy
+                                    ? null
+                                    : () => showSelfAssessmentSharing(context,
+                                        widget.contextKey.centerId, h!),
+                                child: Text(context.l10n.selfShareSnapshot),
+                              ),
+                            if (s.participation?.auditId != null)
                               TextButton(
                                   onPressed: () => context.push(
-                                      '/audits/${s.participation.auditId}/dialogue'),
+                                      '/audits/${s.participation!.auditId}/dialogue'),
                                   child: Text(
                                       context.l10n.centerAddClarification)),
                           ]),

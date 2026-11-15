@@ -146,15 +146,16 @@ void main() {
 }
 
 Future<({ProviderContainer owner, SupabaseClient client, List<String> calls})>
-    mountPreview(WidgetTester tester, String locale, double width,
-        PreviewRole role) async {
+    mountPreview(
+        WidgetTester tester, String locale, double width, PreviewRole role,
+        {double textScale = 2.0, String scenarioId = 'review'}) async {
   tester.view.physicalSize = Size(width, 1000);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetViewInsets);
   SharedPreferences.setMockInitialValues(
-      {'onboarding_complete': true, 'locale': locale, 'text_scale': 2.0});
+      {'onboarding_complete': true, 'locale': locale, 'text_scale': textScale});
   final calls = <String>[];
   final client = (await tester.runAsync(() async =>
       SupabaseClient('https://actual.kafaa.invalid', 'sample',
@@ -173,7 +174,7 @@ Future<({ProviderContainer owner, SupabaseClient client, List<String> calls})>
   await owner.read(sessionProvider.future);
   owner
       .read(roleSimulationProvider.notifier)
-      .enter(role, center: sampleCenters.first, scenarioId: 'review');
+      .enter(role, center: sampleCenters.first, scenarioId: scenarioId);
   await tester.pumpWidget(UncontrolledProviderScope(
       container: owner, child: const RepaintBoundary(child: KafaaApp())));
   await tester.pumpAndSettle();

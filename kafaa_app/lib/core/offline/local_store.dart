@@ -302,6 +302,7 @@ enum OutboxKind {
   ncrEvidenceUpload,
   centerSave,
   auditMessage,
+  auditSectionComment,
   assessmentJoin,
   responseUpsert,
   auditUpdate,

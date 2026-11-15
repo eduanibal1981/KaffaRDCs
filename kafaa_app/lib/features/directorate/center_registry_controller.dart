@@ -5,7 +5,7 @@ import '../../core/offline/sync_service.dart';
 import '../../data/repositories/center_repository.dart';
 
 final registryIncludeInactiveProvider =
-    StateProvider.autoDispose<bool>((ref) => false);
+    StateProvider.autoDispose.family<bool, bool>((ref, initial) => initial);
 final registrySearchProvider = StateProvider.autoDispose<String>((ref) => '');
 
 class CenterRegistryResult {
@@ -15,9 +15,11 @@ class CenterRegistryResult {
   final DateTime? syncedAt;
 }
 
-final centerRegistryProvider =
-    FutureProvider.autoDispose<CenterRegistryResult>((ref) async {
-  final includeInactive = ref.watch(registryIncludeInactiveProvider);
+final centerRegistryProvider = FutureProvider.autoDispose
+    .family<CenterRegistryResult, bool>((ref, includeInactive) async {
+  ref.listen(syncServiceProvider, (previous, next) {
+    if (previous?.pending != next.pending) ref.invalidateSelf();
+  });
   final repo = ref.watch(centerRepositoryProvider);
   var cached = false;
   final rows = await repo.list(
@@ -25,14 +27,15 @@ final centerRegistryProvider =
   return CenterRegistryResult(
       rows, cached, await repo.lastSyncedAt(includeInactive));
 });
-final filteredRegistryProvider =
-    Provider.autoDispose<AsyncValue<List<RenalCenter>>>((ref) {
+final filteredRegistryProvider = Provider.autoDispose
+    .family<AsyncValue<List<RenalCenter>>, bool>((ref, includeInactive) {
   final query = ref.watch(registrySearchProvider).trim().toLowerCase();
-  return ref.watch(centerRegistryProvider).whenData((result) => result.rows
-      .where((c) =>
-          query.isEmpty ||
-          '${c.code} ${c.nameEn} ${c.nameAr}'.toLowerCase().contains(query))
-      .toList());
+  return ref.watch(centerRegistryProvider(includeInactive)).whenData((result) =>
+      result.rows
+          .where((c) =>
+              query.isEmpty ||
+              '${c.code} ${c.nameEn} ${c.nameAr}'.toLowerCase().contains(query))
+          .toList());
 });
 
 final centerRegistryPendingProvider =

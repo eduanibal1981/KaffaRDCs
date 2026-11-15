@@ -22,7 +22,9 @@ import 'scoring_editor_sheet.dart';
 /// the running totals at each level update as you go — so an administrator
 /// can see immediately what adding a point does to the checklist maximum.
 class StructureEditorScreen extends ConsumerStatefulWidget {
-  const StructureEditorScreen({super.key});
+  const StructureEditorScreen({super.key, this.publishedId});
+
+  final String? publishedId;
 
   @override
   ConsumerState<StructureEditorScreen> createState() => _StructureEditorState();
@@ -34,17 +36,27 @@ class _StructureEditorState extends ConsumerState<StructureEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final blueprint = ref.watch(blueprintProvider);
-    if (!ref.watch(permissionsProvider).canConfigureTemplate) {
+    final publishedId = widget.publishedId;
+    final permissions = ref.watch(permissionsProvider);
+    if (!(publishedId == null
+        ? permissions.canConfigureTemplate
+        : permissions.isDirectorate)) {
       return Scaffold(
           appBar: AppBar(title: Text(l10n.structuresTitle)),
           body: EmptyView(message: l10n.errorPermission));
     }
-    final draft = blueprint.valueOrNull?.template.status == 'draft';
+    final provider = publishedId == null
+        ? blueprintProvider
+        : structureBlueprintProvider(publishedId);
+    final blueprint = ref.watch(provider);
+    final saved = publishedId == null ||
+        blueprint.valueOrNull?.template.status == 'active';
+    final draft = publishedId == null &&
+        blueprint.valueOrNull?.template.status == 'draft';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(blueprint.valueOrNull == null
+        title: Text(!saved || blueprint.valueOrNull == null
             ? l10n.structuresChoose
             : context.pick(blueprint.value!.template.nameEn,
                 blueprint.value!.template.nameAr)),
@@ -126,14 +138,21 @@ class _StructureEditorState extends ConsumerState<StructureEditorScreen> {
           IconButton(
             tooltip: l10n.actionRefresh,
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(blueprintProvider),
+            onPressed: () => ref.invalidate(provider),
           ),
         ],
       ),
       body: AsyncView(
         value: blueprint,
-        onRetry: () => ref.invalidate(blueprintProvider),
-        builder: (bp) => _Tree(blueprint: bp),
+        onRetry: () => ref.invalidate(provider),
+        builder: (bp) => saved
+            ? _Tree(
+                blueprint: bp,
+                onRefresh: () async {
+                  ref.invalidate(provider);
+                  await ref.read(provider.future);
+                })
+            : EmptyView(message: l10n.errorPermission),
       ),
       floatingActionButton: draft && !_busy
           ? FloatingActionButton.extended(
@@ -157,8 +176,9 @@ class _StructureEditorState extends ConsumerState<StructureEditorScreen> {
 }
 
 class _Tree extends ConsumerWidget {
-  const _Tree({required this.blueprint});
+  const _Tree({required this.blueprint, required this.onRefresh});
   final AssessmentBlueprint blueprint;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -177,7 +197,7 @@ class _Tree extends ConsumerWidget {
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(blueprintProvider),
+      onRefresh: onRefresh,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
         children: [

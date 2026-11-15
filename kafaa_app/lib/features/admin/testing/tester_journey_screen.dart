@@ -110,7 +110,15 @@ class _TesterJourneyScreenState extends ConsumerState<TesterJourneyScreen> {
             Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Semantics(liveRegion: true, child: Text(feedback!))),
-          if (audit == null)
+          if (perms.managesCenter(selected))
+            FilledButton(
+              onPressed: () => context.push(Uri(
+                path: '/self-assessments/new',
+                queryParameters: {'centerId': selected},
+              ).toString()),
+              child: Text(l.selfIndependentStart),
+            ),
+          if (audit == null && perms.canJoinCenter(selected))
             FilledButton(
                 onPressed: busy
                     ? null
@@ -119,12 +127,13 @@ class _TesterJourneyScreenState extends ConsumerState<TesterJourneyScreen> {
                               .read(assessmentSessionRepositoryProvider)
                               .join(fixture.sessionId, selected);
                         }),
-                child: Text(l.assessmentJoin))
-          else ...[
+                child: Text(l.assessmentJoin)),
+          if (audit != null) ...[
             const SizedBox(height: 16),
             Text(
                 AuditStatus.tryParse(audit['status'] as String).label(context)),
-            if (perms.canPrepareSelfAudit(selected)) ...[
+            if (perms.canPrepareSelfAudit(selected) &&
+                !perms.managesCenter(selected)) ...[
               Text(l.adminSelfAudit,
                   style: Theme.of(context).textTheme.titleLarge),
               for (final criterion

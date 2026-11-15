@@ -83,7 +83,7 @@ class AuditDiscussionRepository {
         pending: pending);
   }
 
-  Future<void> appendMessage(
+  Future<OutboxEntry?> appendMessage(
       {required String id,
       required String discussionId,
       required String body,
@@ -94,7 +94,7 @@ class AuditDiscussionRepository {
     if (body.trim().isEmpty || body.trim().length > 8000) {
       throw ArgumentError('Message length');
     }
-    await store.enqueue(
+    final entryId = await store.enqueue(
         OutboxKind.auditMessage,
         {
           'p_id': id,
@@ -108,6 +108,9 @@ class AuditDiscussionRepository {
         dedupeKey: 'audit-message:$id');
     await sync.refreshPendingCount();
     await sync.sync();
+    return (await store.pending())
+        .where((entry) => entry.id == entryId)
+        .firstOrNull;
   }
 
   Future<void> setClosed(String id, bool closed) =>

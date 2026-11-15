@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/l10n/l10n_extensions.dart';
 import '../../../core/l10n/muscat_time.dart';
+import '../../../core/theme/kafaa_colors.dart';
 import '../../../data/repositories/audit_repository.dart';
 import '../../../data/repositories/assessment_repository.dart';
 import '../../../core/widgets/common.dart';
@@ -18,9 +19,11 @@ class AuditDialoguePanel extends ConsumerStatefulWidget {
       required this.participationId,
       required this.auditId,
       required this.centerId,
-      this.criterionId});
+      this.criterionId,
+      this.preApproval = false});
   final String participationId, auditId, centerId;
   final String? criterionId;
+  final bool preApproval;
   @override
   ConsumerState<AuditDialoguePanel> createState() => _AuditDialoguePanelState();
 }
@@ -46,20 +49,37 @@ class _AuditDialoguePanelState extends ConsumerState<AuditDialoguePanel> {
           : context.l10n.dialogueMessageTooLong);
       return;
     }
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     try {
-      await ref.read(auditDiscussionRepositoryProvider).appendMessage(
-          id: _messageId,
-          discussionId: c.discussion.id,
-          body: body,
-          auditId: widget.auditId,
-          criterionId: widget.criterionId,
-          replyToId: _reply,
-          directive: _directive);
+      final pending = await ref
+          .read(auditDiscussionRepositoryProvider)
+          .appendMessage(
+              id: _messageId,
+              discussionId: c.discussion.id,
+              body: body,
+              auditId: widget.auditId,
+              criterionId: widget.criterionId,
+              replyToId: _reply,
+              directive: _directive);
+      if (!mounted) return;
       _text.clear();
       _messageId = const Uuid().v4();
       _reply = null;
       ref.invalidate(auditDiscussionProvider(widget.participationId));
+      if (widget.preApproval) {
+        final l = context.l10n;
+        final message = switch (pending) {
+          null => l.directorateCommentSent,
+          final entry when entry.lastError != null =>
+            describeError(context, StateError(entry.lastError!)),
+          _ => l.syncAwaitingUpload,
+        };
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
+      }
     } catch (e) {
       if (mounted) setState(() => _error = describeError(context, e));
     } finally {
@@ -71,6 +91,58 @@ class _AuditDialoguePanelState extends ConsumerState<AuditDialoguePanel> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final perms = ref.watch(permissionsProvider);
+    if (!perms.canDiscussAudit(widget.centerId)) {
+      return const Center(child: Icon(Icons.lock_outline));
+    }
+    if (widget.preApproval) {
+      final theme = Theme.of(context);
+      final dark = theme.brightness == Brightness.dark;
+      final teal = dark ? theme.colorScheme.secondary : KafaaColors.tealDark;
+      final provider = auditDiscussionProvider(widget.participationId);
+      return KafaaCard(
+        title: l.directoratePreApprovalComment,
+        leading: Icon(Icons.chat_bubble_outline, color: teal),
+        child: AsyncView(
+          value: ref.watch(provider),
+          onRetry: () => ref.invalidate(provider),
+          builder: (conversation) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(l.directorateCommentHelp, style: theme.textTheme.bodySmall),
+              const SizedBox(height: 12),
+              if (conversation.discussion.closedAt != null)
+                Text(l.dialogueClosed)
+              else ...[
+                TextField(
+                  controller: _text,
+                  enabled: !_busy,
+                  minLines: 2,
+                  maxLines: 6,
+                  maxLength: 8000,
+                  decoration: InputDecoration(
+                    labelText: l.directorateCommentToAuditor,
+                    errorText: _error,
+                  ),
+                ),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: dark ? teal : KafaaColors.tealDark,
+                      foregroundColor:
+                          dark ? KafaaColors.darkBackground : Colors.white,
+                    ),
+                    onPressed: _busy ? null : () => _send(conversation),
+                    icon: const Icon(Icons.send_outlined),
+                    label: Text(l.directorateSendToAuditor),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
     final audit = ref.watch(auditSummaryProvider(widget.auditId)).valueOrNull;
     final criteria = audit == null
         ? null
@@ -78,9 +150,6 @@ class _AuditDialoguePanelState extends ConsumerState<AuditDialoguePanel> {
             .watch(structureBlueprintProvider(audit.templateId))
             .valueOrNull
             ?.criteria;
-    if (!perms.canDiscussAudit(widget.centerId)) {
-      return const Center(child: Icon(Icons.lock_outline));
-    }
     return AsyncView(
         value: ref.watch(auditDiscussionProvider(widget.participationId)),
         onRetry: () =>

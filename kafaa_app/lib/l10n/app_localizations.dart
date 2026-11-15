@@ -3338,6 +3338,180 @@ abstract class AppL10n {
   /// **'Directorate overview'**
   String get directorateOverview;
 
+  /// No description provided for @auditorWorkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auditor work'**
+  String get auditorWorkTitle;
+
+  /// No description provided for @auditorStartAudit.
+  ///
+  /// In en, this message translates to:
+  /// **'Start audit'**
+  String get auditorStartAudit;
+
+  /// No description provided for @auditorResumeAudit.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume audit'**
+  String get auditorResumeAudit;
+
+  /// No description provided for @auditorCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit campaign'**
+  String get auditorCampaign;
+
+  /// No description provided for @auditorPointPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {point} of {total}'**
+  String auditorPointPosition(int point, int total);
+
+  /// No description provided for @auditorPointComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Point comment'**
+  String get auditorPointComment;
+
+  /// No description provided for @auditorSectionComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Section comment'**
+  String get auditorSectionComment;
+
+  /// No description provided for @auditorSectionComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Section comments'**
+  String get auditorSectionComments;
+
+  /// No description provided for @auditorSectionCommentsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Section comments are unavailable on this server.'**
+  String get auditorSectionCommentsUnavailable;
+
+  /// No description provided for @auditorOverallComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall audit comment'**
+  String get auditorOverallComment;
+
+  /// No description provided for @auditorPreviousPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous point'**
+  String get auditorPreviousPoint;
+
+  /// No description provided for @auditorNextPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Next point'**
+  String get auditorNextPoint;
+
+  /// No description provided for @auditorAddComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add comment'**
+  String get auditorAddComment;
+
+  /// No description provided for @auditorSaveComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Save comment'**
+  String get auditorSaveComment;
+
+  /// No description provided for @auditorCommentPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a comment'**
+  String get auditorCommentPlaceholder;
+
+  /// No description provided for @directorateViewCentres.
+  ///
+  /// In en, this message translates to:
+  /// **'View centres'**
+  String get directorateViewCentres;
+
+  /// No description provided for @directorateViewStructures.
+  ///
+  /// In en, this message translates to:
+  /// **'View structures'**
+  String get directorateViewStructures;
+
+  /// No description provided for @directorateAwaitingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting approval'**
+  String get directorateAwaitingApproval;
+
+  /// No description provided for @directorateNoPendingAudits.
+  ///
+  /// In en, this message translates to:
+  /// **'No audits awaiting approval'**
+  String get directorateNoPendingAudits;
+
+  /// No description provided for @directorateOpenReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Open review'**
+  String get directorateOpenReview;
+
+  /// No description provided for @directorateAuditProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Auditor review progress'**
+  String get directorateAuditProgress;
+
+  /// No description provided for @directorateNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started'**
+  String get directorateNotStarted;
+
+  /// No description provided for @directorateRevisionsRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Revisions requested'**
+  String get directorateRevisionsRequested;
+
+  /// No description provided for @directorateCampaignDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View campaign details'**
+  String get directorateCampaignDetails;
+
+  /// No description provided for @directoratePreApprovalComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-approval comment'**
+  String get directoratePreApprovalComment;
+
+  /// No description provided for @directorateCommentToAuditor.
+  ///
+  /// In en, this message translates to:
+  /// **'To the auditor'**
+  String get directorateCommentToAuditor;
+
+  /// No description provided for @directorateCommentHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared in Comments and feedback. To reopen the audit for editing, use Request revisions.'**
+  String get directorateCommentHelp;
+
+  /// No description provided for @directorateSendToAuditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to auditor'**
+  String get directorateSendToAuditor;
+
+  /// No description provided for @directorateCommentSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment posted'**
+  String get directorateCommentSent;
+
   /// No description provided for @centerRegistryTitle.
   ///
   /// In en, this message translates to:
@@ -3497,7 +3671,7 @@ abstract class AppL10n {
   /// No description provided for @reviewTitle.
   ///
   /// In en, this message translates to:
-  /// **'Review evaluation'**
+  /// **'Review audit'**
   String get reviewTitle;
 
   /// No description provided for @reviewRequestRevisions.
@@ -3764,6 +3938,132 @@ abstract class AppL10n {
   /// **'Head of Centre'**
   String get centerHeadRole;
 
+  /// No description provided for @selfIndependentStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start self-assessment'**
+  String get selfIndependentStart;
+
+  /// No description provided for @selfContinueDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue draft'**
+  String get selfContinueDraft;
+
+  /// No description provided for @selfChooseStructure.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Audit Structure'**
+  String get selfChooseStructure;
+
+  /// No description provided for @selfStructureVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit Structure v {version}'**
+  String selfStructureVersion(String version);
+
+  /// No description provided for @selfLatestStructure.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest published · v {version}'**
+  String selfLatestStructure(String version);
+
+  /// No description provided for @selfConfirmStructure.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with v {version}'**
+  String selfConfirmStructure(String version);
+
+  /// No description provided for @selfNoDefaultStructure.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a saved structure to start.'**
+  String get selfNoDefaultStructure;
+
+  /// No description provided for @selfStructureSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} scorable items · {points} maximum points'**
+  String selfStructureSummary(int count, num points);
+
+  /// No description provided for @selfRevisionNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision {number}'**
+  String selfRevisionNumber(int number);
+
+  /// No description provided for @selfOfficialAudits.
+  ///
+  /// In en, this message translates to:
+  /// **'Official audits'**
+  String get selfOfficialAudits;
+
+  /// No description provided for @selfOfficialAwaitingAuditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting an auditor to join'**
+  String get selfOfficialAwaitingAuditor;
+
+  /// No description provided for @selfAssessmentReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-only self-assessment'**
+  String get selfAssessmentReadOnly;
+
+  /// No description provided for @selfShareSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with official audit'**
+  String get selfShareSnapshot;
+
+  /// No description provided for @selfWithdrawShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw sharing'**
+  String get selfWithdrawShare;
+
+  /// No description provided for @selfReplaceShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace shared assessment'**
+  String get selfReplaceShare;
+
+  /// No description provided for @selfSnapshotShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with this audit'**
+  String get selfSnapshotShared;
+
+  /// No description provided for @selfShareExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'The assigned audit team and Directorate can read this submitted assessment and its evidence for the selected campaign.'**
+  String get selfShareExplanation;
+
+  /// No description provided for @selfWithdrawExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the selected self-assessment from the campaign until you share a new one.'**
+  String get selfWithdrawExplanation;
+
+  /// No description provided for @selfNoMatchingCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'No official campaign uses this Audit Structure for your centre.'**
+  String get selfNoMatchingCampaign;
+
+  /// No description provided for @selfShareLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing is locked once evidence review or official submission begins.'**
+  String get selfShareLocked;
+
+  /// No description provided for @selfJoinAuditorOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'An authorized auditor must join the official audit.'**
+  String get selfJoinAuditorOnly;
+
   /// No description provided for @centerQualityTitle.
   ///
   /// In en, this message translates to:
@@ -3986,23 +4286,41 @@ abstract class AppL10n {
   /// **'No data available'**
   String get selfAuditNoData;
 
-  /// No description provided for @centerActionsAllPeriods.
+  /// No description provided for @centerOpenActions.
   ///
   /// In en, this message translates to:
-  /// **'Open actions · all periods'**
-  String get centerActionsAllPeriods;
+  /// **'Open actions'**
+  String get centerOpenActions;
 
-  /// No description provided for @centerCompetencyReadiness.
+  /// No description provided for @centerAllPeriods.
   ///
   /// In en, this message translates to:
-  /// **'Staff competency readiness'**
-  String get centerCompetencyReadiness;
+  /// **'All periods'**
+  String get centerAllPeriods;
 
-  /// No description provided for @centerSatisfactionRolling.
+  /// No description provided for @centerNoOpenActions.
   ///
   /// In en, this message translates to:
-  /// **'Patient satisfaction · last 12 months'**
-  String get centerSatisfactionRolling;
+  /// **'No open actions'**
+  String get centerNoOpenActions;
+
+  /// No description provided for @centerPatientSatisfaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient satisfaction'**
+  String get centerPatientSatisfaction;
+
+  /// No description provided for @centerLast12Months.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 12 months'**
+  String get centerLast12Months;
+
+  /// No description provided for @centerNoSurveyResponses.
+  ///
+  /// In en, this message translates to:
+  /// **'No survey responses yet'**
+  String get centerNoSurveyResponses;
 
   /// No description provided for @centerSatisfactionSuppressed.
   ///
@@ -4013,8 +4331,26 @@ abstract class AppL10n {
   /// No description provided for @centerLatestApproved.
   ///
   /// In en, this message translates to:
-  /// **'Latest approved official result'**
+  /// **'Latest approved audit'**
   String get centerLatestApproved;
+
+  /// No description provided for @centerNoApprovedAudit.
+  ///
+  /// In en, this message translates to:
+  /// **'No approved audit yet'**
+  String get centerNoApprovedAudit;
+
+  /// No description provided for @centerLatestSelfAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest self assessment'**
+  String get centerLatestSelfAssessment;
+
+  /// No description provided for @centerNoSelfAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'No self assessment yet'**
+  String get centerNoSelfAssessment;
 
   /// No description provided for @gapMissingAnswer.
   ///

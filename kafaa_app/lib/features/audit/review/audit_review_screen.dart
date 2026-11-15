@@ -1,8 +1,8 @@
 import '../../../data/models/evidence_review.dart';
 import '../evidence/criterion_proof_panel.dart';
 import '../../../data/repositories/directorate_capabilities.dart';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/l10n/l10n_extensions.dart';
 import '../../../core/l10n/muscat_time.dart';
 import '../../../core/l10n/enum_labels.dart';
+import '../../../core/theme/kafaa_colors.dart';
 import '../../../core/widgets/common.dart';
 import '../../../data/models/audit.dart';
 import '../../../data/models/assessment.dart';
@@ -19,6 +20,7 @@ import '../../../data/repositories/audit_review_repository.dart';
 import '../../../data/repositories/assessment_repository.dart';
 import '../../auth/session.dart';
 import '../discussion/audit_dialogue_panel.dart';
+import '../audit_section_content.dart';
 import 'audit_review_controller.dart';
 import 'review_decision_sheet.dart';
 
@@ -31,6 +33,7 @@ class AuditReviewScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
+    final theme = Theme.of(context);
     final dialogueOpen = ref.watch(_reviewDialogueOpenProvider(auditId));
     if (!ref.watch(permissionsProvider).canApproveAudits) {
       return const Scaffold(body: Center(child: Icon(Icons.lock_outline)));
@@ -51,8 +54,19 @@ class AuditReviewScreen extends ConsumerWidget {
                   return DefaultTabController(
                       length: 4,
                       child: Scaffold(
+                          backgroundColor: theme.brightness == Brightness.dark
+                              ? theme.scaffoldBackgroundColor
+                              : KafaaColors.dashboardBackground,
                           appBar: AppBar(
                               title: Text(l.reviewTitle),
+                              backgroundColor: KafaaColors.dashboardNavy,
+                              foregroundColor: Colors.white,
+                              systemOverlayStyle: SystemUiOverlayStyle.light,
+                              titleTextStyle: theme.textTheme.titleLarge
+                                  ?.copyWith(color: Colors.white),
+                              toolbarHeight: 32 +
+                                  MediaQuery.textScalerOf(context).scale(20),
+                              surfaceTintColor: Colors.transparent,
                               actions: [
                                 if (MediaQuery.sizeOf(context).width >= 1000)
                                   IconButton(
@@ -71,50 +85,63 @@ class AuditReviewScreen extends ConsumerWidget {
                                         auditReviewBundleProvider(auditId)),
                                     icon: const Icon(Icons.refresh))
                               ],
-                              bottom: TabBar(isScrollable: true, tabs: [
-                                Tab(text: l.auditSummary),
-                                Tab(text: l.reviewCriteria),
-                                Tab(text: l.reviewTeam),
-                                Tab(text: l.dialogueTitle)
-                              ])),
-                          bottomNavigationBar: SafeArea(
-                              child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Wrap(
-                                      spacing: 8,
-                                      runSpacing: 8,
-                                      children: [
-                                        if (a.status == AuditStatus.submitted)
-                                          OutlinedButton(
-                                              onPressed: b.canDecide
-                                                  ? () => showReviewDecision(
-                                                      context,
-                                                      b,
-                                                      'start_review')
-                                                  : null,
-                                              child: Text(l.reviewStart)),
-                                        if ([
-                                          AuditStatus.submitted,
-                                          AuditStatus.underReview
-                                        ].contains(a.status)) ...[
-                                          OutlinedButton(
-                                              onPressed: b.canDecide
-                                                  ? () => showReviewDecision(
-                                                      context,
-                                                      b,
-                                                      'request_revisions')
-                                                  : null,
-                                              child: Text(
-                                                  l.reviewRequestRevisions)),
-                                          FilledButton(
-                                              onPressed: b.canDecide
-                                                  ? () => showReviewDecision(
-                                                      context, b, 'approve')
-                                                  : null,
-                                              child: Text(l.reviewApprove)),
-                                        ],
-                                        if (b.cached) Text(l.reviewCached),
-                                      ]))),
+                              bottom: TabBar(
+                                  isScrollable: true,
+                                  labelColor: Colors.white,
+                                  unselectedLabelColor: Colors.white70,
+                                  indicatorColor: Colors.white,
+                                  dividerColor: Colors.white24,
+                                  tabs: [
+                                    Tab(text: l.auditSummary),
+                                    Tab(text: l.reviewCriteria),
+                                    Tab(text: l.reviewTeam),
+                                    Tab(text: l.dialogueTitle)
+                                  ])),
+                          bottomNavigationBar: MediaQuery.viewInsetsOf(context)
+                                      .bottom >
+                                  0
+                              ? null
+                              : SafeArea(
+                                  child: Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Wrap(
+                                          spacing: 8,
+                                          runSpacing: 8,
+                                          children: [
+                                            if (a.status ==
+                                                AuditStatus.submitted)
+                                              OutlinedButton(
+                                                  onPressed: b.canDecide
+                                                      ? () =>
+                                                          showReviewDecision(
+                                                              context,
+                                                              b,
+                                                              'start_review')
+                                                      : null,
+                                                  child: Text(l.reviewStart)),
+                                            if (a
+                                                .status.isAwaitingApproval) ...[
+                                              OutlinedButton(
+                                                  onPressed: b.canDecide
+                                                      ? () => showReviewDecision(
+                                                          context,
+                                                          b,
+                                                          'request_revisions')
+                                                      : null,
+                                                  child: Text(l
+                                                      .reviewRequestRevisions)),
+                                              FilledButton(
+                                                  onPressed: b.canDecide
+                                                      ? () =>
+                                                          showReviewDecision(
+                                                              context,
+                                                              b,
+                                                              'approve')
+                                                      : null,
+                                                  child: Text(l.reviewApprove)),
+                                            ],
+                                            if (b.cached) Text(l.reviewCached),
+                                          ]))),
                           body: LayoutBuilder(builder: (context, constraints) {
                             final tabs = TabBarView(children: [
                               _Summary(bundle: b),
@@ -150,10 +177,35 @@ class _Summary extends StatelessWidget {
   Widget build(BuildContext context) {
     final a = bundle.summary;
     final l = context.l10n;
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
+    final teal = dark ? theme.colorScheme.secondary : KafaaColors.tealDark;
+    final amber = dark ? const Color(0xFFFFC975) : const Color(0xFF80420B);
     return ListView(padding: const EdgeInsets.all(16), children: [
-      KafaaCard(
+      if (a.status.isAwaitingApproval) ...[
+        KafaaCard(
+          leading: Icon(Icons.assignment_turned_in_outlined, color: teal),
           title: context.pick(a.centerNameEn, a.centerNameAr),
           subtitle: context.pick(a.sessionTitleEn, a.sessionTitleAr),
+          child: StatusPill(label: l.directorateAwaitingApproval, color: amber),
+        ),
+        const SizedBox(height: 12),
+        AuditDialoguePanel(
+          key: ValueKey(a.auditId),
+          participationId: a.participationId!,
+          auditId: a.auditId,
+          centerId: a.centerId,
+          preApproval: true,
+        ),
+        const SizedBox(height: 12),
+      ],
+      KafaaCard(
+          title: a.status.isAwaitingApproval
+              ? l.auditSummary
+              : context.pick(a.centerNameEn, a.centerNameAr),
+          subtitle: a.status.isAwaitingApproval
+              ? null
+              : context.pick(a.sessionTitleEn, a.sessionTitleAr),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('${l.reviewVersion}: ${a.version} / ${bundle.rowVersion}'),
@@ -170,7 +222,16 @@ class _Summary extends StatelessWidget {
             if (bundle.cached) Text(l.reviewCached),
           ])),
       const SizedBox(height: 12),
-      Text(bundle.audit['general_recommendations'] as String? ?? ''),
+      if ((bundle.audit['general_recommendations'] as String?)
+              ?.trim()
+              .isNotEmpty ==
+          true)
+        KafaaCard(
+          title: l.auditorOverallComment,
+          child:
+              SelectableText(bundle.audit['general_recommendations'] as String),
+        ),
+      AuditSectionCommentsSummary(auditId: a.auditId, templateId: a.templateId),
       Text(bundle.audit['suggested_action_plan'] as String? ?? ''),
       const SizedBox(height: 12),
       Text('${l.navActions}: ${bundle.rows('ncrs').length}',

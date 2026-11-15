@@ -7,6 +7,10 @@ class SelfAudit {
   final Map<String, dynamic> row;
   String get id => asString(row['id']);
   String get participationId => asString(row['participation_id']);
+  String get assessmentId =>
+      asString(row['assessment_id'] ?? row['participation_id']);
+  String? get centerId => asStringOrNull(row['center_id']);
+  DateTime? get updatedAt => asDate(row['updated_at'] ?? row['created_at']);
   String get templateId => asString(row['template_id']);
   String? get parentId => asStringOrNull(row['parent_self_audit_id']);
   String get status => asString(row['status']);
@@ -42,16 +46,33 @@ class SelfEvidence {
 }
 
 class SelfAuditContext {
-  const SelfAuditContext(this.sessionId, this.centerId, {this.snapshotId});
+  const SelfAuditContext(this.sessionId, this.centerId,
+      {this.snapshotId, this.assessmentId});
+  const SelfAuditContext.independent(this.centerId, this.assessmentId,
+      {this.snapshotId})
+      : sessionId = '';
   final String sessionId;
   final String centerId;
   final String? snapshotId;
+  final String? assessmentId;
   @override
   bool operator ==(Object other) =>
       other is SelfAuditContext &&
       sessionId == other.sessionId &&
       centerId == other.centerId &&
+      assessmentId == other.assessmentId &&
       snapshotId == other.snapshotId;
   @override
-  int get hashCode => Object.hash(sessionId, centerId, snapshotId);
+  int get hashCode =>
+      Object.hash(sessionId, centerId, assessmentId, snapshotId);
+
+  String get location => Uri(
+        path: assessmentId == null
+            ? '/assessments/$sessionId/self-audit'
+            : '/self-assessments/view/$assessmentId',
+        queryParameters: {
+          'centerId': centerId,
+          if (snapshotId != null) 'snapshotId': snapshotId!,
+        },
+      ).toString();
 }

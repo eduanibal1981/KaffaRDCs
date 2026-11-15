@@ -15,7 +15,9 @@ import '../auth/session.dart';
 
 /// Corrective actions: what was found, who owns it, when it is due.
 class NcrScreen extends ConsumerStatefulWidget {
-  const NcrScreen({super.key});
+  const NcrScreen({super.key, this.centerId});
+
+  final String? centerId;
 
   @override
   ConsumerState<NcrScreen> createState() => _NcrScreenState();
@@ -29,8 +31,9 @@ class _NcrScreenState extends ConsumerState<NcrScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final perms = ref.watch(permissionsProvider);
+    final centerId = widget.centerId ?? perms.homeCenterId;
     final filter = NcrFilter(
-      centerId: perms.homeCenterId,
+      centerId: centerId,
       status: _status,
       onlyOpen: _onlyOpen && _status == null,
     );
@@ -43,12 +46,9 @@ class _NcrScreenState extends ConsumerState<NcrScreen> {
         children: [
           if (dashboard != null && dashboard.isNotEmpty)
             _SummaryStrip(
-              dashboards: perms.homeCenterId == null
+              dashboards: centerId == null
                   ? dashboard.values.toList()
-                  : [
-                      if (dashboard[perms.homeCenterId] != null)
-                        dashboard[perms.homeCenterId]!
-                    ],
+                  : [if (dashboard[centerId] != null) dashboard[centerId]!],
             ),
           SizedBox(
             height: 54,

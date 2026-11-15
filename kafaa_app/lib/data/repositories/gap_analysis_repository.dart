@@ -39,7 +39,9 @@ class GapAnalysisRepository {
               .eq('id', selfId)
               .single();
       if (h != null &&
-          (h['participation_id'] != participationId ||
+          ((h['center_id'] ?? a['center_id']) != a['center_id'] ||
+              (h['center_id'] == null &&
+                  h['participation_id'] != participationId) ||
               h['template_id'] != a['template_id'] ||
               h['status'] != 'submitted')) {
         throw StateError('KAFAA_STRUCTURE_MISMATCH');

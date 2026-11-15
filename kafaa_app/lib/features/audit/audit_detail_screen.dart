@@ -18,6 +18,7 @@ import '../../data/repositories/report_service.dart';
 import '../analytics/criterion_drilldown.dart';
 import '../auth/session.dart';
 import 'audit_general_info_sheet.dart';
+import 'audit_section_content.dart';
 import '../../data/repositories/assessment_session_repository.dart';
 
 /// Read-only view of one assessment, plus the review actions and exports.
@@ -196,6 +197,22 @@ class AuditDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 _DomainChart(auditId: auditId),
                 _SectionList(auditId: auditId),
+                if (perms.canAuditCenter(data.centerId)) ...[
+                  Consumer(builder: (context, ref, _) {
+                    final comment = ref
+                        .watch(auditOverallCommentProvider(auditId))
+                        .valueOrNull;
+                    if (comment == null || comment.trim().isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return KafaaCard(
+                      title: l10n.auditorOverallComment,
+                      child: SelectableText(comment),
+                    );
+                  }),
+                  AuditSectionCommentsSummary(
+                      auditId: auditId, templateId: data.templateId),
+                ],
                 const SizedBox(height: 16),
                 if (perms.canApproveAudits &&
                     (data.status == AuditStatus.submitted ||

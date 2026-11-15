@@ -6,6 +6,8 @@ abstract final class KafaaColors {
   static const brandBlue = Color(0xFF0F5E9C);
   static const brandBlueDark = Color(0xFF0A4373);
   static const brandBlueLight = Color(0xFFE7F0F8);
+  static const dashboardNavy = Color(0xFF122C50);
+  static const dashboardBackground = Color(0xFFF1F5FA);
 
   static const teal = Color(0xFF0EA5A4);
   static const tealDark = Color(0xFF0D7B7A);

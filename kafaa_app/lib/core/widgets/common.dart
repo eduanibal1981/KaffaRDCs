@@ -394,6 +394,8 @@ String describeError(BuildContext context, Object error) {
     'kafaa_submission_pending': l10n.auditSubmissionPending,
     'kafaa_reviewed_proof_immutable': l10n.auditProofImmutable,
     'kafaa_proof_immutable': l10n.auditProofImmutable,
+    'kafaa_auditor_join_required': l10n.selfJoinAuditorOnly,
+    'kafaa_self_share_locked': l10n.selfShareLocked,
   };
   for (final item in auditorErrors.entries) {
     if (text.contains(item.key)) return item.value;

@@ -47,8 +47,11 @@ String? asStringOrNull(Object? v) {
 List<String> asStringList(Object? v) => switch (v) {
       null => const [],
       List l => l.map((e) => e.toString()).toList(),
-      String s when s.startsWith('{') && s.endsWith('}') =>
-        s.substring(1, s.length - 1).split(',').where((e) => e.isNotEmpty).toList(),
+      String s when s.startsWith('{') && s.endsWith('}') => s
+          .substring(1, s.length - 1)
+          .split(',')
+          .where((e) => e.isNotEmpty)
+          .toList(),
       _ => const [],
     };
 
@@ -127,8 +130,12 @@ enum AuditStatus {
     return AuditStatus.draft;
   }
 
-  bool get isEditable => this == AuditStatus.draft || this == AuditStatus.rejected;
-  bool get isLocked => this == AuditStatus.approved || this == AuditStatus.archived;
+  bool get isEditable =>
+      this == AuditStatus.draft || this == AuditStatus.rejected;
+  bool get isLocked =>
+      this == AuditStatus.approved || this == AuditStatus.archived;
+  bool get isAwaitingApproval =>
+      this == AuditStatus.submitted || this == AuditStatus.underReview;
 }
 
 /// How often an assessment recurs. The period, not the evaluation date, is

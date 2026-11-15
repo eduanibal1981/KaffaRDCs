@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/l10n/l10n_extensions.dart';
 import '../../core/l10n/muscat_time.dart';
-import '../../core/offline/sync_service.dart';
 import '../../core/widgets/common.dart';
 import '../../data/models/center.dart';
 import '../../data/repositories/center_repository.dart';
@@ -12,7 +11,10 @@ import 'center_registry_controller.dart';
 import 'center_editor_sheet.dart';
 
 class CenterRegistryScreen extends ConsumerWidget {
-  const CenterRegistryScreen({super.key});
+  const CenterRegistryScreen(
+      {super.key, this.includeInactiveByDefault = false});
+
+  final bool includeInactiveByDefault;
   Future<void> _setActive(
       BuildContext context, WidgetRef ref, RenalCenter c) async {
     final l = context.l10n;
@@ -50,16 +52,14 @@ class CenterRegistryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    final meta = ref.watch(centerRegistryProvider).valueOrNull;
-    final pending = ref.watch(centerRegistryPendingProvider).valueOrNull ?? {};
-    ref.listen(syncServiceProvider, (previous, next) {
-      if (previous?.pending != next.pending) {
-        ref.invalidate(centerRegistryProvider);
-      }
-    });
     if (!ref.watch(permissionsProvider).canManageCenterRegistry) {
       return const Scaffold(body: Center(child: Icon(Icons.lock_outline)));
     }
+    final includeInactive =
+        ref.watch(registryIncludeInactiveProvider(includeInactiveByDefault));
+    final registry = centerRegistryProvider(includeInactive);
+    final meta = ref.watch(registry).valueOrNull;
+    final pending = ref.watch(centerRegistryPendingProvider).valueOrNull ?? {};
     return Scaffold(
         appBar: AppBar(title: Text(l.centerRegistryTitle)),
         body: AsyncView(
@@ -85,10 +85,11 @@ class CenterRegistryScreen extends ConsumerWidget {
                           SwitchListTile(
                               contentPadding: EdgeInsets.zero,
                               title: Text(l.centerIncludeInactive),
-                              value: ref.watch(registryIncludeInactiveProvider),
+                              value: includeInactive,
                               onChanged: (b) => ref
-                                  .read(
-                                      registryIncludeInactiveProvider.notifier)
+                                  .read(registryIncludeInactiveProvider(
+                                          includeInactiveByDefault)
+                                      .notifier)
                                   .state = b),
                           FilledButton.icon(
                               onPressed: () => showCenterEditor(context, null),
@@ -97,13 +98,13 @@ class CenterRegistryScreen extends ConsumerWidget {
                         ])),
                     Expanded(
                         child: AsyncView(
-                            value: ref.watch(filteredRegistryProvider),
-                            onRetry: () =>
-                                ref.invalidate(centerRegistryProvider),
+                            value: ref.watch(
+                                filteredRegistryProvider(includeInactive)),
+                            onRetry: () => ref.invalidate(registry),
                             builder: (rows) => RefreshIndicator(
                                 onRefresh: () async {
-                                  ref.invalidate(centerRegistryProvider);
-                                  await ref.read(centerRegistryProvider.future);
+                                  ref.invalidate(registry);
+                                  await ref.read(registry.future);
                                 },
                                 child: ListView.builder(
                                     physics:

@@ -11,6 +11,7 @@ import 'center_registry_controller.dart';
 Future<void> showCenterEditor(BuildContext context, RenalCenter? center) =>
     showModalBottomSheet<void>(
         context: context,
+        useRootNavigator: true,
         isScrollControlled: true,
         useSafeArea: true,
         builder: (_) => CenterEditorSheet(center: center));

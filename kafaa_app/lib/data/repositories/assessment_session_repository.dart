@@ -15,13 +15,19 @@ class AssessmentSessionRepository {
   final SyncService _sync;
 
   Future<List<Map<String, dynamic>>> _rows(String table, String key,
-      {String? sessionId, void Function(bool)? cacheState}) async {
+      {String? sessionId,
+      List<AuditStatus>? statuses,
+      void Function(bool)? cacheState}) async {
     try {
       final result = <Map<String, dynamic>>[];
       var offset = 0;
       while (true) {
         var query = _client.rest.from(table).select();
         if (sessionId != null) query = query.eq('session_id', sessionId);
+        if (statuses != null) {
+          query =
+              query.inFilter('status', statuses.map((s) => s.wire).toList());
+        }
         final page = await query
             .order(
                 table == 'v_assessment_progress'
@@ -100,6 +106,26 @@ class AssessmentSessionRepository {
           .map(AssessmentParticipation.fromMap)
           .toList();
 
+  Future<List<AssessmentParticipation>> auditorParticipations() async =>
+      (await _rows(
+              'v_assessment_center_status', 'assessment.auditorParticipations'))
+          .map(AssessmentParticipation.fromMap)
+          .toList();
+
+  Future<({List<AssessmentParticipation> rows, bool cached})>
+      pendingReviews() async {
+    var cached = false;
+    final rows = await _rows(
+        'v_assessment_center_status', 'assessment.pendingReviews',
+        statuses:
+            AuditStatus.values.where((s) => s.isAwaitingApproval).toList(),
+        cacheState: (value) => cached = value);
+    return (
+      rows: rows.map(AssessmentParticipation.fromMap).toList(),
+      cached: cached,
+    );
+  }
+
   Future<String> create(
           {required String clientId,
           required String templateId,
@@ -172,3 +198,6 @@ final assessmentSessionProvider =
 final assessmentParticipantsProvider =
     FutureProvider.family<List<AssessmentParticipation>, String>((ref, id) =>
         ref.watch(assessmentSessionRepositoryProvider).participants(id));
+
+final auditorParticipationsProvider = FutureProvider.autoDispose((ref) =>
+    ref.watch(assessmentSessionRepositoryProvider).auditorParticipations());

@@ -35,6 +35,7 @@ class AuditReviewController {
       ref.invalidate(assessmentSessionsProvider);
       ref.invalidate(assessmentParticipantsProvider);
       ref.invalidate(directorateCampaignProvider);
+      ref.invalidate(directoratePendingReviewsProvider);
       ref.invalidate(assessmentWorkflowCountsProvider);
       ref.invalidate(sessionRankingProvider);
       ref.invalidate(rankingProvider);

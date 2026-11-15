@@ -82,6 +82,8 @@ class FakeRepositories extends http.BaseClient {
   }
   final TesterFixtures fixtures;
   final WorkspaceLease lease;
+  String _eligibleId(String session, String center) =>
+      fixtures.eligibleIds.putIfAbsent((session, center), const Uuid().v4);
   bool get offline => fixtures.offline;
   set offline(bool value) => fixtures.offline = value;
   Map<String, Map<String, dynamic>> get localChanges => fixtures.localChanges;
@@ -178,21 +180,11 @@ class FakeRepositories extends http.BaseClient {
             int.tryParse(request.url.queryParameters['limit'] ?? '') ??
                 rows.length;
         final page = rows.skip(offset).take(limit).toList();
-        if (request.headers['accept']?.contains('vnd.pgrst.object') ?? false) {
-          if (page.length != 1) {
-            return _response({
-              'code': 'PGRST116',
-              'message': 'Sample item unavailable',
-              'details': 'The result contains ${page.length} rows'
-            }, request, status: 406);
-          }
-          return _response(page.single, request);
-        }
-        return _response(page, request, headers: {
+        return _rowsResponse(page, request, headers: {
           'content-range': '$offset-${offset + page.length - 1}/${rows.length}'
         });
       }
-      return _response(
+      return _rowsResponse(
           _write(table, request.method, body, request.url), request);
     } on _Denied {
       return _response({
@@ -204,6 +196,20 @@ class FakeRepositories extends http.BaseClient {
           {'code': '23514', 'message': 'Sample: ${error.message}'}, request,
           status: 409);
     }
+  }
+
+  http.StreamedResponse _rowsResponse(
+      List<Map<String, dynamic>> rows, http.BaseRequest request,
+      {Map<String, String> headers = const {}}) {
+    if (request.headers['accept']?.contains('vnd.pgrst.object') ?? false) {
+      if (rows.length == 1) return _response(rows.single, request);
+      return _response({
+        'code': 'PGRST116',
+        'message': 'Sample item unavailable',
+        'details': 'The result contains ${rows.length} rows'
+      }, request, status: 406);
+    }
+    return _response(rows, request, headers: headers);
   }
 
   http.StreamedResponse _response(Object? body, http.BaseRequest request,
@@ -219,6 +225,13 @@ class FakeRepositories extends http.BaseClient {
           : _table('center_self_audits')
               .where((h) => h['id'] == row['self_audit_id'])
               .firstOrNull;
+      if (h?['center_id'] case final String centerId) {
+        final permissions = fixtures.simulation.permissions;
+        return permissions.managesCenter(centerId) ||
+            (permissions.canAuditCenter(centerId) &&
+                _table('center_self_shares')
+                    .any((share) => share['snapshot_id'] == h?['id']));
+      }
       final a = h == null
           ? null
           : _table('audits')
@@ -241,6 +254,10 @@ class FakeRepositories extends http.BaseClient {
           .firstOrNull;
       return d != null && _readable('audit_discussions', d);
     }
+    if (table == 'audit_section_comments') {
+      return fixtures.simulation.permissions
+          .canAuditCenter(_audit(row['audit_id'])['center_id'] as String);
+    }
     final center = row['center_id'] ?? (table == 'centers' ? row['id'] : null);
     if (center is String) return _canRead(center);
     if (row['ncr_id'] is String) {
@@ -256,6 +273,23 @@ class FakeRepositories extends http.BaseClient {
 
   List<Map<String, dynamic>> _rows(String table) {
     switch (table) {
+      case 'center_self_audits':
+        return [
+          for (final row in _table(table))
+            if (row['center_id'] != null)
+              row
+            else ...[
+              for (final audit in _table('audits')
+                  .where(
+                      (a) => a['participation_id'] == row['participation_id'])
+                  .take(1))
+                {
+                  ...row,
+                  'center_id': audit['center_id'],
+                  'assessment_id': row['participation_id'],
+                },
+            ],
+        ];
       case 'v_audit_reviewed_proof':
         final latest = <String, Map<String, dynamic>>{};
         for (final r in _table('audit_evidence_reviews')) {
@@ -367,10 +401,29 @@ class FakeRepositories extends http.BaseClient {
             }
         ];
       case 'v_ncr_dashboard':
+        return [
+          for (final center in _table('centers'))
+            if (center['is_active'] == true)
+              {
+                'center_id': center['id'],
+                for (final entry in const {
+                  'open': 'open_count',
+                  'in_progress': 'in_progress_count',
+                  'submitted_for_review': 'review_count',
+                  'resolved': 'resolved_count',
+                  'closed': 'closed_count',
+                  'overdue': 'overdue_count',
+                }.entries)
+                  entry.value: _table('ncrs')
+                      .where((ncr) =>
+                          ncr['center_id'] == center['id'] &&
+                          ncr['status'] == entry.key)
+                      .length,
+              },
+        ];
       case 'v_recurring_findings':
       case 'v_staff_competency_status':
       case 'v_center_competency_readiness':
-      case 'v_center_satisfaction_current':
       case 'v_center_satisfaction_monthly':
       case 'v_center_score_trend':
       case 'v_center_strengths_weaknesses':
@@ -391,6 +444,9 @@ class FakeRepositories extends http.BaseClient {
     return {
       'session_id': session['id'],
       'center_id': center['id'],
+      'template_id': session['template_id'],
+      'participation_id':
+          _eligibleId(session['id'] as String, center['id'] as String),
       'center_name_en': center['name_en'],
       'center_name_ar': center['name_ar'],
       'center_active': true,
@@ -578,7 +634,11 @@ class FakeRepositories extends http.BaseClient {
         rows.add(values);
         result.add(values);
       } else {
+        final changedOverallComment = table == 'audits' &&
+            existing['general_recommendations'] !=
+                values['general_recommendations'];
         existing.addAll(values);
+        if (changedOverallComment) bumpOfficial(existing);
         result.add(existing);
       }
     }
@@ -625,7 +685,7 @@ class FakeRepositories extends http.BaseClient {
       'id': id,
       'session_id': sessionId,
       'center_id': center,
-      'participation_id': const Uuid().v4(),
+      'participation_id': _eligibleId(sessionId, center),
       'template_id': session['template_id'],
       'period_start': session['period_start'],
       'period_end': session['period_end'],
@@ -644,6 +704,12 @@ class FakeRepositories extends http.BaseClient {
       .firstWhere((h) => h['id'] == id, orElse: () => throw const _Denied());
   bool _selfWritable(String id) {
     final h = _selfHeader(id);
+    if (h['center_id'] case final String centerId) {
+      return h['status'] == 'draft' &&
+          fixtures.simulation.permissions.managesCenter(centerId) &&
+          _table('centers').any((center) =>
+              center['id'] == centerId && center['is_active'] == true);
+    }
     final a = _table('audits')
         .firstWhere((a) => a['participation_id'] == h['participation_id']);
     return h['status'] == 'draft' &&
@@ -684,6 +750,101 @@ class FakeRepositories extends http.BaseClient {
           'created_at': DateTime.now().toIso8601String()
         });
         return params['p_id'];
+      case 'start_independent_self_assessment':
+      case 'revise_center_self_assessment':
+        final parent = params['p_parent_id'] == null
+            ? null
+            : _selfHeader(params['p_parent_id']);
+        final legacy = parent?['participation_id'];
+        final centerId = (parent?['center_id'] ??
+            _table('audits')
+                .where((a) => a['participation_id'] == legacy)
+                .firstOrNull?['center_id'] ??
+            params['p_center_id']) as String;
+        final template = parent?['template_id'] ?? params['p_template_id'];
+        final id = params['p_id'];
+        final assessment = parent?['assessment_id'] ?? legacy ?? id;
+        _require(fixtures.simulation.permissions.managesCenter(centerId) &&
+            _table('centers').any((center) =>
+                center['id'] == centerId && center['is_active'] == true) &&
+            _table('assessment_templates')
+                .any((t) => t['id'] == template && t['status'] == 'active'));
+        final existing = _table('center_self_audits')
+            .where((h) => h['id'] == id)
+            .firstOrNull;
+        if (existing != null) {
+          _require(existing['center_id'] == centerId &&
+              existing['template_id'] == template &&
+              existing['parent_self_audit_id'] == parent?['id']);
+          return id;
+        }
+        final versions = _table('center_self_audits')
+            .where((h) =>
+                (h['assessment_id'] ?? h['participation_id']) == assessment)
+            .toList();
+        _require(parent == null ||
+            parent['status'] == 'submitted' &&
+                parent['version'] == versions.length &&
+                versions.every((h) => h['status'] != 'draft'));
+        _table('center_self_audits').add({
+          'id': id,
+          'assessment_id': assessment,
+          'center_id': centerId,
+          'participation_id': legacy,
+          'template_id': template,
+          'parent_self_audit_id': parent?['id'],
+          'version': versions.length + 1,
+          'status': 'draft',
+          'row_version': 1,
+          'created_at': DateTime.now().toUtc().toIso8601String(),
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        });
+        if (parent != null) {
+          for (final row in _table('center_self_responses')
+              .where((r) => r['self_audit_id'] == parent['id'])
+              .toList()) {
+            _table('center_self_responses').add({
+              ...row,
+              'id': const Uuid().v4(),
+              'self_audit_id': id,
+              'row_version': 1,
+            });
+          }
+        }
+        return id;
+      case 'share_center_self_assessment':
+        final part = params['p_participation_id'];
+        final target = _rows('v_assessment_center_status')
+            .where((row) => row['participation_id'] == part)
+            .firstOrNull;
+        final id = params['p_snapshot_id'];
+        _require(target != null &&
+            fixtures.simulation.permissions.managesCenter(target['center_id']));
+        final auditId = target!['audit_id'];
+        final audit = auditId == null ? null : _audit(auditId);
+        _require(audit?['submitted_at'] == null &&
+            !_table('audit_evidence_reviews')
+                .any((r) => r['audit_id'] == auditId));
+        final shares = _table('center_self_shares');
+        final current =
+            shares.where((row) => row['participation_id'] == part).firstOrNull;
+        if (current?['snapshot_id'] == id) return id;
+        _require(current?['snapshot_id'] == params['p_expected_snapshot_id']);
+        if (id != null) {
+          final snapshot = _selfHeader(id);
+          _require(snapshot['center_id'] == target['center_id'] &&
+              snapshot['template_id'] == target['template_id'] &&
+              snapshot['status'] == 'submitted');
+        }
+        shares.removeWhere((row) => row['participation_id'] == part);
+        if (id != null) {
+          shares.add({
+            'participation_id': part,
+            'snapshot_id': id,
+            'center_id': target['center_id']
+          });
+        }
+        return id;
       case 'start_center_self_audit':
         final part = params['p_participation_id'];
         final a = _table('audits').firstWhere(
@@ -775,8 +936,9 @@ class FakeRepositories extends http.BaseClient {
           return old;
         }
         _require(_selfWritable(h['id']));
-        final a = _table('audits')
-            .firstWhere((a) => a['participation_id'] == h['participation_id']);
+        final centerId = h['center_id'] ??
+            _table('audits').firstWhere((a) =>
+                a['participation_id'] == h['participation_id'])['center_id'];
         final data = Map<String, dynamic>.from(params['p_metadata']);
         final row = {
           ...data,
@@ -785,7 +947,7 @@ class FakeRepositories extends http.BaseClient {
           'self_response_id': r['id'],
           'storage_bucket': 'self-audit-evidence',
           'storage_path':
-              "${a['center_id']}/${h['participation_id']}/${h['id']}/${params['p_id']}/${data['file_name']}",
+              "$centerId/${h['participation_id'] ?? h['assessment_id']}/${h['id']}/${params['p_id']}/${data['file_name']}",
           'upload_state': 'pending'
         };
         _table('center_self_evidence').add(row);
@@ -1130,6 +1292,7 @@ class FakeRepositories extends http.BaseClient {
           'discussion': true,
           'workflow_counts': true,
           'self_audit': true,
+          'independent_self_assessments': true,
           'formal_signoff': true
         };
       case 'save_center':
@@ -1236,6 +1399,37 @@ class FakeRepositories extends http.BaseClient {
             ? DateTime.now().toUtc().toIso8601String()
             : null;
         return null;
+      case 'add_audit_section_comment':
+        final a = _audit(params['p_audit_id']);
+        _require(
+            fixtures.simulation.permissions.canAuditCenter(a['center_id']));
+        final comments = _table('audit_section_comments');
+        final prior =
+            comments.where((row) => row['id'] == params['p_id']).firstOrNull;
+        final body = (params['p_body'] as String).trim();
+        if (prior != null) {
+          _require(prior['audit_id'] == a['id'] &&
+              prior['section_id'] == params['p_section_id'] &&
+              prior['body'] == body);
+          return prior;
+        }
+        _require(['draft', 'rejected'].contains(a['status']) &&
+            _table('assessment_sections').any((section) =>
+                section['id'] == params['p_section_id'] &&
+                section['template_id'] == a['template_id'] &&
+                section['is_active'] == true) &&
+            body.isNotEmpty &&
+            body.length <= 8000);
+        final row = {
+          'id': params['p_id'],
+          'audit_id': a['id'],
+          'section_id': params['p_section_id'],
+          'body': body,
+          'created_at': DateTime.now().toUtc().toIso8601String()
+        };
+        comments.add(row);
+        bumpOfficial(a);
+        return row;
       case 'load_audit_review':
         final a = _audit(params['p_audit_id']);
         _require(
@@ -1370,7 +1564,13 @@ class FakeRepositories extends http.BaseClient {
               .toList()
             ..sort(
                 (a, b) => (b['version'] as int).compareTo(a['version'] as int));
-          audit['self_audit_baseline_id'] ??= headers.firstOrNull?['id'];
+          if (audit['submitted_at'] == null) {
+            audit['self_audit_baseline_id'] = _table('center_self_shares')
+                    .where((row) =>
+                        row['participation_id'] == audit['participation_id'])
+                    .firstOrNull?['snapshot_id'] ??
+                headers.firstOrNull?['id'];
+          }
           audit['submitted_at'] ??= DateTime.now().toIso8601String();
           audit['tester_self_baseline'] ??=
               self == null ? null : jsonDecode(jsonEncode(self));

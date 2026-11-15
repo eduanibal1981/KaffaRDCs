@@ -12,6 +12,7 @@ import 'package:kafaa_app/data/models/primitives.dart';
 import 'package:kafaa_app/data/repositories/assessment_repository.dart';
 import 'package:kafaa_app/data/repositories/assessment_session_repository.dart';
 import 'package:kafaa_app/data/repositories/audit_repository.dart';
+import 'package:kafaa_app/data/repositories/self_audit_repository.dart';
 import 'package:kafaa_app/data/supabase/supabase_providers.dart';
 import 'package:kafaa_app/features/admin/role_simulation.dart';
 import 'package:kafaa_app/features/admin/testing/fake_repositories.dart';
@@ -53,22 +54,28 @@ void main() {
     });
     await container.read(connectivityProvider.future);
     final sessions = container.read(assessmentSessionRepositoryProvider);
-    final id = await sessions.join(
-        fixture.sessionId, fixture.simulation.centerIds.first);
+    final centerId = fixture.simulation.centerIds.first;
+    final self = container.read(selfAuditRepositoryProvider);
+    final draft = await self.startIndependent(
+        id: 'centre-self', centerId: centerId, templateId: fixture.templateId);
+    expect(draft.participationId, isEmpty);
     final blueprint = await container
         .read(assessmentRepositoryProvider)
         .loadBlueprint(fixture.templateId);
     expect(blueprint.scorable.length, 4);
     expect(blueprint.maxPoints, 12);
     for (final criterion in blueprint.scorable) {
-      backend.saveLocal('self', id, {
-        'criterion_id': criterion.id,
-        'scale_option_id': criterion.options.first.id
-      });
+      await self.saveResponse(
+          draft, criterion, {'scale_option_id': criterion.options.first.id});
     }
-    backend.submitSelf(id);
+    await self.submitSnapshot(draft);
     expect(fixture.tables['ncrs'], isEmpty);
+    final participation = (await sessions.participants(fixture.sessionId))
+        .singleWhere((row) => row.centerId == centerId);
+    expect(participation.auditId, isNull);
+    await self.shareSnapshot(participation.id, draft.id, null);
     fixture.simulation = simulation(PreviewRole.roamingAuditor);
+    final id = await sessions.join(fixture.sessionId, centerId);
     await container.read(auditTeamRepositoryProvider).save(id,
         name: 'Sample lead',
         job: 'Sample Nurse',
@@ -102,8 +109,8 @@ void main() {
     final official = await audits.summary(id);
     expect(official!.totalPoints, 4);
     final baseline = fixture.tables['audits']!
-        .firstWhere((a) => a['id'] == id)['tester_self_baseline'];
-    expect(baseline, isNotNull);
+        .firstWhere((a) => a['id'] == id)['self_audit_baseline_id'];
+    expect(baseline, draft.id);
     fixture.simulation = simulation(PreviewRole.directorate);
     await audits.setStatus(id, AuditStatus.rejected,
         reviewNotes: 'Sample revision');
@@ -120,7 +127,7 @@ void main() {
     expect((await audits.summary(id))!.status, AuditStatus.approved);
     expect(
         fixture.tables['audits']!
-            .firstWhere((a) => a['id'] == id)['tester_self_baseline'],
+            .firstWhere((a) => a['id'] == id)['self_audit_baseline_id'],
         baseline);
     expect(fixture.tables['ncrs']!.where((n) => n['audit_id'] == id),
         hasLength(4));

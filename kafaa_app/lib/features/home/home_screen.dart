@@ -20,6 +20,7 @@ import '../auth/session.dart';
 import '../center_head/center_quality_dashboard_screen.dart';
 import '../directorate/directorate_dashboard_screen.dart';
 import '../admin/testing/tester_workspace.dart';
+import '../audit/auditor_work_screen.dart';
 
 /// The dashboard shows a different first screen per role: the directorate
 /// opens on the league table, a centre manager opens on their own centre,
@@ -48,6 +49,9 @@ class HomeScreen extends ConsumerWidget {
     }
     if (perms.primaryRole == AppRole.centerManager) {
       return const CenterQualityDashboardScreen();
+    }
+    if (perms.primaryRole == AppRole.auditor) {
+      return const AuditorWorkScreen();
     }
     final notifications = ref.watch(notificationsProvider);
     final unread =

@@ -74,7 +74,8 @@ class Permissions {
 
   bool get canCreateAssessments => isDirectorate;
   bool canJoinCenter(String centerId) =>
-      canAuditCenter(centerId) || managesCenter(centerId);
+      grants.any((g) => g.role == AppRole.auditor &&
+          (g.centerId == null || g.centerId == centerId));
 
   bool get canRunAudits => isAuditor || isDirectorate;
   bool get canApproveAudits => isDirectorate;

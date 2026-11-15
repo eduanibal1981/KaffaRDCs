@@ -43,6 +43,8 @@ void main() {
       for (final path in [
         '/directorate',
         '/directorate/centers',
+        '/directorate/structures',
+        '/directorate/structures/saved',
         '/assessments/campaign/progress',
         '/audits/audit/review'
       ]) {

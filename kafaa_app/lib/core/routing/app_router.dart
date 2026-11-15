@@ -32,6 +32,7 @@ import '../../features/centers/centre_detail_screen.dart';
 import '../../features/centers/centres_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/self_audit/self_audit_screen.dart';
+import '../../features/self_audit/independent_self_assessment_screen.dart';
 import '../../features/self_audit/self_audit_history_screen.dart';
 import '../../features/self_audit/audit_gap_screen.dart';
 import '../../data/models/self_audit.dart';
@@ -226,7 +227,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
           path: '/directorate/centers',
           parentNavigatorKey: rootKey,
-          builder: (_, __) => const CenterRegistryScreen()),
+          builder: (_, state) => CenterRegistryScreen(
+              includeInactiveByDefault:
+                  state.uri.queryParameters['includeInactive'] == '1')),
+      GoRoute(
+          path: '/directorate/structures',
+          parentNavigatorKey: rootKey,
+          builder: (_, __) => const AuditStructuresScreen(publishedOnly: true),
+          routes: [
+            GoRoute(
+                path: ':templateId',
+                builder: (_, state) => StructureEditorScreen(
+                    publishedId: state.pathParameters['templateId']!)),
+          ]),
       GoRoute(
           path: '/assessments/:sessionId/progress',
           parentNavigatorKey: rootKey,
@@ -243,6 +256,30 @@ final routerProvider = Provider<GoRouter>((ref) {
           builder: (_, s) => AuditDialogueScreen(
               auditId: s.pathParameters['auditId']!,
               criterionId: s.uri.queryParameters['criterionId'])),
+      GoRoute(
+        path: '/self-assessments',
+        parentNavigatorKey: rootKey,
+        builder: (_, s) => IndependentSelfAssessmentScreen(
+            centerId: s.uri.queryParameters['centerId']),
+        routes: [
+          GoRoute(
+            path: 'new',
+            builder: (_, s) => IndependentSelfAssessmentScreen(
+                start: true, centerId: s.uri.queryParameters['centerId']),
+          ),
+          GoRoute(
+            path: 'view/:assessmentId',
+            builder: (_, s) => SelfAuditScreen(
+              key: ValueKey(s.uri),
+              contextKey: SelfAuditContext.independent(
+                s.uri.queryParameters['centerId'] ?? '',
+                s.pathParameters['assessmentId'],
+                snapshotId: s.uri.queryParameters['snapshotId'],
+              ),
+            ),
+          ),
+        ],
+      ),
       GoRoute(
           path: '/assessments/:sessionId/self-audit/history',
           parentNavigatorKey: rootKey,
@@ -294,8 +331,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/audits/:auditId/run',
         parentNavigatorKey: rootKey,
-        builder: (_, state) =>
-            AuditRunnerScreen(auditId: state.pathParameters['auditId']!),
+        builder: (_, state) => AuditRunnerScreen(
+          auditId: state.pathParameters['auditId']!,
+          sectionId: state.uri.queryParameters['sectionId'],
+        ),
       ),
       GoRoute(
         path: '/centres/:centerId/survey-qr',
@@ -373,8 +412,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: Routes.actions,
-            pageBuilder: (_, state) =>
-                const NoTransitionPage(child: NcrScreen()),
+            pageBuilder: (_, state) {
+              final centerId = state.uri.queryParameters['centerId'];
+              return NoTransitionPage(
+                child: NcrScreen(key: ValueKey(centerId), centerId: centerId),
+              );
+            },
             routes: [
               GoRoute(
                 path: ':ncrId',
@@ -424,6 +467,17 @@ final routerProvider = Provider<GoRouter>((ref) {
 /// Explicit role/context checks apply equally to typed URLs and navigation.
 String? roleRouteRedirect(String path, Permissions permissions,
     {required Permissions actual, required bool preview, String? centerId}) {
+  if (path.startsWith('/self-assessments')) {
+    if (path.startsWith('/self-assessments/view/') &&
+        (centerId == null || !permissions.canReadSelfAudit(centerId))) {
+      return Routes.home;
+    }
+    if (!path.startsWith('/self-assessments/view/') &&
+        (!permissions.isCenterManager ||
+            (centerId != null && !permissions.managesCenter(centerId)))) {
+      return Routes.home;
+    }
+  }
   if ((path.contains('/self-audit') || path.endsWith('/gap')) &&
       (centerId == null || !permissions.canReadSelfAudit(centerId))) {
     return Routes.home;

@@ -18,6 +18,127 @@ class SelfAuditRepository {
   final SyncService sync;
   static const uuid = Uuid();
 
+  Future<SelfAudit> startIndependent(
+      {required String id,
+      required String centerId,
+      required String templateId}) async {
+    final accepted =
+        await client.rpc('start_independent_self_assessment', params: {
+      'p_id': id,
+      'p_center_id': centerId,
+      'p_template_id': templateId,
+    }) as String;
+    return loadHeader(accepted);
+  }
+
+  Future<SelfAudit> confirmIndependentStart(
+      String centerId, String templateId) async {
+    final key = 'self.start.request.$centerId.$templateId';
+    final existingId = await store.readCache<String>(key);
+    final id =
+        existingId == null || existingId.isEmpty ? uuid.v4() : existingId;
+    await store.putCache(key, id);
+    final header = await startIndependent(
+        id: id, centerId: centerId, templateId: templateId);
+    await store.putCache(key, '');
+    return header;
+  }
+
+  Future<void> reviseIndependent(SelfAudit parent) async {
+    final key = 'self.revision.request.${parent.id}';
+    final existingId = await store.readCache<String>(key);
+    final id =
+        existingId == null || existingId.isEmpty ? uuid.v4() : existingId;
+    await store.putCache(key, id);
+    final accepted = await client.rpc('revise_center_self_assessment', params: {
+      'p_id': id,
+      'p_parent_id': parent.id,
+    }) as String;
+    await loadHeader(accepted);
+    await store.putCache(key, '');
+  }
+
+  Future<List<SelfAudit>> history(String centerId,
+      {String? assessmentId,
+      String? status,
+      int offset = 0,
+      int limit = 25}) async {
+    final key = 'self.history.$centerId.$assessmentId.$status.$offset.$limit';
+    List<dynamic> rows;
+    try {
+      var query = client.rest
+          .from('center_self_audits')
+          .select()
+          .eq('center_id', centerId);
+      if (assessmentId != null) query = query.eq('assessment_id', assessmentId);
+      if (status != null) query = query.eq('status', status);
+      rows = await query
+          .order(
+              assessmentId != null
+                  ? 'version'
+                  : status == 'submitted'
+                      ? 'submitted_at'
+                      : 'updated_at',
+              ascending: false,
+              nullsFirst: false)
+          .order('id')
+          .range(offset, offset + limit - 1);
+      await store.putCache(key, rows);
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
+      final cached = await store.readCache<List<dynamic>>(key);
+      final accepted = assessmentId == null || offset != 0
+          ? null
+          : await store.readCache<Map<String, dynamic>>(
+              'self.history.accepted.$assessmentId');
+      if (cached == null && accepted == null) rethrow;
+      rows = cached ?? [];
+      if (accepted != null) {
+        rows = {
+          for (final row in rows) row['id']: row,
+          ...accepted,
+        }
+            .values
+            .where((row) =>
+                row['center_id'] == centerId &&
+                (status == null || row['status'] == status))
+            .toList()
+          ..sort(
+              (a, b) => (b['version'] as int).compareTo(a['version'] as int));
+      }
+    }
+    return rows.map((r) => SelfAudit(Map<String, dynamic>.from(r))).toList();
+  }
+
+  Future<String?> sharedSnapshot(String participationId) async {
+    final key = 'self.share.$participationId';
+    try {
+      final row = await client.rest
+          .from('center_self_shares')
+          .select('snapshot_id')
+          .eq('participation_id', participationId)
+          .maybeSingle();
+      final id = row?['snapshot_id'] as String?;
+      await store.putCache(key, id ?? '');
+      return id;
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
+      final id = await store.readCache<String>(key);
+      if (id == null) rethrow;
+      return id.isEmpty ? null : id;
+    }
+  }
+
+  Future<void> shareSnapshot(
+      String participationId, String? snapshotId, String? expectedId) async {
+    await client.rpc('share_center_self_assessment', params: {
+      'p_participation_id': participationId,
+      'p_snapshot_id': snapshotId,
+      'p_expected_snapshot_id': expectedId,
+    });
+    await store.putCache('self.share.$participationId', snapshotId ?? '');
+  }
+
   Future<List<SelfAudit>> listVersions(String participationId) async {
     final key = 'self.versions.$participationId';
     List<dynamic> rows;
@@ -71,7 +192,7 @@ class SelfAuditRepository {
           .eq('id', id)
           .maybeSingle();
       if (row != null) {
-        await store.putCache(key, row);
+        await _cacheHeader(row);
         return SelfAudit(row);
       }
       final pending = (await store.pending()).any((e) =>
@@ -337,8 +458,18 @@ class SelfAuditRepository {
     final row = Map<String, dynamic>.from(await client.rpc(
         'submit_center_self_audit',
         params: {'p_id': h.id, 'p_expected_version': current.revision}));
-    await store.putCache('self.header.${h.id}', row);
+    await _cacheHeader(row);
+    if (h.participationId.isEmpty) return;
     final key = 'self.versions.accepted.${h.participationId}';
+    final accepted = await store.readCache<Map<String, dynamic>>(key) ?? {};
+    await store.putCache(key, {...accepted, h.id: row});
+  }
+
+  Future<void> _cacheHeader(Map<String, dynamic> row) async {
+    final h = SelfAudit(row);
+    await store.putCache('self.header.${h.id}', row);
+    if (h.assessmentId.isEmpty || h.centerId == null) return;
+    final key = 'self.history.accepted.${h.assessmentId}';
     final accepted = await store.readCache<Map<String, dynamic>>(key) ?? {};
     await store.putCache(key, {...accepted, h.id: row});
   }

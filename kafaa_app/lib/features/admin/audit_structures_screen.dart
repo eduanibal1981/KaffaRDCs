@@ -10,68 +10,84 @@ import '../auth/session.dart';
 import 'structure_errors.dart';
 
 class AuditStructuresScreen extends ConsumerWidget {
-  const AuditStructuresScreen({super.key});
+  const AuditStructuresScreen({super.key, this.publishedOnly = false});
+
+  final bool publishedOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    if (!ref.watch(permissionsProvider).canConfigureTemplate) {
+    final permissions = ref.watch(permissionsProvider);
+    if (!(publishedOnly
+        ? permissions.isDirectorate
+        : permissions.canConfigureTemplate)) {
       return Scaffold(
           appBar: AppBar(title: Text(l.structuresTitle)),
           body:
               EmptyView(message: l.errorPermission, icon: Icons.lock_outline));
     }
+    final versionsProvider =
+        publishedOnly ? auditStructuresProvider : adminStructuresProvider;
     return Scaffold(
       appBar: AppBar(title: Text(l.structuresTitle)),
       body: AsyncView(
-          value: ref.watch(adminStructuresProvider),
-          onRetry: () => ref.invalidate(adminStructuresProvider),
-          builder: (versions) => RefreshIndicator(
-                onRefresh: () async {
+          value: ref.watch(versionsProvider),
+          onRetry: () => ref.invalidate(versionsProvider),
+          builder: (versions) => versions.isEmpty
+              ? EmptyView(message: l.structuresNone)
+              : RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(versionsProvider);
+                    await ref.read(versionsProvider.future);
+                  },
+                  child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      children: [
+                        for (final version in versions)
+                          Card(
+                              child: ListTile(
+                            leading: Icon(version.status == 'draft'
+                                ? Icons.edit_note
+                                : Icons.account_tree_outlined),
+                            title: Text(
+                                context.pick(version.nameEn, version.nameAr)),
+                            subtitle: Text(version.status == 'draft'
+                                ? l.structuresDraft
+                                : version.isDefault
+                                    ? l.structuresDefault
+                                    : l.structuresSaved),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () async {
+                              if (publishedOnly) {
+                                context.push(
+                                    '/directorate/structures/${version.id}');
+                                return;
+                              }
+                              await context
+                                  .push('/more/admin/structure/${version.id}');
+                              ref.invalidate(adminStructuresProvider);
+                              ref.invalidate(auditStructuresProvider);
+                              ref.invalidate(blueprintProvider);
+                            },
+                          )),
+                      ]),
+                )),
+      floatingActionButton: publishedOnly
+          ? null
+          : FloatingActionButton.extended(
+              icon: const Icon(Icons.add),
+              label: Text(l.structuresNew),
+              onPressed: () async {
+                final id = await Navigator.of(context).push<String>(
+                    MaterialPageRoute(
+                        builder: (_) => const StructureImportScreen()));
+                if (id != null && context.mounted) {
+                  await context.push('/more/admin/structure/$id');
                   ref.invalidate(adminStructuresProvider);
-                  await ref.read(adminStructuresProvider.future);
-                },
-                child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                    children: [
-                      for (final version in versions)
-                        Card(
-                            child: ListTile(
-                          leading: Icon(version.status == 'draft'
-                              ? Icons.edit_note
-                              : Icons.account_tree_outlined),
-                          title: Text(
-                              context.pick(version.nameEn, version.nameAr)),
-                          subtitle: Text(version.status == 'draft'
-                              ? l.structuresDraft
-                              : version.isDefault
-                                  ? l.structuresDefault
-                                  : l.structuresSaved),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () async {
-                            await context
-                                .push('/more/admin/structure/${version.id}');
-                            ref.invalidate(adminStructuresProvider);
-                            ref.invalidate(auditStructuresProvider);
-                            ref.invalidate(blueprintProvider);
-                          },
-                        )),
-                    ]),
-              )),
-      floatingActionButton: FloatingActionButton.extended(
-          icon: const Icon(Icons.add),
-          label: Text(l.structuresNew),
-          onPressed: () async {
-            final id = await Navigator.of(context).push<String>(
-                MaterialPageRoute(
-                    builder: (_) => const StructureImportScreen()));
-            if (id != null && context.mounted) {
-              await context.push('/more/admin/structure/$id');
-              ref.invalidate(adminStructuresProvider);
-              ref.invalidate(auditStructuresProvider);
-              ref.invalidate(blueprintProvider);
-            }
-          }),
+                  ref.invalidate(auditStructuresProvider);
+                  ref.invalidate(blueprintProvider);
+                }
+              }),
     );
   }
 }

@@ -72,7 +72,8 @@ void main() {
       () {
     expect(admin.canCreateAssessments, isTrue);
     expect(manager.canCreateAssessments, isFalse);
-    expect(manager.canJoinCenter('centre'), isTrue);
+    expect(manager.canJoinCenter('centre'), isFalse);
+    expect(admin.canJoinCenter('centre'), isFalse);
     expect(manager.canJoinCenter('other'), isFalse);
     expect(manager.canAuditCenter('centre'), isFalse);
     final auditor = Permissions([
@@ -144,7 +145,8 @@ void main() {
           scrollable: find.byType(Scrollable).first);
       expect(tester.takeException(), isNull);
     });
-    testWidgets('manager can join without publication controls ($locale)',
+    testWidgets(
+        'manager sees official campaign without join or publish ($locale)',
         (tester) async {
       tester.view.physicalSize = const Size(375, 820);
       tester.view.devicePixelRatio = 1;
@@ -172,7 +174,7 @@ void main() {
       expect(
           find.text(
               locale == 'en' ? 'Join assessment' : 'الانضمام إلى التقييم'),
-          findsOneWidget);
+          findsNothing);
       expect(find.text(locale == 'en' ? 'Publish assessment' : 'نشر التقييم'),
           findsNothing);
       expect(tester.takeException(), isNull);

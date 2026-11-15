@@ -4,6 +4,7 @@ import '../../data/models/self_audit.dart';
 import '../../data/repositories/self_audit_repository.dart';
 import '../../data/repositories/gap_analysis_repository.dart';
 import '../../data/repositories/assessment_session_repository.dart';
+import '../../data/repositories/directorate_capabilities.dart';
 
 class GapRequest {
   const GapRequest(this.context, {this.provisional = false, this.selfId});
@@ -32,9 +33,15 @@ final auditGapProvider =
       (p) => p.centerId == r.context.centerId && p.joinedAt != null);
   final id = r.provisional ? p.auditId : p.officialAuditId;
   if (id == null) throw StateError('KAFAA_GAP_NO_OFFICIAL');
+  final capable = (await ref.watch(directorateCapabilitiesProvider.future))[
+          'independent_self_assessments'] ==
+      true;
+  final selfId = r.provisional && capable
+      ? await ref.watch(selfAuditRepositoryProvider).sharedSnapshot(p.id)
+      : r.selfId;
   return ref.watch(gapAnalysisRepositoryProvider).compare(
       participationId: p.id,
       officialAuditId: id,
       provisional: r.provisional,
-      selectedSelfId: r.selfId);
+      selectedSelfId: selfId);
 });

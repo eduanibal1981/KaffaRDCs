@@ -179,6 +179,7 @@ class SyncService extends StateNotifier<SyncStatus> {
             await _store.markFailed(entry.id, e.message,
                 expected: entry,
                 permanent: entry.payload.containsKey('entity_key') ||
+                    e.message.contains('KAFAA_AUDITOR_JOIN_REQUIRED') ||
                     entry.kind == OutboxKind.responseUpsert);
             failedIds.add(entry.id);
             if (mounted) state = state.copyWith(lastError: e.message);
@@ -373,6 +374,12 @@ class SyncService extends StateNotifier<SyncStatus> {
             .eq('id', id)
             .single();
         await _store.putCache('self.header.$id', row);
+        if (row['assessment_id'] case final String assessmentId) {
+          final historyKey = 'self.history.accepted.$assessmentId';
+          final history =
+              await _store.readCache<Map<String, dynamic>>(historyKey) ?? {};
+          await _store.putCache(historyKey, {...history, id: row});
+        }
         final key = 'self.versions.accepted.${row['participation_id']}';
         final versions =
             await _store.readCache<Map<String, dynamic>>(key) ?? {};
@@ -411,6 +418,14 @@ class SyncService extends StateNotifier<SyncStatus> {
         await _store.putCache('registry.saved.${payload['p_id']}', row);
       case OutboxKind.auditMessage:
         await _client.rpc('post_audit_message', params: payload);
+      case OutboxKind.auditSectionComment:
+        final row =
+            await _client.rpc('add_audit_section_comment', params: payload);
+        final key = 'audit.sectionComments.accepted.${payload['p_audit_id']}';
+        final accepted =
+            await _store.readCache<Map<String, dynamic>>(key) ?? {};
+        await _store
+            .putCache(key, {...accepted, payload['p_id'] as String: row});
 
       case OutboxKind.assessmentJoin:
         final sessionId = payload['session_id'] as String;
@@ -499,6 +514,10 @@ class SyncService extends StateNotifier<SyncStatus> {
             .eq('id', id)
             .select('id')
             .single();
+        if (payload.containsKey('general_recommendations')) {
+          await _store.putCache('audit.overallComment.$id',
+              payload['general_recommendations'] as String? ?? '');
+        }
 
       case OutboxKind.sampleInsert:
         await _client.from('audit_samples').upsert(

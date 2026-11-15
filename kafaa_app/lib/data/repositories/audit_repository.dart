@@ -425,6 +425,109 @@ class AuditRepository {
     _sync.scheduleSync(delay: Duration.zero);
   }
 
+  Future<String> overallComment(String auditId) async {
+    final key = 'audit.overallComment.$auditId';
+    String? value;
+    Object? networkError;
+    try {
+      final row = await _client
+          .from('audits')
+          .select('general_recommendations')
+          .eq('id', auditId)
+          .single()
+          .retry(enabled: false);
+      value = row['general_recommendations'] as String? ?? '';
+      await _store.putCache(key, value);
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
+      value = await _store.readCache<String>(key);
+      networkError = error;
+    }
+    for (final entry in await _store.pending()) {
+      if (entry.kind == OutboxKind.auditUpdate &&
+          entry.payload['id'] == auditId &&
+          entry.payload.containsKey('general_recommendations')) {
+        value = entry.payload['general_recommendations'] as String? ?? '';
+      }
+    }
+    if (value == null) throw networkError!;
+    return value;
+  }
+
+  Future<List<AuditSectionComment>> sectionComments(String auditId) async {
+    final key = 'audit.sectionComments.$auditId';
+    final rows = <Map<String, dynamic>>[];
+    Map<String, dynamic>? accepted;
+    try {
+      for (var offset = 0;;) {
+        final page = await _client
+            .from('audit_section_comments')
+            .select('id,section_id,body,created_at')
+            .eq('audit_id', auditId)
+            .order('created_at')
+            .order('id')
+            .range(offset, offset + 199)
+            .retry(enabled: false);
+        rows.addAll(page);
+        if (page.length < 200) break;
+        offset += page.length;
+      }
+      await _store.putCache(key, rows);
+    } on PostgrestException catch (error) {
+      if (const ['PGRST205', '42P01'].contains(error.code)) {
+        throw const AuditSectionCommentsUnavailable();
+      }
+      rethrow;
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
+      rows.clear();
+      final cached = await _store.readCache<List<dynamic>>(key);
+      rows.addAll(cached?.cast<Map<String, dynamic>>() ?? const []);
+      accepted = await _store.readCache<Map<String, dynamic>>(
+          'audit.sectionComments.accepted.$auditId');
+    }
+    final comments = <String, AuditSectionComment>{
+      for (final row in [
+        ...rows,
+        ...?accepted?.values.cast<Map<String, dynamic>>()
+      ])
+        row['id'] as String: AuditSectionComment(
+            sectionId: row['section_id'] as String,
+            body: row['body'] as String),
+    };
+    for (final entry in await _store.pending()) {
+      final p = entry.payload;
+      if (entry.kind == OutboxKind.auditSectionComment &&
+          p['p_audit_id'] == auditId) {
+        comments.putIfAbsent(
+            p['p_id'] as String,
+            () => AuditSectionComment(
+                  sectionId: p['p_section_id'] as String,
+                  body: p['p_body'] as String,
+                  pending: true,
+                  error: entry.lastError,
+                ));
+      }
+    }
+    return comments.values.toList();
+  }
+
+  Future<void> addSectionComment(
+      String auditId, String sectionId, String body) async {
+    final id = _uuid.v4();
+    await _store.enqueue(
+        OutboxKind.auditSectionComment,
+        {
+          'p_id': id,
+          'p_audit_id': auditId,
+          'p_section_id': sectionId,
+          'p_body': body.trim(),
+        },
+        dedupeKey: 'audit-section-comment:$id');
+    await _sync.refreshPendingCount();
+    _sync.scheduleSync(delay: Duration.zero);
+  }
+
   /// Status transitions go straight to the server: the auditor needs to
   /// know immediately whether a submission was accepted.
   Future<void> setStatus(String auditId, AuditStatus status,
@@ -617,6 +720,36 @@ List<String> pickSample(List<String> pool, int size, String seed) {
   final shuffled = [...unique]..shuffle(random);
   return shuffled.take(size).toList()..sort();
 }
+
+class AuditSectionComment {
+  const AuditSectionComment(
+      {required this.sectionId,
+      required this.body,
+      this.pending = false,
+      this.error});
+  final String sectionId;
+  final String body;
+  final bool pending;
+  final String? error;
+}
+
+class AuditSectionCommentsUnavailable implements Exception {
+  const AuditSectionCommentsUnavailable();
+}
+
+final auditOverallCommentProvider = FutureProvider.autoDispose
+    .family<String, String>(
+        (ref, id) => ref.watch(auditRepositoryProvider).overallComment(id));
+
+final auditSectionCommentsProvider = FutureProvider.autoDispose
+    .family<List<AuditSectionComment>, String>((ref, id) {
+  ref.listen(syncServiceProvider, (previous, next) {
+    if (previous?.pending != next.pending || previous?.state != next.state) {
+      ref.invalidateSelf();
+    }
+  });
+  return ref.watch(auditRepositoryProvider).sectionComments(id);
+});
 
 final auditRepositoryProvider = Provider<AuditRepository>(
   (ref) => AuditRepository(

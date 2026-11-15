@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../data/repositories/directorate_capabilities.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -22,6 +23,7 @@ import '../admin/role_simulation.dart';
 import '../admin/testing/tester_workspace.dart';
 import 'audit_controller.dart';
 import 'audit_general_info_sheet.dart';
+import 'audit_section_content.dart';
 import 'criterion_sheet.dart';
 import 'scale_choice_row.dart';
 
@@ -30,8 +32,9 @@ enum _Filter { all, unscored, findings }
 /// The scoring workspace: the checklist grouped by area and section, with
 /// live totals, a progress indicator, and a review-then-submit step.
 class AuditRunnerScreen extends ConsumerStatefulWidget {
-  const AuditRunnerScreen({super.key, required this.auditId});
+  const AuditRunnerScreen({super.key, required this.auditId, this.sectionId});
   final String auditId;
+  final String? sectionId;
 
   @override
   ConsumerState<AuditRunnerScreen> createState() => _AuditRunnerScreenState();
@@ -46,10 +49,31 @@ class _AuditRunnerScreenState extends ConsumerState<AuditRunnerScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final state = ref.watch(auditRunnerProvider(widget.auditId));
+    final section = state.valueOrNull?.blueprint.sections
+        .where((s) => s.isActive && s.id == widget.sectionId)
+        .firstOrNull;
+    final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor:
+          widget.sectionId != null && theme.brightness == Brightness.light
+              ? KafaaColors.dashboardBackground
+              : null,
       appBar: AppBar(
-        title: Text(l10n.auditsTitle),
+        title: Text(section == null
+            ? l10n.auditsTitle
+            : context.pick(section.nameEn, section.nameAr)),
+        backgroundColor:
+            widget.sectionId == null ? null : KafaaColors.dashboardNavy,
+        foregroundColor: widget.sectionId == null ? null : Colors.white,
+        titleTextStyle: widget.sectionId == null
+            ? null
+            : theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+        systemOverlayStyle:
+            widget.sectionId == null ? null : SystemUiOverlayStyle.light,
+        toolbarHeight: widget.sectionId == null
+            ? null
+            : 32 + MediaQuery.textScalerOf(context).scale(20),
         actions: [
           if (ref
                   .watch(directorateCapabilitiesProvider)
@@ -90,6 +114,26 @@ class _AuditRunnerScreenState extends ConsumerState<AuditRunnerScreen> {
               ref
                   .watch(permissionsProvider)
                   .canAuditCenter(data.summary.centerId);
+
+          if (section != null) {
+            return AuditSectionContent(
+              key: ValueKey(section.id),
+              audit: data,
+              section: section,
+              canEdit: canEdit,
+              pointBuilder: (criterion, index, total) => CriterionTile(
+                key: ValueKey(criterion.id),
+                auditId: widget.auditId,
+                criterion: criterion,
+                response: data.responses[criterion.id],
+                saving: data.savingCriterionIds.contains(criterion.id),
+                plainLanguage: _plainLanguage,
+                canEdit: canEdit,
+                centerId: data.summary.centerId,
+                positionLabel: l10n.auditorPointPosition(index + 1, total),
+              ),
+            );
+          }
 
           if (MediaQuery.sizeOf(context).width >= 1000) {
             final items = data.blueprint.scorable;
@@ -472,6 +516,7 @@ class CriterionTile extends ConsumerWidget {
     required this.plainLanguage,
     required this.canEdit,
     required this.centerId,
+    this.positionLabel,
   });
 
   final String auditId;
@@ -481,6 +526,7 @@ class CriterionTile extends ConsumerWidget {
   final bool plainLanguage;
   final bool canEdit;
   final String centerId;
+  final String? positionLabel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -528,6 +574,10 @@ class CriterionTile extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (positionLabel != null) ...[
+            Text(positionLabel!, style: theme.textTheme.labelLarge),
+            const SizedBox(height: 8),
+          ],
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -545,7 +595,10 @@ class CriterionTile extends ConsumerWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(text, style: theme.textTheme.bodyMedium),
+                child: Text(text,
+                    style: positionLabel == null
+                        ? theme.textTheme.bodyMedium
+                        : theme.textTheme.titleMedium),
               ),
               if (saving)
                 const Padding(
@@ -586,6 +639,7 @@ class CriterionTile extends ConsumerWidget {
             options: criterion.options,
             selectedLevel: isNa ? null : selectedLevel,
             enabled: canEdit,
+            stacked: positionLabel != null,
             onSelected: (option) => controller.score(criterion, option),
           ),
 
@@ -600,6 +654,16 @@ class CriterionTile extends ConsumerWidget {
                     ? (v) => controller.setNotApplicable(criterion, v)
                     : null,
               ),
+            ),
+          ],
+
+          if (positionLabel != null) ...[
+            const SizedBox(height: 12),
+            AuditPointComment(
+              auditId: auditId,
+              criterion: criterion,
+              saved: response?.comment as String? ?? '',
+              canEdit: canEdit,
             ),
           ],
 

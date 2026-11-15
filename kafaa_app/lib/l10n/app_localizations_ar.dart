@@ -1778,6 +1778,98 @@ class AppL10nAr extends AppL10n {
   String get directorateOverview => 'نظرة عامة للمديرية';
 
   @override
+  String get auditorWorkTitle => 'عمل المدقّق';
+
+  @override
+  String get auditorStartAudit => 'بدء التدقيق';
+
+  @override
+  String get auditorResumeAudit => 'استئناف التدقيق';
+
+  @override
+  String get auditorCampaign => 'حملة التدقيق';
+
+  @override
+  String auditorPointPosition(int point, int total) {
+    return 'البند $point من $total';
+  }
+
+  @override
+  String get auditorPointComment => 'تعليق على البند';
+
+  @override
+  String get auditorSectionComment => 'تعليق على القسم';
+
+  @override
+  String get auditorSectionComments => 'تعليقات الأقسام';
+
+  @override
+  String get auditorSectionCommentsUnavailable =>
+      'تعليقات الأقسام غير متاحة على هذا الخادم.';
+
+  @override
+  String get auditorOverallComment => 'تعليق عام على التدقيق';
+
+  @override
+  String get auditorPreviousPoint => 'البند السابق';
+
+  @override
+  String get auditorNextPoint => 'البند التالي';
+
+  @override
+  String get auditorAddComment => 'إضافة تعليق';
+
+  @override
+  String get auditorSaveComment => 'حفظ التعليق';
+
+  @override
+  String get auditorCommentPlaceholder => 'أدخل تعليقًا';
+
+  @override
+  String get directorateViewCentres => 'عرض المراكز';
+
+  @override
+  String get directorateViewStructures => 'عرض الهياكل';
+
+  @override
+  String get directorateAwaitingApproval => 'بانتظار الاعتماد';
+
+  @override
+  String get directorateNoPendingAudits =>
+      'لا توجد عمليات تدقيق بانتظار الاعتماد';
+
+  @override
+  String get directorateOpenReview => 'فتح المراجعة';
+
+  @override
+  String get directorateAuditProgress => 'تقدّم مراجعة المدقّقين';
+
+  @override
+  String get directorateNotStarted => 'لم يبدأ';
+
+  @override
+  String get directorateRevisionsRequested => 'طُلبت تعديلات';
+
+  @override
+  String get directorateCampaignDetails => 'عرض تفاصيل الحملة';
+
+  @override
+  String get directoratePreApprovalComment => 'تعليق قبل الاعتماد';
+
+  @override
+  String get directorateCommentToAuditor => 'إلى المدقّق';
+
+  @override
+  String get directorateCommentHelp =>
+      'يظهر التعليق في قسم التعليقات والملاحظات. لإعادة فتح التدقيق للتعديل، اختر طلب تعديلات.';
+
+  @override
+  String get directorateSendToAuditor => 'إرسال إلى المدقّق';
+
+  @override
+  String get directorateCommentSent => 'تم نشر التعليق';
+
+  @override
   String get centerRegistryTitle => 'سجل المراكز';
 
   @override
@@ -1856,7 +1948,7 @@ class AppL10nAr extends AppL10n {
   String get campaignAttention => 'يحتاج إلى متابعة';
 
   @override
-  String get reviewTitle => 'مراجعة التقييم';
+  String get reviewTitle => 'مراجعة التدقيق';
 
   @override
   String get reviewRequestRevisions => 'طلب تعديلات';
@@ -2021,6 +2113,84 @@ class AppL10nAr extends AppL10n {
   String get centerHeadRole => 'رئيس المركز';
 
   @override
+  String get selfIndependentStart => 'بدء تقييم ذاتي';
+
+  @override
+  String get selfContinueDraft => 'متابعة المسودة';
+
+  @override
+  String get selfChooseStructure => 'هيكل التدقيق المحفوظ';
+
+  @override
+  String selfStructureVersion(String version) {
+    return 'هيكل التدقيق، الإصدار $version';
+  }
+
+  @override
+  String selfLatestStructure(String version) {
+    return 'أحدث إصدار منشور · $version';
+  }
+
+  @override
+  String selfConfirmStructure(String version) {
+    return 'البدء بالإصدار $version';
+  }
+
+  @override
+  String get selfNoDefaultStructure => 'اختر هيكل تدقيق محفوظًا للبدء.';
+
+  @override
+  String selfStructureSummary(int count, num points) {
+    return '$count بندًا قابلًا للتقييم · الحد الأقصى $points نقطة';
+  }
+
+  @override
+  String selfRevisionNumber(int number) {
+    return 'المراجعة $number';
+  }
+
+  @override
+  String get selfOfficialAudits => 'التدقيقات الرسمية';
+
+  @override
+  String get selfOfficialAwaitingAuditor => 'في انتظار انضمام المدقق';
+
+  @override
+  String get selfAssessmentReadOnly => 'التقييم الذاتي للقراءة فقط';
+
+  @override
+  String get selfShareSnapshot => 'مشاركة مع التدقيق الرسمي';
+
+  @override
+  String get selfWithdrawShare => 'إلغاء المشاركة';
+
+  @override
+  String get selfReplaceShare => 'استبدال التقييم المُشارك';
+
+  @override
+  String get selfSnapshotShared => 'تمت المشاركة مع هذا التدقيق';
+
+  @override
+  String get selfShareExplanation =>
+      'يمكن لفريق التدقيق المكلّف والمديرية الاطلاع على هذا التقييم المرسل وأدلته للحملة المختارة.';
+
+  @override
+  String get selfWithdrawExplanation =>
+      'يزيل هذا التقييم الذاتي المحدد من الحملة إلى أن تشارك تقييمًا آخر.';
+
+  @override
+  String get selfNoMatchingCampaign =>
+      'لا توجد حملة تدقيق رسمية تستخدم هيكل التدقيق هذا لمركزك.';
+
+  @override
+  String get selfShareLocked =>
+      'تُقفل المشاركة عند بدء مراجعة الأدلة أو إرسال التدقيق الرسمي.';
+
+  @override
+  String get selfJoinAuditorOnly =>
+      'يجب أن ينضم مدقق مخوّل إلى التدقيق الرسمي.';
+
+  @override
   String get centerQualityTitle => 'جودة مركزي';
 
   @override
@@ -2137,19 +2307,37 @@ class AppL10nAr extends AppL10n {
   String get selfAuditNoData => 'لا تتوفر بيانات';
 
   @override
-  String get centerActionsAllPeriods => 'الإجراءات المفتوحة · جميع الفترات';
+  String get centerOpenActions => 'الإجراءات المفتوحة';
 
   @override
-  String get centerCompetencyReadiness => 'جاهزية كفاءات الموظفين';
+  String get centerAllPeriods => 'جميع الفترات';
 
   @override
-  String get centerSatisfactionRolling => 'رضا المرضى · آخر ١٢ شهراً';
+  String get centerNoOpenActions => 'لا توجد إجراءات مفتوحة';
+
+  @override
+  String get centerPatientSatisfaction => 'رضا المرضى';
+
+  @override
+  String get centerLast12Months => 'آخر ١٢ شهرًا';
+
+  @override
+  String get centerNoSurveyResponses => 'لا توجد ردود على الاستبيان بعد';
 
   @override
   String get centerSatisfactionSuppressed => 'أقل من ٥ إجابات · النتيجة محجوبة';
 
   @override
-  String get centerLatestApproved => 'أحدث نتيجة رسمية معتمدة';
+  String get centerLatestApproved => 'أحدث تدقيق معتمد';
+
+  @override
+  String get centerNoApprovedAudit => 'لا يوجد تدقيق معتمد بعد';
+
+  @override
+  String get centerLatestSelfAssessment => 'أحدث تقييم ذاتي';
+
+  @override
+  String get centerNoSelfAssessment => 'لا يوجد تقييم ذاتي بعد';
 
   @override
   String get gapMissingAnswer => 'لم تتم الإجابة';

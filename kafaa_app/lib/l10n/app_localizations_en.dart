@@ -1770,6 +1770,97 @@ class AppL10nEn extends AppL10n {
   String get directorateOverview => 'Directorate overview';
 
   @override
+  String get auditorWorkTitle => 'Auditor work';
+
+  @override
+  String get auditorStartAudit => 'Start audit';
+
+  @override
+  String get auditorResumeAudit => 'Resume audit';
+
+  @override
+  String get auditorCampaign => 'Audit campaign';
+
+  @override
+  String auditorPointPosition(int point, int total) {
+    return 'Point $point of $total';
+  }
+
+  @override
+  String get auditorPointComment => 'Point comment';
+
+  @override
+  String get auditorSectionComment => 'Section comment';
+
+  @override
+  String get auditorSectionComments => 'Section comments';
+
+  @override
+  String get auditorSectionCommentsUnavailable =>
+      'Section comments are unavailable on this server.';
+
+  @override
+  String get auditorOverallComment => 'Overall audit comment';
+
+  @override
+  String get auditorPreviousPoint => 'Previous point';
+
+  @override
+  String get auditorNextPoint => 'Next point';
+
+  @override
+  String get auditorAddComment => 'Add comment';
+
+  @override
+  String get auditorSaveComment => 'Save comment';
+
+  @override
+  String get auditorCommentPlaceholder => 'Enter a comment';
+
+  @override
+  String get directorateViewCentres => 'View centres';
+
+  @override
+  String get directorateViewStructures => 'View structures';
+
+  @override
+  String get directorateAwaitingApproval => 'Awaiting approval';
+
+  @override
+  String get directorateNoPendingAudits => 'No audits awaiting approval';
+
+  @override
+  String get directorateOpenReview => 'Open review';
+
+  @override
+  String get directorateAuditProgress => 'Auditor review progress';
+
+  @override
+  String get directorateNotStarted => 'Not started';
+
+  @override
+  String get directorateRevisionsRequested => 'Revisions requested';
+
+  @override
+  String get directorateCampaignDetails => 'View campaign details';
+
+  @override
+  String get directoratePreApprovalComment => 'Pre-approval comment';
+
+  @override
+  String get directorateCommentToAuditor => 'To the auditor';
+
+  @override
+  String get directorateCommentHelp =>
+      'Shared in Comments and feedback. To reopen the audit for editing, use Request revisions.';
+
+  @override
+  String get directorateSendToAuditor => 'Send to auditor';
+
+  @override
+  String get directorateCommentSent => 'Comment posted';
+
+  @override
   String get centerRegistryTitle => 'Centre registry';
 
   @override
@@ -1849,7 +1940,7 @@ class AppL10nEn extends AppL10n {
   String get campaignAttention => 'Needs attention';
 
   @override
-  String get reviewTitle => 'Review evaluation';
+  String get reviewTitle => 'Review audit';
 
   @override
   String get reviewRequestRevisions => 'Request revisions';
@@ -2010,6 +2101,84 @@ class AppL10nEn extends AppL10n {
   String get centerHeadRole => 'Head of Centre';
 
   @override
+  String get selfIndependentStart => 'Start self-assessment';
+
+  @override
+  String get selfContinueDraft => 'Continue draft';
+
+  @override
+  String get selfChooseStructure => 'Saved Audit Structure';
+
+  @override
+  String selfStructureVersion(String version) {
+    return 'Audit Structure v $version';
+  }
+
+  @override
+  String selfLatestStructure(String version) {
+    return 'Latest published · v $version';
+  }
+
+  @override
+  String selfConfirmStructure(String version) {
+    return 'Start with v $version';
+  }
+
+  @override
+  String get selfNoDefaultStructure => 'Choose a saved structure to start.';
+
+  @override
+  String selfStructureSummary(int count, num points) {
+    return '$count scorable items · $points maximum points';
+  }
+
+  @override
+  String selfRevisionNumber(int number) {
+    return 'Revision $number';
+  }
+
+  @override
+  String get selfOfficialAudits => 'Official audits';
+
+  @override
+  String get selfOfficialAwaitingAuditor => 'Awaiting an auditor to join';
+
+  @override
+  String get selfAssessmentReadOnly => 'Read-only self-assessment';
+
+  @override
+  String get selfShareSnapshot => 'Share with official audit';
+
+  @override
+  String get selfWithdrawShare => 'Withdraw sharing';
+
+  @override
+  String get selfReplaceShare => 'Replace shared assessment';
+
+  @override
+  String get selfSnapshotShared => 'Shared with this audit';
+
+  @override
+  String get selfShareExplanation =>
+      'The assigned audit team and Directorate can read this submitted assessment and its evidence for the selected campaign.';
+
+  @override
+  String get selfWithdrawExplanation =>
+      'This removes the selected self-assessment from the campaign until you share a new one.';
+
+  @override
+  String get selfNoMatchingCampaign =>
+      'No official campaign uses this Audit Structure for your centre.';
+
+  @override
+  String get selfShareLocked =>
+      'Sharing is locked once evidence review or official submission begins.';
+
+  @override
+  String get selfJoinAuditorOnly =>
+      'An authorized auditor must join the official audit.';
+
+  @override
   String get centerQualityTitle => 'My centre quality';
 
   @override
@@ -2126,21 +2295,38 @@ class AppL10nEn extends AppL10n {
   String get selfAuditNoData => 'No data available';
 
   @override
-  String get centerActionsAllPeriods => 'Open actions · all periods';
+  String get centerOpenActions => 'Open actions';
 
   @override
-  String get centerCompetencyReadiness => 'Staff competency readiness';
+  String get centerAllPeriods => 'All periods';
 
   @override
-  String get centerSatisfactionRolling =>
-      'Patient satisfaction · last 12 months';
+  String get centerNoOpenActions => 'No open actions';
+
+  @override
+  String get centerPatientSatisfaction => 'Patient satisfaction';
+
+  @override
+  String get centerLast12Months => 'Last 12 months';
+
+  @override
+  String get centerNoSurveyResponses => 'No survey responses yet';
 
   @override
   String get centerSatisfactionSuppressed =>
       'Fewer than 5 responses · result withheld';
 
   @override
-  String get centerLatestApproved => 'Latest approved official result';
+  String get centerLatestApproved => 'Latest approved audit';
+
+  @override
+  String get centerNoApprovedAudit => 'No approved audit yet';
+
+  @override
+  String get centerLatestSelfAssessment => 'Latest self assessment';
+
+  @override
+  String get centerNoSelfAssessment => 'No self assessment yet';
 
   @override
   String get gapMissingAnswer => 'Not answered';

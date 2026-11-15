@@ -18,6 +18,7 @@ class ScaleChoiceRow extends StatelessWidget {
     required this.enabled,
     required this.onSelected,
     this.compact = false,
+    this.stacked = false,
   });
 
   final List<ScaleOption> options;
@@ -30,10 +31,57 @@ class ScaleChoiceRow extends StatelessWidget {
 
   /// Tighter layout for the drill-down sheet, where space is shorter.
   final bool compact;
+  final bool stacked;
 
   @override
   Widget build(BuildContext context) {
     if (options.isEmpty) return const SizedBox.shrink();
+    if (stacked) {
+      final theme = Theme.of(context);
+      final teal = theme.brightness == Brightness.dark
+          ? theme.colorScheme.secondary
+          : KafaaColors.tealDark;
+      return Column(
+        children: [
+          for (final option in options) ...[
+            if (option != options.first) const SizedBox(height: 8),
+            Semantics(
+              selected: selectedLevel == option.level,
+              button: true,
+              child: Card(
+                color: selectedLevel == option.level
+                    ? teal.withValues(alpha: 0.13)
+                    : null,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                      color: selectedLevel == option.level
+                          ? teal
+                          : theme.colorScheme.outlineVariant),
+                ),
+                child: ListTile(
+                  enabled: enabled,
+                  leading: Icon(
+                      selectedLevel == option.level
+                          ? Icons.check_circle
+                          : Icons.circle_outlined,
+                      color: selectedLevel == option.level ? teal : null),
+                  title: Text(context.pick(option.labelEn, option.labelAr)),
+                  trailing: Text('${option.points}'),
+                  subtitle: context
+                          .pick(option.descriptorEn, option.descriptorAr)
+                          .isEmpty
+                      ? null
+                      : Text(context.pick(
+                          option.descriptorEn, option.descriptorAr)),
+                  onTap: enabled ? () => onSelected(option) : null,
+                ),
+              ),
+            ),
+          ],
+        ],
+      );
+    }
 
     return Row(
       children: [
