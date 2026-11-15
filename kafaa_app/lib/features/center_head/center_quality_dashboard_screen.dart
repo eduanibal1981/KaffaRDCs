@@ -203,11 +203,7 @@ class _CentreOverview extends ConsumerWidget {
       icon: Icons.edit_note_outlined,
       iconColor: blue,
       vertical: true,
-      onTap: selfAssessment.maybeWhen(
-        data: (result) =>
-            result == null ? null : () => context.push(result.context.location),
-        orElse: () => null,
-      ),
+      onTap: () => context.push(selfAssessmentsLocation(center.id)),
       child: _MetricState(
         value: selfAssessment,
         onRetry: () => ref.invalidate(selfProvider),

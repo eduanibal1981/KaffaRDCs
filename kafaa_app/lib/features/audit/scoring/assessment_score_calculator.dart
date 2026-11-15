@@ -31,6 +31,26 @@ class AssessmentScoreCalculator {
 
   double get percent => maxPoints == 0 ? 0 : (points / maxPoints) * 100;
 
+  /// A live result for answered, applicable criteria only. This is separate
+  /// from the full-checklist percentage used for official results and grading.
+  Iterable<AssessmentCriterion> get _answeredScorable => scorable.where((c) {
+        final response = responses[c.id];
+        return response != null &&
+            response.isAnswered &&
+            !response.isNotApplicable;
+      });
+
+  double get answeredPoints => _answeredScorable.fold(
+      0.0, (sum, c) => sum + (responses[c.id]?.points ?? 0));
+
+  double get answeredMaxPoints =>
+      _answeredScorable.fold(0.0, (sum, c) => sum + c.maxPoints);
+
+  /// No scored answers (including all N/A) has no meaningful percentage.
+  double? get answeredPercent => answeredMaxPoints == 0
+      ? null
+      : (answeredPoints / answeredMaxPoints) * 100;
+
   GradingBand? get band {
     for (final b in blueprint.bands) {
       final byPercent = b.minPercent != null || b.maxPercent != null;

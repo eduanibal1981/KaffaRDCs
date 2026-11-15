@@ -86,16 +86,24 @@ class LocalStore {
     )
   ''');
 
-  /// The shared-only rollout retires the pre-release mock cache and queue
-  /// once per project/account. Later offline work survives relaunch/sign-out.
+  /// Retire the pre-release queue once, then retire the hosted mock dataset
+  /// once for Kafaa accounts only. Subsequent offline work stays durable.
   static Future<void> _prepareSharedScope(Database db, String owner) =>
       db.transaction((txn) async {
         final versions = await txn
             .query('scope_versions', where: 'owner = ?', whereArgs: [owner]);
-        if (versions.isNotEmpty) return;
+        final isKafaa =
+            owner.startsWith('https://onzmwoajiyennqtjcjez.supabase.co/');
+        final targetVersion = isKafaa ? 2 : 1;
+        if (versions.isNotEmpty &&
+            (versions.single['version'] as int) >= targetVersion) {
+          return;
+        }
         await txn.delete('cache', where: 'owner = ?', whereArgs: [owner]);
         await txn.delete('outbox', where: 'owner = ?', whereArgs: [owner]);
-        await txn.insert('scope_versions', {'owner': owner, 'version': 1});
+        await txn.insert(
+            'scope_versions', {'owner': owner, 'version': targetVersion},
+            conflictAlgorithm: ConflictAlgorithm.replace);
       });
 
   // -------------------------------------------------------------------

@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kafaa_app/core/l10n/l10n_extensions.dart';
 import 'package:kafaa_app/core/preferences/app_preferences.dart';
 import 'package:kafaa_app/data/repositories/analytics_repository.dart';
+import 'package:kafaa_app/data/repositories/operations_repository.dart';
 import 'package:kafaa_app/features/admin/role_simulation.dart';
 import 'package:kafaa_app/features/admin/testing/tester_workspace.dart';
 import 'package:kafaa_app/features/admin/testing_mode_banner.dart';
@@ -207,6 +208,20 @@ void main() {
       expect(find.text(l10n.centerNoSurveyResponses), findsOneWidget);
       expect(find.text(l10n.centerNoOpenActions), findsOneWidget);
       if (capture) await _captureDashboard(tester, '$language-empty');
+      await tester.tap(selfCard);
+      await tester.pumpAndSettle();
+      expect(router.state.uri.path, '/self-assessments');
+      expect(find.text(l10n.selfHistoryEmpty), findsOneWidget);
+      router.pop();
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text(l10n.selfAuditHistory));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.selfAuditHistory));
+      await tester.pumpAndSettle();
+      expect(router.state.uri.path, '/self-assessments');
+      expect(find.text(l10n.selfHistoryEmptyHint), findsOneWidget);
+      router.pop();
+      await tester.pumpAndSettle();
 
       audit['status'] = 'approved';
       final now = fixture.seedTime;
@@ -242,6 +257,10 @@ void main() {
       final surveys = fixture.tables['v_center_satisfaction_current'] = [
         {'center_id': id, 'response_count': 48, 'satisfaction_percent': 94}
       ];
+      scope.invalidate(centerQualityProvider(id));
+      scope.invalidate(centerLatestSelfAssessmentProvider(id));
+      scope.invalidate(ncrDashboardProvider);
+      scope.invalidate(satisfactionProvider);
       final scroll = find
           .descendant(
               of: find.byType(CenterQualityDashboardScreen),
@@ -269,10 +288,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(selfCard);
       await tester.pumpAndSettle();
-      expect(router.state.uri.path,
-          '/self-assessments/view/${audit['participation_id']}');
-      expect(router.state.uri.queryParameters,
-          {'centerId': id, 'snapshotId': 'snapshot-1'});
+      expect(router.state.uri.path, '/self-assessments');
+      expect(router.state.uri.queryParameters, {'centerId': id});
+      expect(find.text(l10n.selfViewAssessment), findsOneWidget);
       router.pop();
       await tester.pumpAndSettle();
       await tester.tap(find.text(l10n.centerOpenActions));

@@ -1268,8 +1268,13 @@ class AppL10nEn extends AppL10n {
   String get structureUngrouped => 'Not yet in a main area';
 
   @override
+  String structureDomainSummary(int sections, int criteria, int max) {
+    return '$sections sections - $criteria criteria - $max max points';
+  }
+
+  @override
   String structurePointsSummary(int items, int max) {
-    return '$items points · $max max';
+    return '$items criteria - $max max points';
   }
 
   @override
@@ -1409,7 +1414,7 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get structuresLocked =>
-      'This saved version is locked. Create a new version to make changes.';
+      'This saved checklist is read-only. Create a new version to edit its content.';
 
   @override
   String get structuresDraftHint =>
@@ -1429,7 +1434,7 @@ class AppL10nEn extends AppL10n {
   String get structuresDefault => 'Default for new assessments';
 
   @override
-  String get structuresDelete => 'Delete draft?';
+  String get structuresDelete => 'Delete unused structure';
 
   @override
   String get structuresDeleteHint =>
@@ -2101,6 +2106,125 @@ class AppL10nEn extends AppL10n {
   String get centerHeadRole => 'Head of Centre';
 
   @override
+  String get selfCriteriaTitle => 'Criteria';
+
+  @override
+  String get selfAssessmentInfo => 'Assessment information';
+
+  @override
+  String selfAnswered(int answered, int total) {
+    return '$answered/$total answered';
+  }
+
+  @override
+  String selfAreaSummary(int sections, int criteria, int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sections,
+      locale: localeName,
+      other: '$sections sections',
+      one: '1 section',
+    );
+    return '$_temp0 · $criteria criteria · $max max points';
+  }
+
+  @override
+  String selfSectionProgress(int answered, int total, int max) {
+    return '$answered/$total answered · $max max points';
+  }
+
+  @override
+  String get selfAllCriteria => 'All criteria';
+
+  @override
+  String get selfUnanswered => 'Unanswered';
+
+  @override
+  String get selfAllAnswered =>
+      'All criteria in this section have been answered.';
+
+  @override
+  String get selfPreviousCriterion => 'Previous';
+
+  @override
+  String get selfNextCriterion => 'Next criterion';
+
+  @override
+  String get selfAddComment => 'Add comment';
+
+  @override
+  String selfComplianceProof(int count) {
+    return 'Compliance proof ($count)';
+  }
+
+  @override
+  String selfOptionPoints(int points) {
+    String _temp0 = intl.Intl.pluralLogic(
+      points,
+      locale: localeName,
+      other: '$points pts',
+      one: '1 pt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selfSnapshotTitle => 'Review self-assessment';
+
+  @override
+  String get selfSnapshotPurpose =>
+      'Your draft saves as you work. Submit when finished to keep a read-only version in your history. You can create a new revision later.';
+
+  @override
+  String get selfSnapshotPrivate =>
+      'This does not share it with the Directorate. You can share the submitted version with an official campaign separately.';
+
+  @override
+  String selfSnapshotRemaining(int count) {
+    return '$count criteria still need answers';
+  }
+
+  @override
+  String selfSnapshotProofRemaining(int count) {
+    return '$count answered criteria still need required proof.';
+  }
+
+  @override
+  String get selfSnapshotAllAnswered => 'All required criteria answered';
+
+  @override
+  String get selfSnapshotContinue => 'Continue assessment';
+
+  @override
+  String get selfSnapshotConfirm => 'Submit self-assessment';
+
+  @override
+  String get selfSnapshotShowMissing => 'See what is missing';
+
+  @override
+  String get selfAnsweredScore => 'Answered score';
+
+  @override
+  String selfAnsweredScorePoints(String fraction) {
+    return '$fraction points';
+  }
+
+  @override
+  String get selfAnsweredScoreHint =>
+      'Based only on answered, applicable criteria.';
+
+  @override
+  String get selfNoScoredAnswers => 'No scored answers yet.';
+
+  @override
+  String get selfHistoryEmpty => 'No self-assessments yet';
+
+  @override
+  String get selfHistoryEmptyHint => 'Start with a saved Audit Structure.';
+
+  @override
+  String get selfViewAssessment => 'View assessment';
+
+  @override
   String get selfIndependentStart => 'Start self-assessment';
 
   @override
@@ -2200,7 +2324,7 @@ class AppL10nEn extends AppL10n {
   String get selfAuditReadiness => 'Readiness score';
 
   @override
-  String get selfAuditSubmitSnapshot => 'Submit self-audit snapshot';
+  String get selfAuditSubmitSnapshot => 'Review and submit';
 
   @override
   String get selfAuditSubmitted => 'Self-audit submitted';
@@ -2280,7 +2404,7 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get selfAuditConfirm =>
-      'Submit this immutable snapshot for official comparison?';
+      'This submitted version can be used for comparison with the official audit.';
 
   @override
   String get selfAuditCompletion => 'Checklist completion';
@@ -2561,4 +2685,43 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get auditorWorkNav => 'Work';
+
+  @override
+  String get structuresMakePrimary => 'Set as primary';
+
+  @override
+  String get structuresLockNew => 'Lock for new assessments';
+
+  @override
+  String get structuresUnlockNew => 'Allow for new assessments';
+
+  @override
+  String get structuresLockedNew => 'Locked for new assessments';
+
+  @override
+  String get structuresAvailabilityHint =>
+      'Existing assessments keep their assigned structure.';
+
+  @override
+  String get structuresDeleteUsed => 'Cannot delete: used in assessments';
+
+  @override
+  String get structuresDeleteConfirm =>
+      'Permanently delete this unused structure and its checklist items? This cannot be undone.';
+
+  @override
+  String get structuresDeletePrimary =>
+      'Choose another primary structure before deleting this one.';
+
+  @override
+  String get campaignDetails => 'Campaign details';
+
+  @override
+  String get campaignSchedule => 'Schedule';
+
+  @override
+  String get campaignFrequency => 'Frequency';
+
+  @override
+  String get campaignActionPublish => 'Publish';
 }

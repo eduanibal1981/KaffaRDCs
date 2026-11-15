@@ -731,6 +731,61 @@ class FakeRepositories extends http.BaseClient {
 
   Future<Object?> _rpc(String name, Map<String, dynamic> params) async {
     switch (name) {
+      case 'audit_structure_usage':
+        _require(fixtures.simulation.permissions.isDirectorate);
+        return [
+          for (final t in _table('assessment_templates'))
+            {
+              'template_id': t['id'],
+              'is_used': _table('assessment_sessions')
+                      .any((s) => s['template_id'] == t['id']) ||
+                  _table('audits').any((a) => a['template_id'] == t['id']) ||
+                  _table('center_self_audits')
+                      .any((a) => a['template_id'] == t['id'])
+            }
+        ];
+      case 'delete_unused_audit_structure':
+        _require(fixtures.simulation.permissions.isDirectorate);
+        final id = params['p_id'];
+        final t = _table('assessment_templates')
+            .where((t) => t['id'] == id)
+            .firstOrNull;
+        if (t == null) return null;
+        _require(t['is_default'] != true &&
+            !_table('assessment_sessions').any((s) => s['template_id'] == id) &&
+            !_table('audits').any((a) => a['template_id'] == id) &&
+            !_table('center_self_audits').any((a) => a['template_id'] == id));
+        for (final name in [
+          'assessment_templates',
+          'assessment_domains',
+          'assessment_sections',
+          'assessment_criteria',
+          'assessment_scale_options',
+          'grading_bands'
+        ]) {
+          _table(name).removeWhere((row) => name == 'assessment_templates'
+              ? row['id'] == id
+              : row['template_id'] == id);
+        }
+        return null;
+
+      case 'set_audit_structure_availability':
+        _require(fixtures.simulation.permissions.isDirectorate);
+        final target = _table('assessment_templates')
+            .firstWhere((t) => t['id'] == params['p_id']);
+        _require(target['status'] == 'active');
+        if (params['p_primary'] == true) {
+          _require(target['is_locked'] != true && params['p_locked'] != true);
+          for (final row in _table('assessment_templates')) {
+            row['is_default'] = row['id'] == target['id'];
+          }
+        }
+        if (params['p_locked'] != null) {
+          _require(params['p_locked'] != true || target['is_default'] != true);
+          target['is_locked'] = params['p_locked'];
+        }
+        return null;
+
       case 'post_ncr_note':
         final n =
             _table('ncrs').firstWhere((n) => n['id'] == params['p_ncr_id']);
@@ -767,8 +822,10 @@ class FakeRepositories extends http.BaseClient {
         _require(fixtures.simulation.permissions.managesCenter(centerId) &&
             _table('centers').any((center) =>
                 center['id'] == centerId && center['is_active'] == true) &&
-            _table('assessment_templates')
-                .any((t) => t['id'] == template && t['status'] == 'active'));
+            _table('assessment_templates').any((t) =>
+                t['id'] == template &&
+                t['status'] == 'active' &&
+                (parent != null || t['is_locked'] != true)));
         final existing = _table('center_self_audits')
             .where((h) => h['id'] == id)
             .firstOrNull;
@@ -1508,6 +1565,8 @@ class FakeRepositories extends http.BaseClient {
             _directorate && params['p_template_id'] == fixtures.templateId);
         final id = params['p_client_id'] as String;
         if (_table('assessment_sessions').any((s) => s['id'] == id)) return id;
+        _require(_table('assessment_templates').any((t) =>
+            t['id'] == params['p_template_id'] && t['is_locked'] != true));
         _table('assessment_sessions').add({
           'id': id,
           'template_id': fixtures.templateId,

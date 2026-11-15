@@ -350,11 +350,11 @@ class _DomainNode extends ConsumerWidget {
     final color = parseHexColor(domain.color, fallback: KafaaColors.brandBlue);
 
     final sections = blueprint.sectionsOfDomain(domain.id);
-    final items = sections
-        .expand((s) => blueprint.criteriaOfSection(s.id))
+    final items =
+        sections.expand((s) => blueprint.criteriaOfSection(s.id)).toList();
+    final maxPoints = items
         .where((c) => !c.excludedFromTotal)
-        .toList();
-    final maxPoints = items.fold<int>(0, (sum, c) => sum + c.maxPoints);
+        .fold<int>(0, (sum, c) => sum + c.maxPoints);
 
     return Card(
       shape: RoundedRectangleBorder(
@@ -386,7 +386,8 @@ class _DomainNode extends ConsumerWidget {
               children: [
                 Flexible(
                   child: Text(
-                    l10n.structurePointsSummary(items.length, maxPoints),
+                    l10n.structureDomainSummary(
+                        sections.length, items.length, maxPoints),
                     style: theme.textTheme.bodySmall,
                   ),
                 ),
@@ -562,7 +563,7 @@ class _SectionNode extends ConsumerWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        l10n.structurePointsSummary(counted.length, maxPoints),
+                        l10n.structurePointsSummary(criteria.length, maxPoints),
                         style: theme.textTheme.bodySmall,
                       ),
                     ),

@@ -141,7 +141,7 @@ void main() {
       expect(find.text('Centre'), findsNothing);
       expect(find.text('Registered patients'), findsNothing);
       await tester.scrollUntilVisible(
-          find.text(locale == 'en' ? 'Publish assessment' : 'نشر التقييم'), 300,
+          find.text(locale == 'en' ? 'Publish' : 'نشر'), 300,
           scrollable: find.byType(Scrollable).first);
       expect(tester.takeException(), isNull);
     });

@@ -119,28 +119,38 @@ void main() {
             img.dispose();
           });
         }
-        final picker = find.byType(DropdownButtonFormField<String>).first;
-        await tester.ensureVisible(picker);
-        await tester.tap(picker);
-        await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull);
-        final section = s.blueprint.sections.first;
+        final section = s.blueprint.sectionById(c.sectionId)!;
         final domain = s.blueprint.domainById(section.domainId)!;
-        final label = locale == 'ar'
-            ? '${domain.nameAr} · ${section.nameAr}'
-            : '${domain.nameEn} · ${section.nameEn}';
-        await tester.tap(find.text(label).last);
+        await tester.tap(find.byKey(ValueKey('self-area-${domain.id}')));
         await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull);
+        await tester.tap(find.byKey(ValueKey('self-section-${section.id}')));
+        await tester.pumpAndSettle();
+        final criterionTile = find.byKey(ValueKey('self-criterion-${c.id}'));
+        await tester.scrollUntilVisible(criterionTile, 200,
+            scrollable: find
+                .descendant(
+                    of: find.byType(SelfAuditScreen),
+                    matching: find.byType(Scrollable))
+                .first);
+        await tester.pumpAndSettle();
+        await tester.tap(criterionTile);
+        await tester.pumpAndSettle();
+        final l = tester.element(find.byType(TestingModeBanner)).l10n;
+        final commentAction = find.text(l.criterionComment);
+        await tester.ensureVisible(commentAction);
+        await tester.pumpAndSettle();
+        await tester.tap(commentAction);
+        await tester.pumpAndSettle();
         final comment = find.byType(TextField).first;
         await tester.ensureVisible(comment);
         await tester.showKeyboard(comment);
         tester.view.viewInsets = const FakeViewPadding(bottom: 280);
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        final l = tester.element(find.byType(TestingModeBanner)).l10n;
         expect(find.text(l.adminExitPreview), findsOneWidget);
         tester.view.resetViewInsets();
+        Navigator.of(tester.element(comment)).pop();
+        await tester.pumpAndSettle();
 
         scope.read(testerOfflineProvider.notifier).state = false;
         await tester.pumpAndSettle();

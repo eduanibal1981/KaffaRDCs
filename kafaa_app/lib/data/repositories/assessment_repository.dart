@@ -199,6 +199,24 @@ class AssessmentRepository {
     }
   }
 
+  Future<void> setStructureAvailability(String id,
+      {bool primary = false, bool? locked}) async {
+    await _client.rpc('set_audit_structure_availability',
+        params: {'p_id': id, 'p_primary': primary, 'p_locked': locked});
+  }
+
+  Future<Map<String, bool>> structureUsage() async {
+    final rows = await _client.rpc('audit_structure_usage');
+    return {
+      for (final row in rows as List)
+        row['template_id'] as String: row['is_used'] == true
+    };
+  }
+
+  Future<void> deleteUnusedStructure(String id) async {
+    await _client.rpc('delete_unused_audit_structure', params: {'p_id': id});
+  }
+
   Future<String> createStructure(
       {required String version,
       required String sourceId,
@@ -431,3 +449,6 @@ final structureBlueprintProvider =
       .watch(assessmentRepositoryProvider)
       .loadBlueprint(id, forceRefresh: true),
 );
+
+final structureUsageProvider = FutureProvider.autoDispose<Map<String, bool>>(
+    (ref) => ref.watch(assessmentRepositoryProvider).structureUsage());

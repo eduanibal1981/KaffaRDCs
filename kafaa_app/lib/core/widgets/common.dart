@@ -377,6 +377,9 @@ String describeError(BuildContext context, Object error) {
   final l10n = context.l10n;
   final text = error.toString().toLowerCase();
 
+  if (text.contains('structure locked for new assessments')) {
+    return l10n.structuresLockedNew;
+  }
   final auditorErrors = <String, String>{
     'kafaa_team_name_job_required': l10n.auditTeamNameJobRequired,
     'kafaa_team_duplicate_user': l10n.auditTeamDuplicateUser,

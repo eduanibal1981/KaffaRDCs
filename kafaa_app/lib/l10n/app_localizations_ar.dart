@@ -1280,8 +1280,13 @@ class AppL10nAr extends AppL10n {
   String get structureUngrouped => 'غير مُدرَج ضمن مجال رئيسي';
 
   @override
+  String structureDomainSummary(int sections, int criteria, int max) {
+    return '$sections أقسام - $criteria معايير - $max نقطة كحد أقصى';
+  }
+
+  @override
   String structurePointsSummary(int items, int max) {
-    return '$items بنداً · $max حد أقصى';
+    return '$items معايير - $max نقطة كحد أقصى';
   }
 
   @override
@@ -1420,7 +1425,7 @@ class AppL10nAr extends AppL10n {
 
   @override
   String get structuresLocked =>
-      'هذا الإصدار المحفوظ مقفل. أنشئ إصداراً جديداً لإجراء تغييرات.';
+      'قائمة التحقق المحفوظة للقراءة فقط. أنشئ إصداراً جديداً لتعديل محتواها.';
 
   @override
   String get structuresDraftHint =>
@@ -1440,7 +1445,7 @@ class AppL10nAr extends AppL10n {
   String get structuresDefault => 'الافتراضي للتقييمات الجديدة';
 
   @override
-  String get structuresDelete => 'حذف المسودة؟';
+  String get structuresDelete => 'حذف الهيكل غير المستخدم';
 
   @override
   String get structuresDeleteHint => 'سيتم حذف هذه المسودة وجميع بنودها.';
@@ -2113,6 +2118,112 @@ class AppL10nAr extends AppL10n {
   String get centerHeadRole => 'رئيس المركز';
 
   @override
+  String get selfCriteriaTitle => 'المعايير';
+
+  @override
+  String get selfAssessmentInfo => 'معلومات التقييم';
+
+  @override
+  String selfAnswered(int answered, int total) {
+    return 'تمت الإجابة عن $answered/$total';
+  }
+
+  @override
+  String selfAreaSummary(int sections, int criteria, int max) {
+    return '$sections أقسام · $criteria معايير · $max نقطة كحد أقصى';
+  }
+
+  @override
+  String selfSectionProgress(int answered, int total, int max) {
+    return 'تمت الإجابة عن $answered/$total · $max نقطة كحد أقصى';
+  }
+
+  @override
+  String get selfAllCriteria => 'جميع المعايير';
+
+  @override
+  String get selfUnanswered => 'دون إجابة';
+
+  @override
+  String get selfAllAnswered => 'تمت الإجابة عن جميع معايير هذا القسم.';
+
+  @override
+  String get selfPreviousCriterion => 'السابق';
+
+  @override
+  String get selfNextCriterion => 'المعيار التالي';
+
+  @override
+  String get selfAddComment => 'إضافة تعليق';
+
+  @override
+  String selfComplianceProof(int count) {
+    return 'أدلة الامتثال ($count)';
+  }
+
+  @override
+  String selfOptionPoints(int points) {
+    return '$points نقطة';
+  }
+
+  @override
+  String get selfSnapshotTitle => 'مراجعة التقييم الذاتي';
+
+  @override
+  String get selfSnapshotPurpose =>
+      'تُحفظ المسودة أثناء العمل. أرسل التقييم بعد إكماله للاحتفاظ بنسخة للقراءة فقط في السجل. يمكنك إنشاء مراجعة جديدة لاحقاً.';
+
+  @override
+  String get selfSnapshotPrivate =>
+      'لا تؤدي هذه الخطوة إلى مشاركته مع المديرية. يمكنك مشاركة النسخة المرسلة مع حملة رسمية بشكل منفصل.';
+
+  @override
+  String selfSnapshotRemaining(int count) {
+    return 'لا تزال هناك $count معايير دون إجابة';
+  }
+
+  @override
+  String selfSnapshotProofRemaining(int count) {
+    return 'تحتاج $count معايير تمت الإجابة عنها إلى الأدلة المطلوبة.';
+  }
+
+  @override
+  String get selfSnapshotAllAnswered => 'تمت الإجابة عن جميع المعايير المطلوبة';
+
+  @override
+  String get selfSnapshotContinue => 'متابعة التقييم';
+
+  @override
+  String get selfSnapshotConfirm => 'إرسال التقييم الذاتي';
+
+  @override
+  String get selfSnapshotShowMissing => 'عرض ما ينقص التقييم';
+
+  @override
+  String get selfAnsweredScore => 'نتيجة المعايير المجاب عنها';
+
+  @override
+  String selfAnsweredScorePoints(String fraction) {
+    return '$fraction نقطة';
+  }
+
+  @override
+  String get selfAnsweredScoreHint =>
+      'تُحسب من المعايير المجاب عنها والمنطبقة فقط.';
+
+  @override
+  String get selfNoScoredAnswers => 'لا توجد إجابات محتسبة بعد.';
+
+  @override
+  String get selfHistoryEmpty => 'لا توجد تقييمات ذاتية بعد';
+
+  @override
+  String get selfHistoryEmptyHint => 'ابدأ باستخدام هيكل تدقيق محفوظ.';
+
+  @override
+  String get selfViewAssessment => 'عرض التقييم';
+
+  @override
   String get selfIndependentStart => 'بدء تقييم ذاتي';
 
   @override
@@ -2212,7 +2323,7 @@ class AppL10nAr extends AppL10n {
   String get selfAuditReadiness => 'درجة الجاهزية';
 
   @override
-  String get selfAuditSubmitSnapshot => 'إرسال نسخة التقييم الذاتي';
+  String get selfAuditSubmitSnapshot => 'مراجعة التقييم وإرساله';
 
   @override
   String get selfAuditSubmitted => 'تم إرسال التقييم الذاتي';
@@ -2291,7 +2402,7 @@ class AppL10nAr extends AppL10n {
 
   @override
   String get selfAuditConfirm =>
-      'هل تريد إرسال هذه النسخة الثابتة للمقارنة الرسمية؟';
+      'يمكن استخدام النسخة المرسلة للمقارنة مع التدقيق الرسمي.';
 
   @override
   String get selfAuditCompletion => 'اكتمال قائمة التحقق';
@@ -2566,4 +2677,43 @@ class AppL10nAr extends AppL10n {
 
   @override
   String get auditorWorkNav => 'عملي';
+
+  @override
+  String get structuresMakePrimary => 'تعيين كهيكل رئيسي';
+
+  @override
+  String get structuresLockNew => 'قفل للتقييمات الجديدة';
+
+  @override
+  String get structuresUnlockNew => 'السماح للتقييمات الجديدة';
+
+  @override
+  String get structuresLockedNew => 'مقفل للتقييمات الجديدة';
+
+  @override
+  String get structuresAvailabilityHint =>
+      'تحتفظ التقييمات الحالية بالهيكل المخصص لها.';
+
+  @override
+  String get structuresDeleteUsed => 'لا يمكن الحذف: مستخدم في التقييمات';
+
+  @override
+  String get structuresDeleteConfirm =>
+      'هل تريد حذف هذا الهيكل غير المستخدم وجميع بنود قائمته نهائيًا؟ لا يمكن التراجع عن الحذف.';
+
+  @override
+  String get structuresDeletePrimary =>
+      'اختر هيكلًا رئيسيًا آخر قبل حذف هذا الهيكل.';
+
+  @override
+  String get campaignDetails => 'تفاصيل الحملة';
+
+  @override
+  String get campaignSchedule => 'الجدول الزمني';
+
+  @override
+  String get campaignFrequency => 'التكرار';
+
+  @override
+  String get campaignActionPublish => 'نشر';
 }

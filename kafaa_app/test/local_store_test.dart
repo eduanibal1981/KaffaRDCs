@@ -169,4 +169,41 @@ void main() {
     expect((await reopened.pending()).single.payload['audit_id'], 'joined');
     expect(await reopened.readCache<Object>('audit.summary.joined'), isNotNull);
   });
+  test('hosted mock cleanup clears version 1 Kafaa work exactly once',
+      () async {
+    const owner = 'https://onzmwoajiyennqtjcjez.supabase.co/directorate';
+    const other = 'other-project/directorate';
+    store = await LocalStore.open(path: path);
+    final raw = await databaseFactory.openDatabase(path);
+    for (final scope in [owner, other]) {
+      await raw.insert('scope_versions', {'owner': scope, 'version': 1});
+      await raw.insert('cache', {
+        'key': jsonEncode([scope, 'centers.active']),
+        'owner': scope,
+        'payload': jsonEncode({'mock': true}),
+        'updated_at': 1,
+      });
+      await raw.insert('outbox', {
+        'id': scope,
+        'owner': scope,
+        'kind': 'centerSave',
+        'payload': jsonEncode({'registered_patients': 148}),
+        'created_at': 1,
+      });
+    }
+    final account = store!.scopedTo(owner);
+    expect(await account.pendingCount(), 0);
+    expect(await account.readCache<Object>('centers.active'), isNull);
+    expect(await store!.scopedTo(other).pendingCount(), 1);
+    expect(await store!.scopedTo(other).readCache<Object>('centers.active'),
+        isNotNull);
+    await account.enqueue(OutboxKind.centerSave, {'registered_patients': 5});
+    await account.putCache('centers.active', {'registered_patients': 5});
+    await store!.close();
+    store = await LocalStore.open(path: path);
+    final reopened = store!.scopedTo(owner);
+    expect((await reopened.pending()).single.payload['registered_patients'], 5);
+    expect(await reopened.readCache<Object>('centers.active'),
+        {'registered_patients': 5});
+  });
 }

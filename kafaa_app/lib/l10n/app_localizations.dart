@@ -2419,10 +2419,16 @@ abstract class AppL10n {
   /// **'Not yet in a main area'**
   String get structureUngrouped;
 
+  /// No description provided for @structureDomainSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{sections} sections - {criteria} criteria - {max} max points'**
+  String structureDomainSummary(int sections, int criteria, int max);
+
   /// No description provided for @structurePointsSummary.
   ///
   /// In en, this message translates to:
-  /// **'{items} points · {max} max'**
+  /// **'{items} criteria - {max} max points'**
   String structurePointsSummary(int items, int max);
 
   /// No description provided for @structureMoveUp.
@@ -2680,7 +2686,7 @@ abstract class AppL10n {
   /// No description provided for @structuresLocked.
   ///
   /// In en, this message translates to:
-  /// **'This saved version is locked. Create a new version to make changes.'**
+  /// **'This saved checklist is read-only. Create a new version to edit its content.'**
   String get structuresLocked;
 
   /// No description provided for @structuresDraftHint.
@@ -2716,7 +2722,7 @@ abstract class AppL10n {
   /// No description provided for @structuresDelete.
   ///
   /// In en, this message translates to:
-  /// **'Delete draft?'**
+  /// **'Delete unused structure'**
   String get structuresDelete;
 
   /// No description provided for @structuresDeleteHint.
@@ -3938,6 +3944,180 @@ abstract class AppL10n {
   /// **'Head of Centre'**
   String get centerHeadRole;
 
+  /// No description provided for @selfCriteriaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Criteria'**
+  String get selfCriteriaTitle;
+
+  /// No description provided for @selfAssessmentInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment information'**
+  String get selfAssessmentInfo;
+
+  /// No description provided for @selfAnswered.
+  ///
+  /// In en, this message translates to:
+  /// **'{answered}/{total} answered'**
+  String selfAnswered(int answered, int total);
+
+  /// No description provided for @selfAreaSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{sections, plural, one{1 section} other{{sections} sections}} · {criteria} criteria · {max} max points'**
+  String selfAreaSummary(int sections, int criteria, int max);
+
+  /// No description provided for @selfSectionProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{answered}/{total} answered · {max} max points'**
+  String selfSectionProgress(int answered, int total, int max);
+
+  /// No description provided for @selfAllCriteria.
+  ///
+  /// In en, this message translates to:
+  /// **'All criteria'**
+  String get selfAllCriteria;
+
+  /// No description provided for @selfUnanswered.
+  ///
+  /// In en, this message translates to:
+  /// **'Unanswered'**
+  String get selfUnanswered;
+
+  /// No description provided for @selfAllAnswered.
+  ///
+  /// In en, this message translates to:
+  /// **'All criteria in this section have been answered.'**
+  String get selfAllAnswered;
+
+  /// No description provided for @selfPreviousCriterion.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get selfPreviousCriterion;
+
+  /// No description provided for @selfNextCriterion.
+  ///
+  /// In en, this message translates to:
+  /// **'Next criterion'**
+  String get selfNextCriterion;
+
+  /// No description provided for @selfAddComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add comment'**
+  String get selfAddComment;
+
+  /// No description provided for @selfComplianceProof.
+  ///
+  /// In en, this message translates to:
+  /// **'Compliance proof ({count})'**
+  String selfComplianceProof(int count);
+
+  /// No description provided for @selfOptionPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'{points, plural, one{1 pt} other{{points} pts}}'**
+  String selfOptionPoints(int points);
+
+  /// No description provided for @selfSnapshotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review self-assessment'**
+  String get selfSnapshotTitle;
+
+  /// No description provided for @selfSnapshotPurpose.
+  ///
+  /// In en, this message translates to:
+  /// **'Your draft saves as you work. Submit when finished to keep a read-only version in your history. You can create a new revision later.'**
+  String get selfSnapshotPurpose;
+
+  /// No description provided for @selfSnapshotPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'This does not share it with the Directorate. You can share the submitted version with an official campaign separately.'**
+  String get selfSnapshotPrivate;
+
+  /// No description provided for @selfSnapshotRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} criteria still need answers'**
+  String selfSnapshotRemaining(int count);
+
+  /// No description provided for @selfSnapshotProofRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} answered criteria still need required proof.'**
+  String selfSnapshotProofRemaining(int count);
+
+  /// No description provided for @selfSnapshotAllAnswered.
+  ///
+  /// In en, this message translates to:
+  /// **'All required criteria answered'**
+  String get selfSnapshotAllAnswered;
+
+  /// No description provided for @selfSnapshotContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue assessment'**
+  String get selfSnapshotContinue;
+
+  /// No description provided for @selfSnapshotConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit self-assessment'**
+  String get selfSnapshotConfirm;
+
+  /// No description provided for @selfSnapshotShowMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'See what is missing'**
+  String get selfSnapshotShowMissing;
+
+  /// No description provided for @selfAnsweredScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Answered score'**
+  String get selfAnsweredScore;
+
+  /// No description provided for @selfAnsweredScorePoints.
+  ///
+  /// In en, this message translates to:
+  /// **'{fraction} points'**
+  String selfAnsweredScorePoints(String fraction);
+
+  /// No description provided for @selfAnsweredScoreHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Based only on answered, applicable criteria.'**
+  String get selfAnsweredScoreHint;
+
+  /// No description provided for @selfNoScoredAnswers.
+  ///
+  /// In en, this message translates to:
+  /// **'No scored answers yet.'**
+  String get selfNoScoredAnswers;
+
+  /// No description provided for @selfHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No self-assessments yet'**
+  String get selfHistoryEmpty;
+
+  /// No description provided for @selfHistoryEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with a saved Audit Structure.'**
+  String get selfHistoryEmptyHint;
+
+  /// No description provided for @selfViewAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'View assessment'**
+  String get selfViewAssessment;
+
   /// No description provided for @selfIndependentStart.
   ///
   /// In en, this message translates to:
@@ -4109,7 +4289,7 @@ abstract class AppL10n {
   /// No description provided for @selfAuditSubmitSnapshot.
   ///
   /// In en, this message translates to:
-  /// **'Submit self-audit snapshot'**
+  /// **'Review and submit'**
   String get selfAuditSubmitSnapshot;
 
   /// No description provided for @selfAuditSubmitted.
@@ -4259,7 +4439,7 @@ abstract class AppL10n {
   /// No description provided for @selfAuditConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Submit this immutable snapshot for official comparison?'**
+  /// **'This submitted version can be used for comparison with the official audit.'**
   String get selfAuditConfirm;
 
   /// No description provided for @selfAuditCompletion.
@@ -4771,6 +4951,78 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Work'**
   String get auditorWorkNav;
+
+  /// No description provided for @structuresMakePrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as primary'**
+  String get structuresMakePrimary;
+
+  /// No description provided for @structuresLockNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock for new assessments'**
+  String get structuresLockNew;
+
+  /// No description provided for @structuresUnlockNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow for new assessments'**
+  String get structuresUnlockNew;
+
+  /// No description provided for @structuresLockedNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked for new assessments'**
+  String get structuresLockedNew;
+
+  /// No description provided for @structuresAvailabilityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing assessments keep their assigned structure.'**
+  String get structuresAvailabilityHint;
+
+  /// No description provided for @structuresDeleteUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete: used in assessments'**
+  String get structuresDeleteUsed;
+
+  /// No description provided for @structuresDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete this unused structure and its checklist items? This cannot be undone.'**
+  String get structuresDeleteConfirm;
+
+  /// No description provided for @structuresDeletePrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another primary structure before deleting this one.'**
+  String get structuresDeletePrimary;
+
+  /// No description provided for @campaignDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign details'**
+  String get campaignDetails;
+
+  /// No description provided for @campaignSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get campaignSchedule;
+
+  /// No description provided for @campaignFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get campaignFrequency;
+
+  /// No description provided for @campaignActionPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish'**
+  String get campaignActionPublish;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

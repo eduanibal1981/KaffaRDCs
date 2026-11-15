@@ -4,12 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:kafaa_app/core/offline/local_store.dart';
 import 'package:kafaa_app/data/supabase/supabase_providers.dart';
 import 'package:kafaa_app/features/auth/session.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'helpers/repository_harness.dart';
+
 void main() {
-  test('sign-in loads roles before a delayed auth stream event', () async {
+  test('sign-in and sign-out resolve before delayed auth stream events',
+      () async {
     final user = {
       'id': 'test-user',
       'email': 'owner@example.test',
@@ -36,6 +40,8 @@ void main() {
           'expires_in': 3600,
           'user': user
         };
+      } else if (request.url.path.endsWith('/logout')) {
+        result = {};
       } else if (request.url.path.endsWith('/profiles')) {
         result = [
           {
@@ -54,8 +60,10 @@ void main() {
       return http.Response(jsonEncode(result), 200,
           request: request, headers: {'content-type': 'application/json'});
     }));
+    final store = MemoryLocalStore();
     final container = ProviderContainer(overrides: [
       supabaseProvider.overrideWithValue(client),
+      localStoreProvider.overrideWithValue(store),
       authStateChangesProvider
           .overrideWith((ref) => const Stream<AuthState>.empty()),
     ]);
@@ -71,5 +79,14 @@ void main() {
     final session = await container.read(sessionProvider.future);
     expect(session?.user.email, 'owner@example.test');
     expect(session?.permissions.isSuperAdmin, isTrue);
+    await store.enqueue(OutboxKind.responseUpsert,
+        {'audit_id': 'offline-audit', 'criterion_id': 'offline-criterion'});
+    await store.putCache('centers.active', []);
+    await container.read(authControllerProvider.notifier).signOut();
+    expect(client.auth.currentSession, isNull);
+    expect(container.read(currentUserProvider), isNull);
+    expect(await container.read(sessionProvider.future), isNull);
+    expect(await store.readCache<Object>('centers.active'), isNull);
+    expect((await store.pending()).single.payload['audit_id'], 'offline-audit');
   });
 }

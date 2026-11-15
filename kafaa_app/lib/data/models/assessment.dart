@@ -13,6 +13,7 @@ class AssessmentTemplate {
     this.cycleLabel,
     required this.status,
     required this.isDefault,
+    this.isLocked = false,
     required this.reviewPeriodMonths,
   });
 
@@ -30,6 +31,7 @@ class AssessmentTemplate {
   final String? cycleLabel;
   final String status;
   final bool isDefault;
+  final bool isLocked;
   final int reviewPeriodMonths;
 
   factory AssessmentTemplate.fromMap(Map<String, dynamic> m) =>
@@ -45,6 +47,7 @@ class AssessmentTemplate {
         cycleLabel: asStringOrNull(m['cycle_label']),
         status: asString(m['status'], fallback: 'draft'),
         isDefault: asBool(m['is_default']),
+        isLocked: asBool(m['is_locked']),
         reviewPeriodMonths: asIntOr(m['review_period_months'], 6),
       );
 }

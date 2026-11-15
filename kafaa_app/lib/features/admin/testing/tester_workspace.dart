@@ -97,6 +97,11 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
         (widget.simulation == null ||
             owner.read(actualPermissionsProvider).isSuperAdmin));
     final identity = owner.read(supabaseProvider);
+    // A restored login may not have created the owner's controller yet.
+    // Resolve it before building the scoped override: reading the same lazy
+    // provider from inside its factory triggers Riverpod's circularity lock
+    // even when the read targets a different container.
+    final ownerAuth = owner.read(authControllerProvider.notifier);
     final simulation = widget.simulation;
     final sandbox = simulation == null
         ? null
@@ -139,8 +144,8 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
           initial: simulation,
           delegate: owner.read(roleSimulationProvider.notifier))),
       localStoreProvider.overrideWithValue(store),
-      authControllerProvider.overrideWith((ref) => AuthController(ref,
-          delegate: owner.read(authControllerProvider.notifier))),
+      authControllerProvider
+          .overrideWith((ref) => AuthController(ref, delegate: ownerAuth)),
       reportServiceProvider.overrideWith((ref) => ReportService(
           ref.watch(analyticsRepositoryProvider),
           sample: simulation != null,

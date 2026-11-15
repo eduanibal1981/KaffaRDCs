@@ -14,6 +14,55 @@ class AuditStructuresScreen extends ConsumerWidget {
 
   final bool publishedOnly;
 
+  Future<void> _availability(BuildContext context, WidgetRef ref,
+      AssessmentTemplate version, String action) async {
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialog) => AlertDialog(
+                title: Text(action == 'delete'
+                    ? l.structuresDelete
+                    : action == 'primary'
+                        ? l.structuresMakePrimary
+                        : version.isLocked
+                            ? l.structuresUnlockNew
+                            : l.structuresLockNew),
+                content: Text(action == 'delete'
+                    ? l.structuresDeleteConfirm
+                    : l.structuresAvailabilityHint),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(dialog, false),
+                      child: Text(l.actionCancel)),
+                  FilledButton(
+                      onPressed: () => Navigator.pop(dialog, true),
+                      child: Text(l.actionConfirm))
+                ]));
+    if (confirmed != true || !context.mounted) return;
+    try {
+      if (action == 'delete') {
+        await ref
+            .read(assessmentRepositoryProvider)
+            .deleteUnusedStructure(version.id);
+        ref.invalidate(structureBlueprintProvider(version.id));
+      } else {
+        await ref.read(assessmentRepositoryProvider).setStructureAvailability(
+            version.id,
+            primary: action == 'primary',
+            locked: action == 'primary' ? null : !version.isLocked);
+      }
+      ref.invalidate(structureUsageProvider);
+      ref.invalidate(adminStructuresProvider);
+      ref.invalidate(auditStructuresProvider);
+      ref.invalidate(blueprintProvider);
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(describeStructureError(context, error))));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
@@ -26,6 +75,7 @@ class AuditStructuresScreen extends ConsumerWidget {
           body:
               EmptyView(message: l.errorPermission, icon: Icons.lock_outline));
     }
+    final usage = ref.watch(structureUsageProvider).valueOrNull;
     final versionsProvider =
         publishedOnly ? auditStructuresProvider : adminStructuresProvider;
     return Scaffold(
@@ -37,6 +87,7 @@ class AuditStructuresScreen extends ConsumerWidget {
               ? EmptyView(message: l.structuresNone)
               : RefreshIndicator(
                   onRefresh: () async {
+                    ref.invalidate(structureUsageProvider);
                     ref.invalidate(versionsProvider);
                     await ref.read(versionsProvider.future);
                   },
@@ -53,10 +104,39 @@ class AuditStructuresScreen extends ConsumerWidget {
                                 context.pick(version.nameEn, version.nameAr)),
                             subtitle: Text(version.status == 'draft'
                                 ? l.structuresDraft
-                                : version.isDefault
-                                    ? l.structuresDefault
-                                    : l.structuresSaved),
-                            trailing: const Icon(Icons.chevron_right),
+                                : version.isLocked
+                                    ? l.structuresLockedNew
+                                    : version.isDefault
+                                        ? l.structuresDefault
+                                        : l.structuresSaved),
+                            trailing: version.status == 'active' &&
+                                    permissions.isDirectorate
+                                ? PopupMenuButton<String>(
+                                    onSelected: (action) => _availability(
+                                        context, ref, version, action),
+                                    itemBuilder: (_) => [
+                                          PopupMenuItem(
+                                              value: 'delete',
+                                              enabled: !version.isDefault &&
+                                                  usage?[version.id] == false,
+                                              child: Text(
+                                                  usage?[version.id] == true
+                                                      ? l.structuresDeleteUsed
+                                                      : l.structuresDelete)),
+                                          if (!version.isDefault &&
+                                              !version.isLocked)
+                                            PopupMenuItem(
+                                                value: 'primary',
+                                                child: Text(
+                                                    l.structuresMakePrimary)),
+                                          PopupMenuItem(
+                                              value: 'lock',
+                                              enabled: !version.isDefault,
+                                              child: Text(version.isLocked
+                                                  ? l.structuresUnlockNew
+                                                  : l.structuresLockNew)),
+                                        ])
+                                : const Icon(Icons.chevron_right),
                             onTap: () async {
                               if (publishedOnly) {
                                 context.push(

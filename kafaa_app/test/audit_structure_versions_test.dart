@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kafaa_app/data/models/assessment.dart';
+import 'package:kafaa_app/data/models/primitives.dart';
 import 'package:kafaa_app/data/models/center.dart';
 import 'package:kafaa_app/data/repositories/assessment_repository.dart';
 import 'package:kafaa_app/data/repositories/center_repository.dart';
@@ -18,7 +21,9 @@ import 'package:kafaa_app/core/offline/local_store.dart';
 import 'helpers/repository_harness.dart';
 
 AssessmentTemplate version(String id, int number,
-        {bool draft = false, bool defaultVersion = false}) =>
+        {bool draft = false,
+        bool defaultVersion = false,
+        bool locked = false}) =>
     AssessmentTemplate(
         id: id,
         code: 'AUDIT_STRUCTURE',
@@ -28,6 +33,7 @@ AssessmentTemplate version(String id, int number,
         nameAr: 'هيكل التدقيق الإصدار ${(number / 100).toStringAsFixed(2)}',
         status: draft ? 'draft' : 'active',
         isDefault: defaultVersion,
+        isLocked: locked,
         reviewPeriodMonths: 6);
 AssessmentBlueprint blueprint(AssessmentTemplate t, int count) {
   final base = buildBlueprint(criteriaCount: count);
@@ -46,6 +52,7 @@ Widget app(Widget child, List<Override> overrides, {String locale = 'en'}) =>
     ProviderScope(
         overrides: [
           localStoreProvider.overrideWithValue(MemoryLocalStore()),
+          structureUsageProvider.overrideWith((ref) async => {}),
           sessionProvider.overrideWith((ref) async => null),
           permissionsProvider.overrideWithValue(admin),
           ...overrides
@@ -57,6 +64,133 @@ Widget app(Widget child, List<Override> overrides, {String locale = 'en'}) =>
             home: child));
 
 void main() {
+  for (final locale in ['en', 'ar']) {
+    testWidgets('$locale unused deletion confirms and refreshes the list',
+        (tester) async {
+      var deleted = false;
+      final calls = <Map<String, dynamic>>[];
+      final harness =
+          (await tester.runAsync(() async => RepositoryHarness((request) async {
+                expect(request.url.path,
+                    endsWith('/delete_unused_audit_structure'));
+                calls.add(jsonDecode(request.body) as Map<String, dynamic>);
+                deleted = true;
+                return http.Response('null', 200);
+              })))!;
+      await tester.pumpWidget(app(
+          const AuditStructuresScreen(publishedOnly: true),
+          [
+            permissionsProvider.overrideWithValue(
+                const Permissions([RoleGrant(role: AppRole.directorate)])),
+            structureUsageProvider.overrideWith(
+                (ref) async => {'primary': true, 'unused': false}),
+            assessmentRepositoryProvider.overrideWithValue(
+                AssessmentRepository(harness.client, harness.store)),
+            auditStructuresProvider.overrideWith((ref) async => [
+                  version('primary', 101, defaultVersion: true),
+                  if (!deleted) version('unused', 100)
+                ]),
+          ],
+          locale: locale));
+      await tester.pumpAndSettle();
+      final label = locale == 'en'
+          ? 'Delete unused structure'
+          : 'حذف الهيكل غير المستخدم';
+      await tester.tap(find.byType(PopupMenuButton<String>).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label));
+      await tester.pumpAndSettle();
+      await tester.tap(find.descendant(
+          of: find.byType(AlertDialog), matching: find.byType(TextButton)));
+      await tester.pumpAndSettle();
+      expect(calls, isEmpty);
+      await tester.tap(find.byType(PopupMenuButton<String>).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label));
+      await tester.pumpAndSettle();
+      await tester.tap(find.descendant(
+          of: find.byType(AlertDialog), matching: find.byType(FilledButton)));
+      await tester.pumpAndSettle();
+      expect(calls.single, {'p_id': 'unused'});
+      expect(find.text('Audit Structure v 1.00'), findsNothing);
+      expect(
+          find.text(locale == 'en'
+              ? 'Audit Structure v 1.01'
+              : 'هيكل التدقيق الإصدار 1.01'),
+          findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.runAsync(harness.dispose);
+    });
+  }
+  for (final locale in ['en', 'ar']) {
+    testWidgets(
+        '$locale Directorate controls primary and lock without editing content',
+        (tester) async {
+      final calls = <Map<String, dynamic>>[];
+      final harness =
+          (await tester.runAsync(() async => RepositoryHarness((request) async {
+                expect(request.url.path,
+                    endsWith('/set_audit_structure_availability'));
+                calls.add(jsonDecode(request.body) as Map<String, dynamic>);
+                return http.Response('null', 200);
+              })))!;
+      await tester.pumpWidget(app(
+          const AuditStructuresScreen(publishedOnly: true),
+          [
+            permissionsProvider.overrideWithValue(
+                const Permissions([RoleGrant(role: AppRole.directorate)])),
+            assessmentRepositoryProvider.overrideWithValue(
+                AssessmentRepository(harness.client, harness.store)),
+            auditStructuresProvider.overrideWith((ref) async => [
+                  version('primary', 101, defaultVersion: true),
+                  version('old', 100),
+                  version('locked', 99, locked: true)
+                ]),
+          ],
+          locale: locale));
+      await tester.pumpAndSettle();
+      expect(find.byType(FloatingActionButton), findsNothing);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      expect(
+          tester
+              .widget<PopupMenuItem<String>>(find.byWidgetPredicate(
+                  (w) => w is PopupMenuItem<String> && w.value == 'lock'))
+              .enabled,
+          isFalse);
+      await tester.tapAt(const Offset(10, 450));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<String>).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(
+          find.text(locale == 'en' ? 'Set as primary' : 'تعيين كهيكل رئيسي'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.descendant(
+          of: find.byType(AlertDialog), matching: find.byType(FilledButton)));
+      await tester.pumpAndSettle();
+      expect(
+          calls.single, {'p_id': 'old', 'p_primary': true, 'p_locked': null});
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.runAsync(harness.dispose);
+    });
+  }
+  testWidgets('new campaign excludes locked structures', (tester) async {
+    final primary = version('primary', 101, defaultVersion: true);
+    await tester.pumpWidget(app(const NewAuditScreen(), [
+      auditStructuresProvider.overrideWith(
+          (ref) async => [primary, version('locked', 100, locked: true)]),
+      structureBlueprintProvider
+          .overrideWith((ref, id) async => blueprint(primary, 2)),
+      centersProvider.overrideWith((ref) async => []),
+    ]));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButtonFormField<String>).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Audit Structure v 1.00'), findsNothing);
+    expect(find.text('Audit Structure v 1.01'), findsWidgets);
+  });
   test('versions keep two decimal places', () {
     expect(version('a', 100).versionLabel, '1.00');
     expect(version('b', 105).versionLabel, '1.05');
@@ -87,14 +221,14 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('saved versions show the lock and hide editing controls',
+  testWidgets('saved versions explain read-only content and hide editing controls',
       (tester) async {
     await tester.pumpWidget(app(const StructureEditorScreen(), [
       blueprintProvider
           .overrideWith((ref) async => blueprint(version('a', 100), 2)),
     ]));
     await tester.pumpAndSettle();
-    expect(find.textContaining('This saved version is locked'), findsOneWidget);
+    expect(find.textContaining('This saved checklist is read-only'), findsOneWidget);
     expect(find.text('Save version'), findsNothing);
     expect(find.byType(FloatingActionButton), findsNothing);
     await tester.tap(find.text('Area A'));
