@@ -1843,3 +1843,10 @@ inside the project workspace; existing reviewed tracked evidence is retained.
 Development environment values, SQLite/build outputs and the separate Safari
 checkout remain ignored. Staged Gitleaks and configured-value checks found no
 credentials. The Staff Storage-bucket limitation recorded above is unchanged.
+
+Push completed: source commit `b92217e` was accepted by `origin/main` on
+17 November 2026. Fresh verification before publication was clean analysis and
+407 passing Flutter tests; Gitleaks found no staged leaks and configured local
+credential values were absent. Source commit covers the accumulated app and SQL
+work. Ignored evidence/account-specific files remain local; the working source
+has no additional unpublished implementation changes.
