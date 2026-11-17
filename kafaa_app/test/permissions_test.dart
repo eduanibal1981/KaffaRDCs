@@ -20,7 +20,6 @@ void main() {
       expect(admin.isDirectorate, isTrue);
       expect(admin.canConfigureTemplate, isTrue);
       expect(admin.canManageUsers, isTrue);
-      expect(admin.canManageStaff, isTrue);
     });
 
     test('can read and audit every centre', () {
@@ -69,7 +68,6 @@ void main() {
     test('cannot approve their own work or change the checklist', () {
       expect(roaming.canApproveAudits, isFalse);
       expect(roaming.canConfigureTemplate, isFalse);
-      expect(roaming.canManageStaff, isFalse);
     });
 
     test('may close a corrective action', () {
@@ -89,8 +87,7 @@ void main() {
       expect(manager.homeCenterId, centreA);
     });
 
-    test('may manage staff and respond to findings', () {
-      expect(manager.canManageStaff, isTrue);
+    test('may respond to findings', () {
       expect(manager.canRespondToNcr, isTrue);
       expect(manager.canExportReports, isTrue);
     });
@@ -149,8 +146,8 @@ void main() {
     });
 
     test('a roaming auditor has no home centre', () {
-      expect(perms([const RoleGrant(role: AppRole.auditor)]).homeCenterId,
-          isNull);
+      expect(
+          perms([const RoleGrant(role: AppRole.auditor)]).homeCenterId, isNull);
     });
   });
 }

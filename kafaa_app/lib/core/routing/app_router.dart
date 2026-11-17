@@ -47,7 +47,6 @@ import '../../features/more/settings_screen.dart';
 import '../../features/ncr/ncr_detail_screen.dart';
 import '../../features/ncr/ncr_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
-import '../../features/staff/staff_screen.dart';
 import '../../features/survey/survey_qr_screen.dart';
 import '../../features/survey/survey_screen.dart';
 import '../../shell/app_shell.dart';
@@ -124,7 +123,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           centerId: state.uri.queryParameters['centerId']);
       if (denied != null) return denied;
       final auditMatch = RegExp(
-              r'^/audits/([^/]+)(/run|/review|/dialogue|/team|/submit|/evidence/[^/]+)?$')
+              r'^/audits/([^/]+)(/run|/review|/actions|/dialogue|/team|/submit|/evidence/[^/]+)?$')
           .firstMatch(path);
       if (auditMatch != null && auditMatch[1] != 'new') {
         try {
@@ -156,11 +155,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           return Routes.home;
         }
       }
-      final ncrMatch = RegExp(r'^/actions/([^/]+)$').firstMatch(path);
+      final ncrMatch = RegExp(r'^(?:/actions|/audits/[^/]+/actions)/([^/]+)$')
+          .firstMatch(path);
       if (ncrMatch != null) {
         try {
           final ncr = await ref.read(ncrRepositoryProvider).byId(ncrMatch[1]!);
-          if (ncr == null || !permissions.canReadCenter(ncr.centerId)) {
+          if (ncr == null ||
+              !permissions.canReadCenter(ncr.centerId) ||
+              (state.pathParameters['auditId'] != null &&
+                  ncr.auditId != state.pathParameters['auditId'])) {
             return Routes.home;
           }
         } catch (_) {
@@ -245,6 +248,24 @@ final routerProvider = Provider<GoRouter>((ref) {
           parentNavigatorKey: rootKey,
           builder: (_, s) => CampaignProgressScreen(
               sessionId: s.pathParameters['sessionId']!)),
+      GoRoute(
+          path: '/audits/:auditId',
+          parentNavigatorKey: rootKey,
+          builder: (_, state) =>
+              AuditDetailScreen(auditId: state.pathParameters['auditId']!)),
+      GoRoute(
+          path: '/audits/:auditId/actions',
+          parentNavigatorKey: rootKey,
+          builder: (_, s) => NcrScreen(
+              key: ValueKey(s.uri),
+              auditId: s.pathParameters['auditId'],
+              centerId: s.uri.queryParameters['centerId']),
+          routes: [
+            GoRoute(
+                path: ':ncrId',
+                builder: (_, s) =>
+                    NcrDetailScreen(ncrId: s.pathParameters['ncrId']!))
+          ]),
       GoRoute(
           path: '/audits/:auditId/review',
           parentNavigatorKey: rootKey,
@@ -401,21 +422,17 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (_, state) => NoTransitionPage(
                 child: AuditsScreen(
                     centerId: state.uri.queryParameters['centerId'])),
-            routes: [
-              GoRoute(
-                path: ':auditId',
-                builder: (_, state) => AuditDetailScreen(
-                  auditId: state.pathParameters['auditId']!,
-                ),
-              ),
-            ],
           ),
           GoRoute(
             path: Routes.actions,
             pageBuilder: (_, state) {
               final centerId = state.uri.queryParameters['centerId'];
+              final auditId = state.uri.queryParameters['auditId'];
               return NoTransitionPage(
-                child: NcrScreen(key: ValueKey(centerId), centerId: centerId),
+                child: NcrScreen(
+                    key: ValueKey((centerId, auditId)),
+                    centerId: centerId,
+                    auditId: auditId),
               );
             },
             routes: [
@@ -428,8 +445,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: Routes.staff,
-            pageBuilder: (_, state) =>
-                const NoTransitionPage(child: StaffScreen()),
+            redirect: (_, __) => Routes.home,
           ),
           GoRoute(
             path: Routes.more,
@@ -522,7 +538,10 @@ String? roleRouteRedirect(String path, Permissions permissions,
       !permissions.canCompareAllCentres) {
     return Routes.home;
   }
-  if (path == Routes.staff && !permissions.canManageStaff) return Routes.home;
+  // Retired module: stale links must never construct Staff data consumers.
+  if (path == Routes.staff || path.startsWith('${Routes.staff}/')) {
+    return Routes.home;
+  }
   return null;
 }
 

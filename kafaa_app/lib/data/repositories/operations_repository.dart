@@ -20,9 +20,11 @@ import '../supabase/supabase_providers.dart';
 // ===========================================================================
 
 class NcrFilter {
-  const NcrFilter({this.centerId, this.status, this.onlyOpen = false});
+  const NcrFilter(
+      {this.centerId, this.auditId, this.status, this.onlyOpen = false});
 
   final String? centerId;
+  final String? auditId;
   final NcrStatus? status;
   final bool onlyOpen;
 
@@ -30,11 +32,12 @@ class NcrFilter {
   bool operator ==(Object other) =>
       other is NcrFilter &&
       other.centerId == centerId &&
+      other.auditId == auditId &&
       other.status == status &&
       other.onlyOpen == onlyOpen;
 
   @override
-  int get hashCode => Object.hash(centerId, status, onlyOpen);
+  int get hashCode => Object.hash(centerId, auditId, status, onlyOpen);
 }
 
 class NcrRepository {
@@ -51,6 +54,7 @@ class NcrRepository {
     if (filter.centerId != null) {
       query = query.eq('center_id', filter.centerId!);
     }
+    if (filter.auditId != null) query = query.eq('audit_id', filter.auditId!);
     if (filter.status != null) query = query.eq('status', filter.status!.wire);
     if (filter.onlyOpen) {
       query = query.inFilter(
@@ -84,9 +88,26 @@ class NcrRepository {
     try {
       rows = await _client
           .from('ncr_updates')
-          .select('*, profiles:author_id(full_name)')
+          .select()
           .eq('ncr_id', ncrId)
           .order('created_at', ascending: false);
+      // author_id references auth.users, not public.profiles. Resolve only
+      // visible profile names separately, retaining history for absent authors.
+      final authorIds = rows
+          .map((row) => row['author_id'] as String?)
+          .whereType<String>()
+          .toSet()
+          .toList();
+      if (authorIds.isNotEmpty) {
+        final profiles = await _client
+            .from('profiles')
+            .select('id,full_name')
+            .inFilter('id', authorIds);
+        final byId = {for (final profile in profiles) profile['id']: profile};
+        rows = [
+          for (final row in rows) {...row, 'profiles': byId[row['author_id']]}
+        ];
+      }
       await _store?.putCache('ncr.timeline.$ncrId', rows);
       await _store?.putCache('ncr.notes.accepted.$ncrId',
           {for (final r in rows) r['id'] as String: r});
@@ -120,6 +141,76 @@ class NcrRepository {
       }
     }
     return result;
+  }
+
+  Future<List<Map<String, dynamic>>> evidence(String ncrId) async {
+    List<Map<String, dynamic>> rows;
+    final key = 'ncr.proof.$ncrId';
+    try {
+      rows = await _client
+          .from('ncr_evidence')
+          .select()
+          .eq('ncr_id', ncrId)
+          .order('uploaded_at', ascending: true);
+      await _store?.putCache(key, rows);
+      await _store?.putCache('ncr.proof.accepted.$ncrId',
+          {for (final row in rows) row['id'] as String: row});
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
+      final cached = await _store?.readCache<List<dynamic>>(key);
+      if (cached == null) rethrow;
+      final accepted = await _store
+              ?.readCache<Map<String, dynamic>>('ncr.proof.accepted.$ncrId') ??
+          {};
+      rows = {for (final row in cached) row['id'] as String: row, ...accepted}
+          .values
+          .map((row) => Map<String, dynamic>.from(row))
+          .toList();
+    }
+    for (final entry in await _store?.pending() ?? <OutboxEntry>[]) {
+      if (entry.kind == OutboxKind.ncrEvidenceUpload &&
+          entry.payload['ncr_id'] == ncrId) {
+        final metadata = Map<String, dynamic>.from(entry.payload['metadata']);
+        if (!rows.any((row) => row['id'] == metadata['id'])) {
+          rows = [
+            ...rows,
+            {...metadata, '_pending': true}
+          ];
+        }
+      }
+    }
+    return rows;
+  }
+
+  Future<Uint8List> downloadEvidence(String ncrId, String evidenceId) async {
+    for (final entry in await _store?.pending() ?? <OutboxEntry>[]) {
+      if (entry.kind == OutboxKind.ncrEvidenceUpload &&
+          entry.payload['ncr_id'] == ncrId &&
+          entry.payload['metadata']['id'] == evidenceId) {
+        return readPersistedEvidence(entry.payload);
+      }
+    }
+    final key = 'ncr.download.$ncrId.$evidenceId';
+    try {
+      final row = await _client
+          .from('ncr_evidence')
+          .select()
+          .eq('id', evidenceId)
+          .eq('ncr_id', ncrId)
+          .single();
+      final bytes = await _client.storage
+          .from(row['storage_bucket'])
+          .download(row['storage_path']);
+      final owned = await persistEvidence(
+          _client, XFile.fromData(bytes), 'ncr-downloads/$ncrId/$evidenceId');
+      await _store?.putCache(key, owned);
+      return bytes;
+    } catch (error) {
+      if (!isNetworkError(error)) rethrow;
+      final owned = await _store?.readCache<Map<String, dynamic>>(key);
+      if (owned == null) rethrow;
+      return readPersistedEvidence(owned);
+    }
   }
 
   Future<void> create(Map<String, dynamic> values) =>
@@ -250,108 +341,6 @@ final ncrDashboardProvider = FutureProvider<Map<String, NcrDashboard>>(
 
 final ncrTimelineProvider = FutureProvider.family<List<NcrUpdate>, String>(
   (ref, ncrId) => ref.watch(ncrRepositoryProvider).timeline(ncrId),
-);
-
-// ===========================================================================
-// Staff, competency and drills
-// ===========================================================================
-
-class StaffRepository {
-  StaffRepository(this._client);
-  final SupabaseClient _client;
-  static const _uuid = Uuid();
-
-  Future<List<StaffMember>> members(String centerId) async {
-    final rows = await _client
-        .from('staff_members')
-        .select()
-        .eq('center_id', centerId)
-        .eq('is_active', true)
-        .order('full_name');
-    return rows.map(StaffMember.fromMap).toList();
-  }
-
-  Future<List<CompetencyRecord>> competencies(String centerId) async {
-    final rows = await _client
-        .from('v_staff_competency_status')
-        .select()
-        .eq('center_id', centerId)
-        .order('expiry_date', nullsFirst: false);
-    return rows.map(CompetencyRecord.fromMap).toList();
-  }
-
-  Future<List<CompetencyReadiness>> readiness(String centerId) async {
-    final rows = await _client
-        .from('v_center_competency_readiness')
-        .select()
-        .eq('center_id', centerId);
-    return rows.map(CompetencyReadiness.fromMap).toList();
-  }
-
-  Future<List<Map<String, dynamic>>> competencyTypes() async {
-    final rows = await _client
-        .from('competency_types')
-        .select()
-        .eq('is_active', true)
-        .order('sort_order');
-    return rows.cast<Map<String, dynamic>>();
-  }
-
-  Future<void> upsertMember(Map<String, dynamic> values) =>
-      _client.from('staff_members').upsert(values);
-
-  Future<void> upsertCompetency(Map<String, dynamic> values) =>
-      _client.from('staff_competencies').upsert(values);
-
-  Future<void> uploadCertificate({
-    required String centerId,
-    required String staffId,
-    required File file,
-    required String fileName,
-    String? mimeType,
-  }) async {
-    final storagePath = p.posix
-        .join(centerId, staffId, '${_uuid.v4()}${p.extension(fileName)}');
-    await _client.storage.from('certificates').upload(
-          storagePath,
-          file,
-          fileOptions: FileOptions(contentType: mimeType, upsert: true),
-        );
-  }
-
-  Future<List<EmergencyDrill>> drills(String centerId) async {
-    final rows = await _client
-        .from('emergency_drills')
-        .select()
-        .eq('center_id', centerId)
-        .order('drill_date', ascending: false);
-    return rows.map(EmergencyDrill.fromMap).toList();
-  }
-
-  Future<void> recordDrill(Map<String, dynamic> values) =>
-      _client.from('emergency_drills').insert(values);
-}
-
-final staffRepositoryProvider = Provider<StaffRepository>(
-  (ref) => StaffRepository(watchSessionClient(ref)),
-);
-
-final staffCompetenciesProvider =
-    FutureProvider.family<List<CompetencyRecord>, String>(
-  (ref, centerId) => ref.watch(staffRepositoryProvider).competencies(centerId),
-);
-
-final staffReadinessProvider =
-    FutureProvider.family<List<CompetencyReadiness>, String>(
-  (ref, centerId) => ref.watch(staffRepositoryProvider).readiness(centerId),
-);
-
-final staffMembersProvider = FutureProvider.family<List<StaffMember>, String>(
-  (ref, centerId) => ref.watch(staffRepositoryProvider).members(centerId),
-);
-
-final drillsProvider = FutureProvider.family<List<EmergencyDrill>, String>(
-  (ref, centerId) => ref.watch(staffRepositoryProvider).drills(centerId),
 );
 
 // ===========================================================================
@@ -537,3 +526,13 @@ final notificationRepositoryProvider = Provider<NotificationRepository>(
 final notificationsProvider = FutureProvider<List<AppNotification>>(
   (ref) => ref.watch(notificationRepositoryProvider).list(),
 );
+
+final ncrEvidenceProvider = FutureProvider.autoDispose
+    .family<List<Map<String, dynamic>>, String>((ref, id) {
+  ref.listen(syncServiceProvider, (previous, next) {
+    if (previous?.pending != next.pending || previous?.state != next.state) {
+      ref.invalidateSelf();
+    }
+  });
+  return ref.watch(ncrRepositoryProvider).evidence(id);
+});

@@ -17,6 +17,7 @@ insert into public.centers(id,code,name_en,name_ar) values
  ('d2000000-0000-0000-0000-000000000002','AUDITOR_QA2','Self QA two','اختبار ذاتي اثنان');
 insert into public.user_roles(user_id,role,center_id) values
  ('d1000000-0000-0000-0000-000000000001','super_admin',null),
+ ('d1000000-0000-0000-0000-000000000001','auditor',null),
  ('d1000000-0000-0000-0000-000000000002','center_manager','d2000000-0000-0000-0000-000000000001'),
  ('d1000000-0000-0000-0000-000000000003','center_manager','d2000000-0000-0000-0000-000000000002'),
  ('d1000000-0000-0000-0000-000000000004','auditor','d2000000-0000-0000-0000-000000000001'),
@@ -42,6 +43,20 @@ insert into qa_self values('audit',public.join_assessment('d7000000-0000-0000-00
 insert into qa_self values('other',public.join_assessment('d7000000-0000-0000-0000-000000000001','d2000000-0000-0000-0000-000000000002'));
 select set_config('request.jwt.claim.sub','d1000000-0000-0000-0000-000000000004',true);
 update public.audits set evaluation_date='2098-01-01' where id=pg_temp.sid('audit');
+create temporary table qa_section_before as
+  select row_version, content_version from public.audits where id=pg_temp.sid('audit');
+select public.add_audit_section_comment('db000000-0000-0000-0000-000000000001',
+  pg_temp.sid('audit'), 'd4000000-0000-0000-0000-000000000001', ' Section note ');
+select public.add_audit_section_comment('db000000-0000-0000-0000-000000000001',
+  pg_temp.sid('audit'), 'd4000000-0000-0000-0000-000000000001', 'Section note');
+select pg_temp.ok((select a.row_version=b.row_version+1 and a.content_version=b.content_version+1
+  from public.audits a cross join qa_section_before b where a.id=pg_temp.sid('audit')), 'Section note changes the signed content once');
+select pg_temp.ok((select author_id=auth.uid() and body='Section note' from public.audit_section_comments
+  where id='db000000-0000-0000-0000-000000000001'), 'Section note text and derived author');
+select pg_temp.denied($q$select public.add_audit_section_comment('db000000-0000-0000-0000-000000000001',pg_temp.sid('audit'),'d4000000-0000-0000-0000-000000000001','Changed')$q$,'RETRY_MISMATCH');
+select pg_temp.denied($q$select public.add_audit_section_comment(gen_random_uuid(),pg_temp.sid('audit'),gen_random_uuid(),'Wrong section')$q$,'SECTION_STRUCTURE_MISMATCH');
+select pg_temp.denied($q$select public.add_audit_section_comment(gen_random_uuid(),pg_temp.sid('other'),'d4000000-0000-0000-0000-000000000001','Wrong centre')$q$,'ACCESS_DENIED');
+select pg_temp.denied($q$update public.audit_section_comments set body='Changed' where audit_id=pg_temp.sid('audit')$q$,'permission denied');
 select pg_temp.denied($q$select public.upsert_audit_team_member(gen_random_uuid(),pg_temp.sid('audit'),0,'{"member_name":"X","actual_job_title":""}')$q$,'NAME_JOB_REQUIRED');
 select pg_temp.denied($q$select public.upsert_audit_team_member(gen_random_uuid(),pg_temp.sid('audit'),0,'{"member_name":"X","actual_job_title":"Nurse","team_role":"lead"}')$q$,'LEAD_ACCOUNT_REQUIRED');
 select public.upsert_audit_team_member('d8000000-0000-0000-0000-000000000001',pg_temp.sid('audit'),0,'{"member_name":" QA lead ","actual_job_title":" Consultant Nephrologist ","team_role":"lead","user_id":"d1000000-0000-0000-0000-000000000004"}');
@@ -60,10 +75,13 @@ select pg_temp.ok(jsonb_array_length(public.validate_assessment_submission(pg_te
 select pg_temp.denied($q$select public.set_assessment_audit_status(pg_temp.sid('audit'),'submitted')$q$,'SIGNOFF_REQUIRED');
 select pg_temp.denied($q$update public.audits set status='submitted' where id=pg_temp.sid('audit')$q$,'SIGNOFF_REQUIRED');
 select set_config('request.jwt.claim.sub','d1000000-0000-0000-0000-000000000002',true);
+select pg_temp.ok((select count(*)=0 from public.audit_section_comments),'Head cannot read internal section comments');
 select pg_temp.denied($q$select public.submit_assessment_evaluation(pg_temp.sid('audit'),1,'kafaa-evaluation-v1')$q$,'ACCESS_DENIED');
 select set_config('request.jwt.claim.sub','d1000000-0000-0000-0000-000000000006',true);
 select pg_temp.denied($q$select public.submit_assessment_evaluation(pg_temp.sid('audit'),(select row_version from public.audits where id=pg_temp.sid('audit')),'kafaa-evaluation-v1')$q$,'LEAD_SIGNOFF_REQUIRED');
 select public.submit_assessment_evaluation(pg_temp.sid('audit'),(select row_version from public.audits where id=pg_temp.sid('audit')),'kafaa-evaluation-v1','Acting for absent lead');
+select pg_temp.ok((select count(*)=1 from public.audit_section_comments),'Directorate reads submitted section comments');
+select pg_temp.denied($q$select public.add_audit_section_comment(gen_random_uuid(),pg_temp.sid('audit'),'d4000000-0000-0000-0000-000000000001','Late comment')$q$,'OFFICIAL_LOCKED');
 select pg_temp.ok((select signed_off_by=auth.uid() and evaluator_name='QA lead' and signed_content_version=content_version and signoff_note='Acting for absent lead' from public.audits where id=pg_temp.sid('audit')),'Directorate override stamps actual actor and derived lead');
 select pg_temp.ok((select count(*)=1 from public.ncrs where audit_id=pg_temp.sid('audit')),'Partial raises one NCR on submission');
 select public.submit_assessment_evaluation(pg_temp.sid('audit'),(select signed_row_version from public.audits where id=pg_temp.sid('audit')),'kafaa-evaluation-v1','Acting for absent lead');
@@ -89,5 +107,6 @@ select set_config('request.jwt.claim.sub','d1000000-0000-0000-0000-000000000004'
 select pg_temp.denied($q$select public.upsert_audit_team_member(gen_random_uuid(),pg_temp.sid('correction'),0,'{"member_name":"Revoked","actual_job_title":"Nurse"}')$q$,'ACCESS_DENIED');
 set local role anon;
 select pg_temp.denied($q$select public.validate_assessment_submission(null)$q$,'permission denied');
+select pg_temp.denied($q$select public.add_audit_section_comment(null,null,null,null)$q$,'permission denied');
 reset role;
 rollback;

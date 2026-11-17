@@ -150,8 +150,9 @@ class OfflineBanner extends ConsumerWidget {
               ),
               if (status.state != SyncState.syncing && status.pending > 0)
                 TextButton(
-                  onPressed: () =>
-                      ref.read(syncServiceProvider.notifier).sync(),
+                  onPressed: () => ref
+                      .read(syncServiceProvider.notifier)
+                      .sync(retryTeamAccountConflicts: true),
                   child: Text(l10n.statusSyncNow),
                 ),
             ],

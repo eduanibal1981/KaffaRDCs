@@ -1,0 +1,40 @@
+[
+  {
+    "kind": "retired_relations",
+    "data": {
+      "staff_members": null,
+      "competency_types": null,
+      "emergency_drills": null,
+      "staff_competencies": null,
+      "v_staff_competency_status": null,
+      "v_center_competency_readiness": null
+    }
+  },
+  {
+    "kind": "retired_functions_types",
+    "data": {
+      "expiry": null,
+      "reminder": null,
+      "staff_category": null,
+      "competency_state": null
+    }
+  },
+  {
+    "kind": "remaining_storage",
+    "data": {
+      "certificate_objects": 0,
+      "certificates_bucket": 1,
+      "certificate_policies": 0
+    }
+  },
+  {
+    "kind": "retained_baseline",
+    "data": {
+      "criteria": 79,
+      "max_points": 237,
+      "public_tables": 39,
+      "shared_is_staff": "app.is_staff()",
+      "shared_active_staff": "app.active_staff()"
+    }
+  }
+]

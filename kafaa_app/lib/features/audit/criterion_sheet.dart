@@ -595,13 +595,7 @@ class _EvidenceSection extends ConsumerWidget {
           children: [
             Text(l10n.criterionEvidence,
                 style: Theme.of(context).textTheme.labelLarge),
-            if (criterion.evidenceRequired) ...[
-              StatusPill(
-                label: l10n.criterionEvidenceRequired,
-                color: KafaaColors.warning,
-                dense: true,
-              ),
-            ],
+            Text(l10n.auditProofOptional),
           ],
         ),
         const SizedBox(height: 10),

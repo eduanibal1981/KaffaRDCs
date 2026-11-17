@@ -105,7 +105,7 @@ More can be added from the app at any time (Centres → **+**).
 | **Super Admin** | Configure the checklist, manage centres and users |
 | **Directorate** | See every centre, review and approve, publish badges |
 | **Auditor** | Score assessments at assigned centres, close findings |
-| **Centre Manager** | Own centre only: respond to findings, manage staff |
+| **Centre Manager** | Own centre only: assessments and corrective actions |
 | **Patient** | Anonymous survey by QR or kiosk — no account, no identity |
 
 Authorisation is enforced by PostgreSQL row-level security. The app's permission
@@ -128,9 +128,6 @@ declining detection. Every chart drills down to the criteria behind it.
 **Corrective actions** — raised automatically for every Partially Met and Not
 Met result, with risk level, owner, deadline, a six-state workflow, evidence
 uploads, overdue alerts and repeating-finding detection.
-
-**Staff** — certification tracking with expiry reminders (BLS, ACLS, IV therapy,
-hand hygiene, PPE and more), team readiness dashboards, emergency drill log.
 
 **Patient experience** — anonymous five-question survey by QR code or kiosk,
 Arabic or English, emoji and star ratings, duplicate protection that stores no

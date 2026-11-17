@@ -1,5 +1,5 @@
 -- =====================================================================
--- Seed 0003 : Settings, competencies, badges, survey, terminology
+-- Seed 0003 : Settings, badges, survey, terminology
 -- =====================================================================
 
 begin;
@@ -11,7 +11,6 @@ insert into public.app_settings (key, value, description) values
   ('ncr.auto_generate',        'true',  'Raise a non-conformance report automatically for Partially Met / Not Met results.'),
   ('ncr.due_days_not_met',     '30',    'Days allowed to close an NCR raised from a Not Met result.'),
   ('ncr.due_days_partial',     '60',    'Days allowed to close an NCR raised from a Partially Met result.'),
-  ('competency.reminder_days', '30',    'Default lead time for certification expiry reminders.'),
   ('audit.require_evidence',   'true',  'Block submission when a criterion that requires evidence has none attached.'),
   ('audit.default_sample_size','10',    'Default size of a random record sample.'),
   ('survey.cooldown_minutes',  '720',   'Minutes before the same device may submit another survey for a centre.'),
@@ -21,47 +20,6 @@ insert into public.app_settings (key, value, description) values
   ('report.footer_en',         '"Kafa''a Initiative — Directorate General of Health Services, Muscat Governorate"', 'English report footer.'),
   ('report.footer_ar',         '"مبادرة كفاءة — المديرية العامة للخدمات الصحية بمحافظة مسقط"', 'Arabic report footer.')
 on conflict (key) do update set value = excluded.value, description = excluded.description;
-
--- ---------------------------------------------------------------------
--- Competency types (derived from criteria 2.11 - 2.13 and section 5)
--- ---------------------------------------------------------------------
-insert into public.competency_types
-  (code, name_en, name_ar, description_en, description_ar, validity_months, reminder_days, applies_to, sort_order)
-values
-  ('BLS',  'Basic Life Support (BLS)', 'الإنعاش القلبي الأساسي',
-   'Valid BLS certificate.', 'شهادة إنعاش قلبي أساسي سارية.', 24, 30,
-   '{nurse,physician,technician}', 1),
-
-  ('ACLS', 'Advanced Cardiac Life Support (ACLS)', 'الإنعاش القلبي المتقدم',
-   'Valid ACLS certificate, required for physicians.', 'شهادة إنعاش قلبي متقدم سارية، مطلوبة للأطباء.', 24, 30,
-   '{physician}', 2),
-
-  ('IV',   'IV Therapy Certification', 'شهادة العلاج الوريدي',
-   'Certified to administer intravenous therapy.', 'معتمد لإعطاء العلاج عن طريق الوريد.', 36, 30,
-   '{nurse}', 3),
-
-  ('HAND', 'Hand Hygiene Competency', 'كفاءة نظافة اليدين',
-   'Observed competency in the hand hygiene technique.', 'إثبات الكفاءة في تقنية نظافة اليدين بالملاحظة.', 12, 30,
-   '{nurse,physician,technician,dietitian}', 4),
-
-  ('PPE',  'PPE Use Competency', 'كفاءة استخدام معدات الحماية',
-   'Training and observed competency in personal protective equipment.', 'التدريب وإثبات الكفاءة في استخدام معدات الحماية الشخصية.', 12, 30,
-   '{nurse,physician,technician,dietitian}', 5),
-
-  ('POCUS','Access Flow Monitoring (POCUS)', 'مراقبة تدفق المدخل الوعائي',
-   'Trained in point-of-care ultrasound assessment of vascular access.', 'مدرَّب على تقييم المدخل الوعائي بالموجات فوق الصوتية عند نقطة الرعاية.', 24, 45,
-   '{physician}', 6),
-
-  ('EVAC', 'Evacuation Plan Training', 'التدريب على خطة الإخلاء',
-   'Trained on the site-specific evacuation plan.', 'مدرَّب على خطة الإخلاء الخاصة بالموقع.', 12, 30,
-   '{nurse,physician,technician,dietitian,administrative,other}', 7),
-
-  ('CRASH','Crash Cart and Emergency Response', 'عربة الإنعاش والاستجابة للطوارئ',
-   'Trained in emergency response and crash cart use.', 'مدرَّب على الاستجابة للطوارئ واستخدام عربة الإنعاش.', 12, 30,
-   '{nurse}', 8)
-on conflict (code) do update
-  set name_en = excluded.name_en, name_ar = excluded.name_ar,
-      validity_months = excluded.validity_months, applies_to = excluded.applies_to;
 
 -- ---------------------------------------------------------------------
 -- Achievement badges

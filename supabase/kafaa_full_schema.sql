@@ -8,7 +8,7 @@
 -- It creates the schema, the security policies, the storage buckets,
 -- and loads the official 79-criterion Kafa'a checklist (237 points).
 --
--- Load optional centre/staff examples with seed/0004_demo_data.sql.
+-- Load optional centre/survey examples with seed/0004_demo_data.sql.
 -- Load shared assessment examples with seed/0006_shared_assessment_demo.sql
 -- after granting an app Super Admin.
 --
@@ -4515,7 +4515,7 @@ commit;
 -- #####################################################################
 
 -- =====================================================================
--- Seed 0003 : Settings, competencies, badges, survey, terminology
+-- Seed 0003 : Settings, badges, survey, terminology
 -- =====================================================================
 
 begin;
@@ -4527,7 +4527,6 @@ insert into public.app_settings (key, value, description) values
   ('ncr.auto_generate',        'true',  'Raise a non-conformance report automatically for Partially Met / Not Met results.'),
   ('ncr.due_days_not_met',     '30',    'Days allowed to close an NCR raised from a Not Met result.'),
   ('ncr.due_days_partial',     '60',    'Days allowed to close an NCR raised from a Partially Met result.'),
-  ('competency.reminder_days', '30',    'Default lead time for certification expiry reminders.'),
   ('audit.require_evidence',   'true',  'Block submission when a criterion that requires evidence has none attached.'),
   ('audit.default_sample_size','10',    'Default size of a random record sample.'),
   ('survey.cooldown_minutes',  '720',   'Minutes before the same device may submit another survey for a centre.'),
@@ -4537,47 +4536,6 @@ insert into public.app_settings (key, value, description) values
   ('report.footer_en',         '"Kafa''a Initiative — Directorate General of Health Services, Muscat Governorate"', 'English report footer.'),
   ('report.footer_ar',         '"مبادرة كفاءة — المديرية العامة للخدمات الصحية بمحافظة مسقط"', 'Arabic report footer.')
 on conflict (key) do update set value = excluded.value, description = excluded.description;
-
--- ---------------------------------------------------------------------
--- Competency types (derived from criteria 2.11 - 2.13 and section 5)
--- ---------------------------------------------------------------------
-insert into public.competency_types
-  (code, name_en, name_ar, description_en, description_ar, validity_months, reminder_days, applies_to, sort_order)
-values
-  ('BLS',  'Basic Life Support (BLS)', 'الإنعاش القلبي الأساسي',
-   'Valid BLS certificate.', 'شهادة إنعاش قلبي أساسي سارية.', 24, 30,
-   '{nurse,physician,technician}', 1),
-
-  ('ACLS', 'Advanced Cardiac Life Support (ACLS)', 'الإنعاش القلبي المتقدم',
-   'Valid ACLS certificate, required for physicians.', 'شهادة إنعاش قلبي متقدم سارية، مطلوبة للأطباء.', 24, 30,
-   '{physician}', 2),
-
-  ('IV',   'IV Therapy Certification', 'شهادة العلاج الوريدي',
-   'Certified to administer intravenous therapy.', 'معتمد لإعطاء العلاج عن طريق الوريد.', 36, 30,
-   '{nurse}', 3),
-
-  ('HAND', 'Hand Hygiene Competency', 'كفاءة نظافة اليدين',
-   'Observed competency in the hand hygiene technique.', 'إثبات الكفاءة في تقنية نظافة اليدين بالملاحظة.', 12, 30,
-   '{nurse,physician,technician,dietitian}', 4),
-
-  ('PPE',  'PPE Use Competency', 'كفاءة استخدام معدات الحماية',
-   'Training and observed competency in personal protective equipment.', 'التدريب وإثبات الكفاءة في استخدام معدات الحماية الشخصية.', 12, 30,
-   '{nurse,physician,technician,dietitian}', 5),
-
-  ('POCUS','Access Flow Monitoring (POCUS)', 'مراقبة تدفق المدخل الوعائي',
-   'Trained in point-of-care ultrasound assessment of vascular access.', 'مدرَّب على تقييم المدخل الوعائي بالموجات فوق الصوتية عند نقطة الرعاية.', 24, 45,
-   '{physician}', 6),
-
-  ('EVAC', 'Evacuation Plan Training', 'التدريب على خطة الإخلاء',
-   'Trained on the site-specific evacuation plan.', 'مدرَّب على خطة الإخلاء الخاصة بالموقع.', 12, 30,
-   '{nurse,physician,technician,dietitian,administrative,other}', 7),
-
-  ('CRASH','Crash Cart and Emergency Response', 'عربة الإنعاش والاستجابة للطوارئ',
-   'Trained in emergency response and crash cart use.', 'مدرَّب على الاستجابة للطوارئ واستخدام عربة الإنعاش.', 12, 30,
-   '{nurse}', 8)
-on conflict (code) do update
-  set name_en = excluded.name_en, name_ar = excluded.name_ar,
-      validity_months = excluded.validity_months, applies_to = excluded.applies_to;
 
 -- ---------------------------------------------------------------------
 -- Achievement badges
@@ -6777,12 +6735,14 @@ grant execute on function public.post_ncr_note(uuid,uuid,text) to authenticated;
 notify pgrst,'reload schema';
 commit;
 
+
 -- #####################################################################
 -- # migrations/20261113221701_center_self_template_index.sql
 -- #####################################################################
 
 -- Cover the new pinned-template FK; no existing records are changed.
 create index center_self_template_idx on public.center_self_audits(template_id);
+
 
 -- #####################################################################
 -- # migrations/20261113222745_center_self_deadline_guard.sql
@@ -6797,6 +6757,7 @@ create or replace function app.can_prepare_self_audit(p_id uuid) returns boolean
  and (app.is_super_admin() or app.manages_center(p.center_id))
  and not exists(select 1 from public.audits a where a.participation_id=p.id and a.submitted_at is not null))
 $$;
+
 
 -- #####################################################################
 -- # migrations/20261113225856_center_self_proof_retries.sql
@@ -7350,6 +7311,947 @@ end $$;
 revoke all on function public.remove_unreviewed_audit_evidence(uuid,uuid) from public,anon;grant execute on function public.remove_unreviewed_audit_evidence(uuid,uuid) to authenticated;
 revoke delete on public.audit_responses from authenticated;
 notify pgrst,'reload schema';
+commit;
+
+
+-- #####################################################################
+-- # migrations/20261114213439_independent_self_assessments.sql
+-- #####################################################################
+
+-- Independent centre-owned self-assessment histories and auditor-only official joining.
+begin;
+
+create function app.can_join_official_audit(p_center uuid) returns boolean
+language sql stable set search_path='' as $$
+  select p_center is not null and app.active_staff() and app.is_auditor(p_center)
+$$;
+revoke all on function app.can_join_official_audit(uuid) from public,anon;
+grant execute on function app.can_join_official_audit(uuid) to authenticated;
+
+drop policy audits_insert on public.audits;
+create policy audits_insert on public.audits for insert to authenticated
+  with check (participation_id is not null and status='draft' and app.active_staff()
+    and ((parent_audit_id is null and app.can_join_official_audit(center_id))
+      or (parent_audit_id is not null and app.is_directorate())));
+
+create function app.guard_official_join_role() returns trigger
+language plpgsql set search_path='' as $$
+begin
+  if new.parent_audit_id is null and not app.can_join_official_audit(new.center_id) then
+    raise exception 'KAFAA_AUDITOR_JOIN_REQUIRED: You cannot join for this centre' using errcode='42501';
+  end if;
+  return new;
+end $$;
+revoke all on function app.guard_official_join_role() from public,anon,authenticated;
+create trigger trg_00_official_join_role before insert on public.audits
+  for each row execute function app.guard_official_join_role();
+
+create table public.center_self_assessments (
+  id uuid primary key,
+  center_id uuid not null references public.centers(id) on delete restrict,
+  template_id uuid not null references public.assessment_templates(id) on delete restrict,
+  legacy_participation_id uuid unique references public.assessment_participations(id) on delete restrict,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  unique (id,center_id,template_id)
+);
+create index center_self_assessments_center_idx on public.center_self_assessments(center_id);
+create index center_self_assessments_template_idx on public.center_self_assessments(template_id);
+create index center_self_assessments_creator_idx on public.center_self_assessments(created_by);
+
+insert into public.center_self_assessments(id,center_id,template_id,legacy_participation_id,created_by,created_at)
+  select distinct on (h.participation_id) h.participation_id,p.center_id,h.template_id,
+    h.participation_id,h.created_by,h.created_at
+  from public.center_self_audits h join public.assessment_participations p on p.id=h.participation_id
+  order by h.participation_id,h.version;
+alter table public.center_self_audits disable trigger self_header_guard;
+alter table public.center_self_audits add column assessment_id uuid, add column center_id uuid;
+update public.center_self_audits h set assessment_id=a.id,center_id=a.center_id
+  from public.center_self_assessments a where a.legacy_participation_id=h.participation_id;
+alter table public.center_self_audits
+  alter column participation_id drop not null,
+  alter column assessment_id set not null,
+  alter column center_id set not null,
+  add constraint center_self_assessment_identity_fk foreign key (assessment_id,center_id,template_id)
+    references public.center_self_assessments(id,center_id,template_id) on delete restrict,
+  add constraint center_self_assessment_version_key unique (assessment_id,version);
+create unique index center_self_assessment_one_draft_idx
+  on public.center_self_audits(assessment_id) where status='draft';
+create index center_self_history_idx
+  on public.center_self_audits(center_id,submitted_at desc,id) where status='submitted';
+create index center_self_drafts_idx
+  on public.center_self_audits(center_id,updated_at desc,id) where status='draft';
+alter table public.center_self_audits enable trigger self_header_guard;
+
+create table public.center_self_shares (
+  participation_id uuid primary key references public.assessment_participations(id) on delete restrict,
+  snapshot_id uuid not null references public.center_self_audits(id) on delete restrict,
+  shared_by uuid references auth.users(id) on delete set null,
+  shared_at timestamptz not null default now()
+);
+create index center_self_shares_snapshot_idx on public.center_self_shares(snapshot_id);
+create index center_self_shares_actor_idx on public.center_self_shares(shared_by);
+create table public.center_self_share_events (
+  id bigint generated always as identity primary key,
+  participation_id uuid not null references public.assessment_participations(id) on delete restrict,
+  previous_snapshot_id uuid references public.center_self_audits(id) on delete restrict,
+  snapshot_id uuid references public.center_self_audits(id) on delete restrict,
+  actor_id uuid references auth.users(id) on delete set null,
+  occurred_at timestamptz not null default clock_timestamp()
+);
+create index center_self_share_events_part_idx on public.center_self_share_events(participation_id);
+create index center_self_share_events_previous_idx on public.center_self_share_events(previous_snapshot_id);
+create index center_self_share_events_snapshot_idx on public.center_self_share_events(snapshot_id);
+create index center_self_share_events_actor_idx on public.center_self_share_events(actor_id);
+
+alter table public.center_self_assessments enable row level security;
+alter table public.center_self_shares enable row level security;
+alter table public.center_self_share_events enable row level security;
+revoke all on public.center_self_assessments,public.center_self_shares,public.center_self_share_events from public,anon,authenticated;
+grant select on public.center_self_assessments,public.center_self_shares,public.center_self_share_events to authenticated;
+create policy self_assessment_owner_read on public.center_self_assessments for select to authenticated
+  using (app.active_staff() and app.manages_center(center_id));
+create policy self_share_read on public.center_self_shares for select to authenticated
+  using (app.can_read_participation(participation_id));
+create policy self_share_events_read on public.center_self_share_events for select to authenticated
+  using (app.can_read_participation(participation_id));
+
+-- The historical review and proof joins would recurse through their RLS policies.
+-- This private function returns only an authorization decision for the current actor.
+create function app.can_read_shared_self(p_snapshot uuid) returns boolean
+language sql stable security definer set search_path='' as $$
+  select app.active_staff() and exists (
+    select 1 from public.center_self_audits h where h.id=p_snapshot
+      and (app.is_directorate() or app.is_auditor(h.center_id))
+      and (
+        exists (select 1 from public.audits a where a.self_audit_baseline_id=h.id)
+        or exists (select 1 from public.center_self_shares s where s.snapshot_id=h.id)
+        or exists (select 1 from public.center_self_evidence e join public.audit_evidence_reviews r
+          on r.self_evidence_id=e.id where e.self_audit_id=h.id)
+      )
+  )
+$$;
+revoke all on function app.can_read_shared_self(uuid) from public,anon;
+grant execute on function app.can_read_shared_self(uuid) to authenticated;
+
+drop policy self_headers_read on public.center_self_audits;
+create policy self_headers_read on public.center_self_audits for select to authenticated
+  using ((app.active_staff() and app.manages_center(center_id)) or app.can_read_shared_self(id));
+drop policy self_headers_insert on public.center_self_audits;
+revoke insert(id,participation_id,template_id,version,parent_self_audit_id) on public.center_self_audits from authenticated;
+drop policy self_headers_update on public.center_self_audits;
+revoke update(status) on public.center_self_audits from authenticated;
+
+create or replace function app.can_read_self_audit(p_id uuid) returns boolean
+language sql stable set search_path='' as $$
+  select exists (select 1 from public.center_self_audits h where h.id=p_id)
+$$;
+
+create or replace function app.can_edit_self_audit(p_id uuid) returns boolean
+language sql volatile set search_path='' as $$
+  select app.active_staff() and exists(
+    select 1 from public.center_self_audits h join public.centers c on c.id=h.center_id
+    where h.id=p_id and h.status='draft' and c.is_active and app.manages_center(h.center_id))
+$$;
+
+create function app.lock_center_self_assessment(p_id uuid) returns void
+language sql volatile set search_path='' as $$
+  select pg_advisory_xact_lock(hashtextextended(p_id::text,491581))
+$$;
+revoke all on function app.lock_center_self_assessment(uuid) from public,anon;
+grant execute on function app.lock_center_self_assessment(uuid) to authenticated;
+
+create or replace function app.lock_self_parent(p_id uuid,p_participation boolean default false) returns void
+language plpgsql set search_path='' as $$
+declare v_assessment uuid;
+begin
+  if p_participation then
+    if not app.can_read_participation(p_id) then
+      raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';
+    end if;
+    v_assessment:=p_id; -- Backfilled legacy assessment IDs equal the participation ID.
+  else
+    select assessment_id into v_assessment from public.center_self_audits where id=p_id;
+  end if;
+  if v_assessment is null then raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';end if;
+  perform app.lock_center_self_assessment(v_assessment);
+end $$;
+
+create function app.self_proof_path(p_header uuid,p_evidence uuid,p_name text) returns text
+language sql stable set search_path='' as $$
+  select h.center_id::text||'/'||coalesce(h.participation_id,h.assessment_id)::text
+    ||'/'||h.id::text||'/'||p_evidence::text||'/'||p_name
+  from public.center_self_audits h where h.id=p_header
+$$;
+revoke all on function app.self_proof_path(uuid,uuid,text) from public,anon;
+grant execute on function app.self_proof_path(uuid,uuid,text) to authenticated;
+
+create or replace function app.self_storage_access(p_path text,p_write boolean) returns boolean
+language sql stable set search_path='' as $$
+  select exists(select 1 from public.center_self_evidence e
+    where e.storage_path=p_path and e.storage_bucket='self-audit-evidence'
+      and e.storage_path=app.self_proof_path(e.self_audit_id,e.id,e.file_name)
+      and case when p_write then e.upload_state='pending' and e.removed_at is null
+        and e.uploaded_by=auth.uid() and app.can_edit_self_audit(e.self_audit_id)
+      else app.can_read_self_audit(e.self_audit_id) end)
+$$;
+
+create or replace function public.join_assessment(p_session_id uuid,p_center_id uuid) returns uuid
+language plpgsql security invoker set search_path='' as $$
+declare v_part public.assessment_participations; v_session public.assessment_sessions; v_id uuid;
+begin
+ if not app.can_join_official_audit(p_center_id) then raise exception 'KAFAA_AUDITOR_JOIN_REQUIRED: You cannot join for this centre' using errcode='42501'; end if;
+ perform app.lock_assessment(p_session_id);
+ select * into v_part from public.assessment_participations where session_id=p_session_id and center_id=p_center_id;
+ if v_part.id is null then raise exception 'This centre is not eligible for this assessment'; end if;
+ select id into v_id from public.audits where participation_id=v_part.id order by version desc limit 1;
+ if v_id is not null then return v_id; end if;
+ perform app.assert_assessment_open(v_part.id);
+ select * into v_session from public.assessment_sessions where id=p_session_id;
+ insert into public.audits(participation_id,center_id,template_id,cycle_label,period_frequency,period_start,period_end,title,evaluation_date,registered_patients,dialysis_beds)
+ select v_part.id,p_center_id,v_session.template_id,v_session.cycle_label,v_session.period_frequency,v_session.period_start,v_session.period_end,v_session.title_en,null,c.registered_patients,c.dialysis_beds
+ from public.centers c where c.id=p_center_id returning id into v_id;
+ return v_id;
+end $$;
+
+create or replace function app.guard_self_header() returns trigger language plpgsql security invoker set search_path='' as $$
+declare a public.center_self_assessments; h public.center_self_audits; v_version integer;
+begin
+ if tg_op='DELETE' then raise exception 'Self-audit history is retained' using errcode='42501';end if;
+ perform app.lock_center_self_assessment(new.assessment_id);
+ if tg_op='UPDATE' and current_user<>'authenticated' and pg_trigger_depth()>1
+ and (to_jsonb(new)-array['row_version','updated_at'])=(to_jsonb(old)-array['row_version','updated_at']) then return new;end if;
+ select * into a from public.center_self_assessments where id=new.assessment_id;
+ if not app.active_staff() or a.id is null or not app.manages_center(a.center_id)
+   or not exists(select 1 from public.centers c where c.id=a.center_id and c.is_active) then
+   raise exception 'KAFAA_SELF_FROZEN' using errcode='42501';
+ end if;
+ if row(new.center_id,new.template_id,new.participation_id) is distinct from
+    row(a.center_id,a.template_id,a.legacy_participation_id) then
+   raise exception 'KAFAA_STRUCTURE_MISMATCH' using errcode='22023';
+ end if;
+ if tg_op='INSERT' then
+  select coalesce(max(version),0)+1 into v_version from public.center_self_audits where assessment_id=a.id;
+  if new.version<>v_version or new.status<>'draft' then raise exception 'Invalid self version' using errcode='22023';end if;
+  if new.parent_self_audit_id is not null then
+   select * into h from public.center_self_audits where id=new.parent_self_audit_id;
+   if h.assessment_id is distinct from a.id or h.status<>'submitted' or h.version<>v_version-1 then
+     raise exception 'Invalid self parent' using errcode='22023';
+   end if;
+  elsif v_version<>1 then raise exception 'Choose previous submitted snapshot' using errcode='22023';end if;
+  new.created_by:=auth.uid();new.created_at:=now();new.updated_at:=now();new.row_version:=1;new.submitted_at:=null;new.submitted_by:=null;
+ else
+  if old.status<>'draft' or (to_jsonb(new)-'status')<>(to_jsonb(old)-'status') or new.status<>'submitted' then raise exception 'Self snapshot is immutable' using errcode='42501';end if;
+  if exists(select 1 from public.assessment_criteria c left join public.center_self_responses r on r.self_audit_id=old.id and r.criterion_id=c.id
+   where c.template_id=old.template_id and c.is_active and not c.excluded_from_total and not coalesce(r.is_not_applicable,false) and r.level is null) then raise exception 'KAFAA_SELF_INCOMPLETE' using errcode='22023';end if;
+  if exists(select 1 from public.assessment_criteria c join public.center_self_responses r on r.criterion_id=c.id and r.self_audit_id=old.id
+   where c.template_id=old.template_id and c.is_active and not c.excluded_from_total and c.evidence_required and not r.is_not_applicable
+    and not exists(select 1 from public.center_self_evidence e join storage.objects o on o.bucket_id=e.storage_bucket and o.name=e.storage_path
+     where e.self_response_id=r.id and e.self_audit_id=old.id and e.removed_at is null and e.upload_state='finalized'
+     and (o.metadata->>'size')::bigint=e.size_bytes and o.metadata->>'mimetype'=e.mime_type)) then raise exception 'KAFAA_REQUIRED_PROOF_MISSING' using errcode='22023';end if;
+  if exists(select 1 from public.center_self_evidence where self_audit_id=old.id and removed_at is null and upload_state<>'finalized') then raise exception 'KAFAA_PROOF_PENDING' using errcode='22023';end if;
+  new.submitted_at:=clock_timestamp();new.submitted_by:=auth.uid();new.updated_at:=now();new.row_version:=old.row_version+1;
+ end if;
+ return new;
+end $$;
+
+create or replace function app.guard_self_evidence() returns trigger language plpgsql security invoker set search_path='' as $$
+declare h public.center_self_audits;r public.center_self_responses;o storage.objects;v_path text;v_reviewed boolean;
+begin
+ if tg_op='DELETE' then raise exception 'Self proof is retained' using errcode='42501';end if;
+ perform app.lock_self_parent(new.self_audit_id);
+ if not app.can_edit_self_audit(new.self_audit_id) then raise exception 'KAFAA_SELF_FROZEN' using errcode='42501';end if;
+ select * into h from public.center_self_audits where id=new.self_audit_id;
+ select * into r from public.center_self_responses where id=new.self_response_id;
+ if r.self_audit_id is distinct from h.id then raise exception 'KAFAA_STRUCTURE_MISMATCH' using errcode='22023';end if;
+ if new.file_name!~'^[A-Za-z0-9][A-Za-z0-9._-]{0,180}$' or new.file_name in('.','..')
+ or new.mime_type not in('application/pdf','image/jpeg','image/png') or new.size_bytes not between 1 and 26214400 then raise exception 'KAFAA_PROOF_FORMAT' using errcode='22023';end if;
+ v_path:=app.self_proof_path(h.id,new.id,new.file_name);
+ if new.storage_bucket<>'self-audit-evidence' or new.storage_path is distinct from v_path then raise exception 'KAFAA_PROOF_PATH' using errcode='22023';end if;
+ if tg_op='INSERT' then
+  if new.upload_state<>'pending' or new.removed_at is not null then raise exception 'Reserve proof before finalizing' using errcode='22023';end if;
+  new.uploaded_by:=auth.uid();new.created_at:=now();new.uploaded_at:=null;
+ else
+  if (to_jsonb(new)-array['upload_state','removed_at'])<>(to_jsonb(old)-array['upload_state','removed_at']) or old.removed_at is not null then raise exception 'Proof identity is fixed' using errcode='42501';end if;
+  if new.removed_at is not null then
+   if new.upload_state<>old.upload_state then raise exception 'Invalid proof transition';end if;
+   -- Plan 4 introduces a review FK with ON DELETE RESTRICT. Removed proof is
+   -- immutable and excluded from new review sources; no source bytes deleted.
+   if to_regclass('public.audit_evidence_reviews') is not null then
+    if exists(select 1 from pg_class where oid=to_regclass('public.audit_evidence_reviews')) then
+     execute 'select exists(select 1 from public.audit_evidence_reviews where self_evidence_id=$1)' into v_reviewed using old.id;
+     if v_reviewed then raise exception 'Reviewed proof is retained' using errcode='42501';end if;
+    end if;
+   end if;
+   new.removed_at:=now();
+  elsif old.upload_state='pending' and new.upload_state='finalized' then
+   select * into o from storage.objects where bucket_id=new.storage_bucket and name=new.storage_path;
+   if o.id is null or coalesce((o.metadata->>'size')::bigint,-1)<>new.size_bytes or o.metadata->>'mimetype' is distinct from new.mime_type then raise exception 'KAFAA_PROOF_OBJECT_MISSING' using errcode='22023';end if;
+   new.uploaded_at:=now();
+  else raise exception 'Finalized proof is immutable' using errcode='42501';end if;
+ end if;return new;
+end $$;
+
+create or replace function public.reserve_center_self_evidence(p_id uuid,p_self_response_id uuid,p_metadata jsonb) returns jsonb language plpgsql security invoker set search_path='' as $$
+declare e public.center_self_evidence;d public.center_self_evidence;r public.center_self_responses;h public.center_self_audits;
+begin
+ select * into r from public.center_self_responses where id=p_self_response_id;
+ perform app.lock_self_parent(r.self_audit_id);
+ if not app.can_read_self_audit(r.self_audit_id) then raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';end if;
+ if jsonb_typeof(p_metadata)<>'object' or exists(select 1 from jsonb_object_keys(p_metadata) k where k<>all(array['file_name','mime_type','size_bytes','content_sha256','evidence_method','caption','captured_at'])) then raise exception 'KAFAA_INVALID_PAYLOAD' using errcode='22023';end if;
+ d:=jsonb_populate_record(null::public.center_self_evidence,p_metadata);
+ select * into e from public.center_self_evidence where id=p_id;
+ if e.id is not null then
+  if row(e.self_response_id,e.uploaded_by,e.file_name,e.mime_type,e.size_bytes,e.content_sha256,e.evidence_method,e.caption,e.captured_at) is distinct from row(r.id,auth.uid(),d.file_name,d.mime_type,d.size_bytes,d.content_sha256,d.evidence_method,d.caption,d.captured_at) then raise exception 'KAFAA_RETRY_MISMATCH' using errcode='22023';end if;return to_jsonb(e);
+ end if;
+ select * into h from public.center_self_audits where id=r.self_audit_id;
+ e:=d;
+ insert into public.center_self_evidence(id,self_audit_id,self_response_id,storage_path,file_name,mime_type,size_bytes,content_sha256,evidence_method,caption,captured_at)
+ values(p_id,h.id,r.id,app.self_proof_path(h.id,p_id,e.file_name),e.file_name,e.mime_type,e.size_bytes,e.content_sha256,e.evidence_method,e.caption,e.captured_at) returning * into e;return to_jsonb(e);
+end $$;
+
+-- A single implementation sets the immutable history identity and clones responses.
+-- Public invoker wrappers expose only this scoped operation and explicit parameters.
+create function app.create_center_self_draft(
+  p_id uuid,p_center_id uuid,p_template_id uuid,p_parent_id uuid,p_legacy_participation_id uuid
+) returns uuid language plpgsql security definer set search_path='' as $$
+declare
+  a public.center_self_assessments;
+  h public.center_self_audits;
+  parent public.center_self_audits;
+  v_assessment uuid;
+  v_version integer;
+begin
+  if p_id is null or p_center_id is null or p_template_id is null
+    or not app.active_staff() or not app.manages_center(p_center_id) then
+    raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';
+  end if;
+  if p_legacy_participation_id is not null and not exists(
+    select 1 from public.assessment_participations p
+      join public.assessment_sessions c on c.id=p.session_id
+    where p.id=p_legacy_participation_id and p.center_id=p_center_id and c.template_id=p_template_id
+  ) then raise exception 'KAFAA_STRUCTURE_MISMATCH' using errcode='22023';end if;
+  if p_parent_id is not null then
+    select * into parent from public.center_self_audits where id=p_parent_id;
+    if parent.id is null or parent.center_id<>p_center_id or parent.template_id<>p_template_id
+      or parent.status<>'submitted' or parent.participation_id is distinct from p_legacy_participation_id then
+      raise exception 'KAFAA_STRUCTURE_MISMATCH' using errcode='22023';
+    end if;
+  end if;
+  v_assessment:=coalesce(parent.assessment_id,p_legacy_participation_id,p_id);
+  perform app.lock_center_self_assessment(v_assessment);
+  select * into h from public.center_self_audits where id=p_id;
+  if h.id is not null then
+    if row(h.assessment_id,h.center_id,h.template_id,h.parent_self_audit_id,h.created_by)
+      is distinct from row(v_assessment,p_center_id,p_template_id,p_parent_id,auth.uid()) then
+      raise exception 'KAFAA_RETRY_MISMATCH' using errcode='22023';
+    end if;
+    return h.id;
+  end if;
+  if not exists(select 1 from public.centers where id=p_center_id and is_active) then
+    raise exception 'KAFAA_SELF_FROZEN' using errcode='42501';
+  end if;
+  select * into a from public.center_self_assessments where id=v_assessment;
+  if a.id is null then
+    if p_legacy_participation_id is null then
+      if not exists(select 1 from public.assessment_templates
+        where id=p_template_id and status='active' and structure_version is not null) then
+        raise exception 'KAFAA_STRUCTURE_MISMATCH' using errcode='22023';
+      end if;
+    elsif not app.can_prepare_self_audit(p_legacy_participation_id) then
+      -- Preserve old, already queued campaign starts under the original eligibility rules.
+      raise exception 'KAFAA_SELF_FROZEN' using errcode='42501';
+    end if;
+    insert into public.center_self_assessments(id,center_id,template_id,legacy_participation_id,created_by)
+      values(v_assessment,p_center_id,p_template_id,p_legacy_participation_id,auth.uid());
+  elsif row(a.center_id,a.template_id,a.legacy_participation_id)
+      is distinct from row(p_center_id,p_template_id,p_legacy_participation_id) then
+    raise exception 'KAFAA_RETRY_MISMATCH' using errcode='22023';
+  end if;
+  if p_legacy_participation_id is not null and p_parent_id is null then
+    select * into h from public.center_self_audits where assessment_id=v_assessment and status='draft';
+    if h.id is not null then return h.id;end if;
+  end if;
+  if exists(select 1 from public.center_self_audits where assessment_id=v_assessment and status='draft') then
+    raise exception 'KAFAA_CONFLICT: another self draft exists' using errcode='40001';
+  end if;
+  select coalesce(max(version),0)+1 into v_version from public.center_self_audits where assessment_id=v_assessment;
+  insert into public.center_self_audits(id,assessment_id,center_id,participation_id,template_id,version,parent_self_audit_id)
+    values(p_id,v_assessment,p_center_id,p_legacy_participation_id,p_template_id,v_version,p_parent_id);
+  if p_parent_id is not null then
+    insert into public.center_self_responses(id,self_audit_id,criterion_id,scale_option_id,is_not_applicable,
+      comment,evidence_method,measured_value,measured_unit,last_mutation_id)
+    select gen_random_uuid(),p_id,criterion_id,scale_option_id,is_not_applicable,
+      comment,evidence_method,measured_value,measured_unit,gen_random_uuid()
+    from public.center_self_responses where self_audit_id=p_parent_id order by id;
+  end if;
+  return p_id;
+end $$;
+revoke all on function app.create_center_self_draft(uuid,uuid,uuid,uuid,uuid) from public,anon;
+grant execute on function app.create_center_self_draft(uuid,uuid,uuid,uuid,uuid) to authenticated;
+
+create function public.start_independent_self_assessment(p_id uuid,p_center_id uuid,p_template_id uuid)
+returns uuid language sql security invoker set search_path='' as $$
+  select app.create_center_self_draft(p_id,p_center_id,p_template_id,null,null)
+$$;
+
+create function public.revise_center_self_assessment(p_id uuid,p_parent_id uuid)
+returns uuid language plpgsql security invoker set search_path='' as $$
+declare h public.center_self_audits;
+begin
+  select * into h from public.center_self_audits where id=p_parent_id;
+  if h.id is null then raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';end if;
+  return app.create_center_self_draft(p_id,h.center_id,h.template_id,h.id,h.participation_id);
+end $$;
+
+create or replace function public.start_center_self_audit(p_id uuid,p_participation_id uuid,p_parent_id uuid default null)
+returns uuid language plpgsql security invoker set search_path='' as $$
+declare p public.assessment_participations; v_template uuid;
+begin
+  select * into p from public.assessment_participations where id=p_participation_id;
+  if p.id is null or not app.active_staff() or not app.manages_center(p.center_id) then
+    raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';
+  end if;
+  perform app.lock_assessment(p.session_id);
+  select template_id into v_template from public.assessment_sessions where id=p.session_id;
+  return app.create_center_self_draft(p_id,p.center_id,v_template,p_parent_id,p.id);
+end $$;
+
+create function app.finalize_center_self_assessment(p_id uuid,p_expected_version bigint)
+returns jsonb language plpgsql security definer set search_path='' as $$
+declare h public.center_self_audits;
+begin
+  select * into h from public.center_self_audits where id=p_id;
+  if h.id is null or not app.active_staff() or not app.manages_center(h.center_id) then
+    raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';
+  end if;
+  perform app.lock_center_self_assessment(h.assessment_id);
+  select * into h from public.center_self_audits where id=p_id;
+  if h.status='submitted' then return to_jsonb(h);end if;
+  if h.row_version is distinct from p_expected_version then raise exception 'KAFAA_CONFLICT' using errcode='40001';end if;
+  update public.center_self_audits set status='submitted' where id=p_id returning * into h;
+  if not found then raise exception 'KAFAA_SELF_FROZEN' using errcode='42501';end if;
+  return to_jsonb(h);
+end $$;
+revoke all on function app.finalize_center_self_assessment(uuid,bigint) from public,anon;
+grant execute on function app.finalize_center_self_assessment(uuid,bigint) to authenticated;
+
+create or replace function public.submit_center_self_audit(p_id uuid,p_expected_version bigint)
+returns jsonb language sql security invoker set search_path='' as $$
+  select app.finalize_center_self_assessment(p_id,p_expected_version)
+$$;
+
+-- Resolve the actor and serialize changes with official proof review and submission.
+create function app.select_center_self_snapshot(p_participation_id uuid,p_snapshot_id uuid,p_expected_snapshot_id uuid)
+returns uuid language plpgsql security definer set search_path='' as $$
+declare p public.assessment_participations; s public.assessment_sessions; h public.center_self_audits; previous uuid;
+begin
+  select * into p from public.assessment_participations where id=p_participation_id;
+  if p.id is null or not app.active_staff() or not app.manages_center(p.center_id) then
+    raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';
+  end if;
+  perform app.lock_assessment(p.session_id);
+  select snapshot_id into previous from public.center_self_shares where participation_id=p.id;
+  if previous is not distinct from p_snapshot_id then return previous;end if;
+  if previous is distinct from p_expected_snapshot_id then raise exception 'KAFAA_CONFLICT' using errcode='40001';end if;
+  select * into s from public.assessment_sessions where id=p.session_id;
+  if s.status is distinct from 'open' or s.due_at<=clock_timestamp()
+    or not exists(select 1 from public.centers where id=p.center_id and is_active)
+    or exists(select 1 from public.audits a where a.participation_id=p.id and
+      (a.submitted_at is not null or exists(select 1 from public.audit_evidence_reviews r
+        where r.audit_id=a.id))) then
+    raise exception 'KAFAA_SELF_SHARE_LOCKED' using errcode='42501';
+  end if;
+  if p_snapshot_id is null then
+    delete from public.center_self_shares where participation_id=p.id;
+  else
+    select * into h from public.center_self_audits where id=p_snapshot_id;
+    if h.id is null or h.center_id<>p.center_id or h.template_id<>s.template_id or h.status<>'submitted' then
+      raise exception 'KAFAA_STRUCTURE_MISMATCH' using errcode='22023';
+    end if;
+    insert into public.center_self_shares(participation_id,snapshot_id,shared_by)
+      values(p.id,h.id,auth.uid()) on conflict(participation_id) do update
+      set snapshot_id=excluded.snapshot_id,shared_by=excluded.shared_by,shared_at=clock_timestamp();
+  end if;
+  insert into public.center_self_share_events(participation_id,previous_snapshot_id,snapshot_id,actor_id)
+    values(p.id,previous,p_snapshot_id,auth.uid());
+  return p_snapshot_id;
+end $$;
+revoke all on function app.select_center_self_snapshot(uuid,uuid,uuid) from public,anon;
+grant execute on function app.select_center_self_snapshot(uuid,uuid,uuid) to authenticated;
+
+create function public.share_center_self_assessment(p_participation_id uuid,p_snapshot_id uuid,p_expected_snapshot_id uuid)
+returns uuid language sql security invoker set search_path='' as $$
+  select app.select_center_self_snapshot(p_participation_id,p_snapshot_id,p_expected_snapshot_id)
+$$;
+revoke all on function public.start_independent_self_assessment(uuid,uuid,uuid),
+  public.revise_center_self_assessment(uuid,uuid),public.share_center_self_assessment(uuid,uuid,uuid) from public,anon;
+grant execute on function public.start_independent_self_assessment(uuid,uuid,uuid),
+  public.revise_center_self_assessment(uuid,uuid),public.share_center_self_assessment(uuid,uuid,uuid) to authenticated;
+
+create or replace function public.directorate_capabilities() returns jsonb
+language sql stable security invoker set search_path='' as $$
+  select jsonb_build_object('registry',app.registry_writer(),'discussion',app.active_staff(),
+    'review',app.registry_writer(),'workflow_counts',app.active_staff(),'formal_signoff',app.active_staff(),
+    'self_audit',app.active_staff() and app.self_bucket_ready(),
+    'independent_self_assessments',app.active_staff() and app.self_bucket_ready())
+$$;
+
+create function app.is_official_self_source(p_audit uuid,p_snapshot uuid,p_evidence uuid)
+returns boolean language sql stable set search_path='' as $$
+  select exists (select 1 from public.audits a where a.id=p_audit and (
+    a.self_audit_baseline_id=p_snapshot
+    or (a.submitted_at is null and a.parent_audit_id is null and exists (
+      select 1 from public.center_self_shares s where s.participation_id=a.participation_id and s.snapshot_id=p_snapshot))
+    or exists (select 1 from public.audit_evidence_reviews r where r.audit_id=a.id and r.self_evidence_id=p_evidence)
+  ))
+$$;
+revoke all on function app.is_official_self_source(uuid,uuid,uuid) from public,anon;
+grant execute on function app.is_official_self_source(uuid,uuid,uuid) to authenticated;
+
+create or replace function app.pin_self_baseline() returns trigger language plpgsql security invoker set search_path='' as $$
+begin
+ if tg_op='INSERT' then
+  if new.self_audit_baseline_id is not null then raise exception 'Baseline is server owned' using errcode='42501';end if;
+  if new.parent_audit_id is not null then select self_audit_baseline_id into new.self_audit_baseline_id from public.audits where id=new.parent_audit_id;end if;
+ else
+  if new.self_audit_baseline_id is distinct from old.self_audit_baseline_id then raise exception 'Baseline is server owned' using errcode='42501';end if;
+  if new.status='submitted' and old.status<>new.status and old.submitted_at is null and new.parent_audit_id is null then
+   select s.snapshot_id into new.self_audit_baseline_id from public.center_self_shares s
+     join public.center_self_audits h on h.id=s.snapshot_id
+     where s.participation_id=new.participation_id and h.status='submitted'
+       and h.center_id=new.center_id and h.template_id=new.template_id;
+  end if;
+ end if;return new;
+end $$;
+
+create or replace function app.proof_review_guard() returns trigger language plpgsql security invoker set search_path='' as $$
+declare a public.audits;r public.audit_responses;e public.audit_evidence;s public.center_self_evidence;h public.center_self_audits;v_crit uuid;
+begin
+ if tg_op<>'INSERT' then raise exception 'KAFAA_REVIEW_APPEND_ONLY' using errcode='42501';end if;
+ perform app.lock_official_audit(new.audit_id);
+ select * into a from public.audits where id=new.audit_id;select * into r from public.audit_responses where id=new.response_id;
+ if r.audit_id is distinct from a.id or num_nonnulls(new.self_evidence_id,new.audit_evidence_id)<>1 then raise exception 'KAFAA_PROOF_SOURCE_MISMATCH' using errcode='22023';end if;
+ if new.self_evidence_id is not null then
+  select * into s from public.center_self_evidence where id=new.self_evidence_id and removed_at is null and upload_state='finalized';
+  select * into h from public.center_self_audits where id=s.self_audit_id;
+  select criterion_id into v_crit from public.center_self_responses where id=s.self_response_id;
+  if s.id is null or h.center_id is distinct from a.center_id or h.template_id is distinct from a.template_id
+    or not app.is_official_self_source(a.id,h.id,s.id) or v_crit is distinct from r.criterion_id or not exists(select 1 from storage.objects where bucket_id=s.storage_bucket and name=s.storage_path and metadata->>'size'=s.size_bytes::text and metadata->>'mimetype'=s.mime_type) then raise exception 'KAFAA_PROOF_SOURCE_MISMATCH' using errcode='22023';end if;
+ else
+  select * into e from public.audit_evidence where id=new.audit_evidence_id and upload_status='finalized';
+  if e.id is null or e.audit_id is distinct from a.id or (e.response_id is not null and e.response_id<>r.id) or not exists(select 1 from storage.objects where bucket_id=e.storage_bucket and name=e.storage_path and metadata->>'size'=e.size_bytes::text and metadata->>'mimetype'=e.mime_type) then raise exception 'KAFAA_PROOF_SOURCE_MISMATCH' using errcode='22023';end if;
+ end if;
+ new.note:=nullif(btrim(new.note),'');
+ if new.outcome<>'accepted' and new.note is null then raise exception 'KAFAA_PROOF_NOTE_REQUIRED' using errcode='22023';end if;
+ if length(new.note)>8000 then raise exception 'KAFAA_PROOF_NOTE_REQUIRED' using errcode='22023';end if;
+ new.reviewer_id:=auth.uid();select coalesce(nullif(btrim(full_name),''),'') into new.reviewer_name from public.profiles where id=auth.uid();
+ if nullif(new.reviewer_name,'') is null then new.reviewer_name:=auth.uid()::text;end if;
+ -- Parent lock serializes judgement order, including ties and concurrent actors.
+ select greatest(clock_timestamp(),coalesce(max(reviewed_at)+interval '1 microsecond',clock_timestamp())) into new.reviewed_at from public.audit_evidence_reviews where response_id=new.response_id and self_evidence_id is not distinct from new.self_evidence_id and audit_evidence_id is not distinct from new.audit_evidence_id;
+ return new;
+end $$;
+
+create or replace function public.load_criterion_proof(p_audit_id uuid,p_criterion_id uuid) returns jsonb language plpgsql security invoker set search_path='' as $$
+declare a public.audits;v_self jsonb;v_official jsonb;v_reviews jsonb;v_response uuid;
+begin
+ select * into a from public.audits where id=p_audit_id;
+ if a.id is null or not app.active_staff() or not(app.is_directorate() or app.is_auditor(a.center_id) or app.manages_center(a.center_id)) then raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';end if;
+ if not exists(select 1 from public.assessment_criteria where id=p_criterion_id and template_id=a.template_id) then raise exception 'KAFAA_PROOF_SOURCE_MISMATCH';end if;
+ select id into v_response from public.audit_responses where audit_id=a.id and criterion_id=p_criterion_id;
+ select coalesce(jsonb_agg(to_jsonb(e)||jsonb_build_object('self_version',h.version,'criterion_id',r.criterion_id) order by h.version desc,e.id),'[]') into v_self from public.center_self_evidence e join public.center_self_responses r on r.id=e.self_response_id join public.center_self_audits h on h.id=r.self_audit_id where h.center_id=a.center_id and h.template_id=a.template_id and r.criterion_id=p_criterion_id and e.removed_at is null and e.upload_state='finalized' and app.is_official_self_source(a.id,h.id,e.id);
+ select coalesce(jsonb_agg(to_jsonb(e) order by e.uploaded_at,e.id),'[]') into v_official from public.audit_evidence e where e.audit_id=a.id and (e.response_id=v_response or e.response_id is null);
+ select coalesce(jsonb_agg(to_jsonb(r)||jsonb_build_object('criterion_id',p_criterion_id) order by r.reviewed_at desc,r.id desc),'[]') into v_reviews from public.audit_evidence_reviews r where r.audit_id=a.id and r.response_id=v_response;
+ return jsonb_build_object('response_id',v_response,'self',v_self,'official',v_official,'reviews',v_reviews);
+end $$;
+
+notify pgrst,'reload schema';
+commit;
+
+
+-- #####################################################################
+-- # migrations/20261115000655_audit_section_comments.sql
+-- #####################################################################
+
+create table public.audit_section_comments (
+  id uuid primary key,
+  audit_id uuid not null references public.audits(id) on delete restrict,
+  section_id uuid not null references public.assessment_sections(id) on delete restrict,
+  author_id uuid references auth.users(id) on delete set null,
+  body text not null check (length(btrim(body)) between 1 and 8000),
+  created_at timestamptz not null default clock_timestamp()
+);
+
+create index audit_section_comments_audit
+  on public.audit_section_comments(audit_id, created_at, id);
+create index audit_section_comments_section on public.audit_section_comments(section_id);
+create index audit_section_comments_author on public.audit_section_comments(author_id);
+
+alter table public.audit_section_comments enable row level security;
+revoke all on public.audit_section_comments from public, anon, authenticated;
+grant select on public.audit_section_comments to authenticated;
+grant insert(id, audit_id, section_id, body) on public.audit_section_comments to authenticated;
+
+create policy audit_section_comments_read on public.audit_section_comments
+  for select to authenticated
+  using (app.active_staff() and exists (
+    select 1 from public.audits a where a.id = audit_id
+      and (app.is_directorate() or app.is_auditor(a.center_id))
+  ));
+
+create policy audit_section_comments_insert on public.audit_section_comments
+  for insert to authenticated
+  with check (author_id = (select auth.uid()) and app.can_edit_official_audit(audit_id));
+
+create function app.prepare_audit_section_comment() returns trigger
+language plpgsql security invoker set search_path = '' as $$
+begin
+  perform app.lock_official_audit(new.audit_id);
+  if not exists (
+    select 1 from public.audits a
+      join public.assessment_sections s on s.template_id = a.template_id
+    where a.id = new.audit_id and s.id = new.section_id and s.is_active
+  ) then
+    raise exception 'KAFAA_SECTION_STRUCTURE_MISMATCH' using errcode = '22023';
+  end if;
+  new.author_id := auth.uid();
+  new.body := btrim(new.body);
+  return new;
+end $$;
+
+create trigger audit_section_comment_prepare before insert on public.audit_section_comments
+  for each row execute function app.prepare_audit_section_comment();
+create trigger audit_section_comment_revision after insert on public.audit_section_comments
+  for each row execute function app.bump_audit_content_revision();
+revoke all on function app.prepare_audit_section_comment() from public, anon, authenticated;
+
+create function public.add_audit_section_comment(
+  p_id uuid, p_audit_id uuid, p_section_id uuid, p_body text
+) returns jsonb language plpgsql security invoker set search_path = '' as $$
+declare
+  saved public.audit_section_comments;
+begin
+  if auth.uid() is null then
+    raise exception 'KAFAA_ACCESS_DENIED' using errcode = '42501';
+  end if;
+  perform pg_advisory_xact_lock(hashtextextended(p_id::text, 731207));
+  select * into saved from public.audit_section_comments where id = p_id;
+  if found then
+    if row(saved.author_id, saved.audit_id, saved.section_id, saved.body)
+       is distinct from row(auth.uid(), p_audit_id, p_section_id, btrim(p_body)) then
+      raise exception 'KAFAA_RETRY_MISMATCH' using errcode = '22023';
+    end if;
+    return to_jsonb(saved);
+  end if;
+  insert into public.audit_section_comments(id, audit_id, section_id, body)
+    values (p_id, p_audit_id, p_section_id, p_body)
+    returning * into saved;
+  return to_jsonb(saved);
+end $$;
+
+revoke all on function public.add_audit_section_comment(uuid, uuid, uuid, text)
+  from public, anon;
+grant execute on function public.add_audit_section_comment(uuid, uuid, uuid, text)
+  to authenticated;
+
+
+-- #####################################################################
+-- # migrations/20261115164915_structure_availability.sql
+-- #####################################################################
+
+begin;
+alter table public.assessment_templates add column is_locked boolean not null default false;
+alter table public.assessment_templates add constraint primary_structure_available check(not is_default or (status='active' and not is_locked));
+
+-- Saved checklist content remains immutable; only availability is mutable.
+do $$declare definition text; begin
+ definition:=pg_get_functiondef('app.guard_structure_version()'::regprocedure);
+ if position('-''is_default''-''updated_at''' in definition)=0 then raise exception 'Unexpected saved-structure guard'; end if;
+ execute replace(definition,'-''is_default''-''updated_at''','-''is_default''-''is_locked''-''updated_at''');
+end $$;
+
+grant update(is_default,is_locked) on public.assessment_templates to authenticated;
+create policy structure_availability_update on public.assessment_templates for update to authenticated
+using(app.is_directorate() and app.active_staff())
+with check(app.is_directorate() and app.active_staff());
+
+create function app.guard_structure_availability() returns trigger
+language plpgsql security invoker set search_path='' as $$begin
+ perform pg_advisory_xact_lock(72810,1);
+ if tg_op='UPDATE' and (auth.uid() is not null or current_user not in ('postgres','supabase_admin','service_role')) and not app.is_super_admin() and (to_jsonb(new)-'is_default'-'is_locked'-'updated_at') is distinct from (to_jsonb(old)-'is_default'-'is_locked'-'updated_at') then raise exception 'Administrator content editing required' using errcode='42501'; end if;
+ if tg_op='UPDATE' and (new.is_default,new.is_locked) is distinct from (old.is_default,old.is_locked)
+ and not (app.is_directorate() and app.active_staff())
+ and current_user not in ('postgres','supabase_admin','service_role') then
+ raise exception 'Directorate access required' using errcode='42501'; end if;
+ return new;
+end $$;
+create trigger trg_structure_availability before insert or update on public.assessment_templates
+for each row execute function app.guard_structure_availability();
+
+create function app.require_primary_structure() returns trigger
+language plpgsql security invoker set search_path='' as $$begin
+ if exists(select 1 from public.assessment_templates where status='active')
+ and (select count(*) from public.assessment_templates where is_default and status='active' and not is_locked)<>1 then
+ raise exception 'Keep one unlocked primary structure'; end if;
+ return null;
+end $$;
+create constraint trigger trg_require_primary_structure after insert or update or delete on public.assessment_templates
+deferrable initially deferred for each row execute function app.require_primary_structure();
+
+create function public.set_audit_structure_availability(p_id uuid,p_primary boolean default false,p_locked boolean default null)
+returns void language plpgsql security invoker set search_path='' as $$begin
+ if not (app.is_directorate() and app.active_staff()) then raise exception 'Directorate access required' using errcode='42501'; end if;
+ perform pg_advisory_xact_lock(72810,1);
+ perform 1 from public.assessment_templates where id=p_id and status='active' for update;
+ if not found then raise exception 'Choose a saved structure'; end if;
+ if p_primary then
+   if p_locked=true or exists(select 1 from public.assessment_templates where id=p_id and is_locked and p_locked is distinct from false) then
+    raise exception 'Unlock the structure before making it primary'; end if;
+   update public.assessment_templates set is_default=false where is_default and id<>p_id;
+ end if;
+ update public.assessment_templates set is_default=case when p_primary then true else is_default end,is_locked=coalesce(p_locked,is_locked) where id=p_id;
+end $$;
+revoke all on function public.set_audit_structure_availability(uuid,boolean,boolean) from public,anon;
+grant execute on function public.set_audit_structure_availability(uuid,boolean,boolean) to authenticated;
+
+-- Check and lock the template row during creation so lock/create races serialize.
+create function app.require_available_structure() returns trigger
+language plpgsql security invoker set search_path='' as $$begin
+ if tg_op='UPDATE' and new.template_id=old.template_id then return new; end if;
+ perform pg_advisory_xact_lock(72810,1);
+ perform 1 from public.assessment_templates where id=new.template_id and status='active' and not is_locked;
+ if not found then raise exception 'Structure locked for new assessments' using errcode='23514'; end if;
+ return new;
+end $$;
+create trigger trg_session_available_structure before insert or update of template_id on public.assessment_sessions
+for each row execute function app.require_available_structure();
+create trigger trg_self_available_structure before insert or update of template_id on public.center_self_assessments
+for each row execute function app.require_available_structure();
+revoke all on function app.guard_structure_availability(),app.require_primary_structure(),app.require_available_structure() from public,anon,authenticated;
+commit;
+
+
+-- #####################################################################
+-- # migrations/20261115170347_delete_unused_structures.sql
+-- #####################################################################
+
+begin;
+-- Global boolean lookup is private: usage includes self-assessments hidden by
+-- row policies. No assessment IDs, counts or private contents are exposed.
+create function app.structure_is_used(p_id uuid) returns boolean
+language plpgsql stable security definer set search_path='' as $$begin
+ if not (app.is_directorate() and app.active_staff()) then raise exception 'Directorate access required' using errcode='42501'; end if;
+ return exists(select 1 from public.assessment_sessions where template_id=p_id)
+ or exists(select 1 from public.audits where template_id=p_id)
+ or exists(select 1 from public.center_self_assessments where template_id=p_id)
+ or exists(select 1 from public.center_self_audits where template_id=p_id);
+end $$;
+revoke all on function app.structure_is_used(uuid) from public,anon;
+grant execute on function app.structure_is_used(uuid) to authenticated;
+
+create function app.assert_unused_structure(p_id uuid,p_primary boolean,p_status public.template_status) returns void
+language plpgsql security invoker set search_path='' as $$begin
+ if not (app.is_directorate() and app.active_staff()) or (p_status='draft' and not app.is_super_admin()) then
+ raise exception 'Directorate access required' using errcode='42501'; end if;
+ perform pg_advisory_xact_lock(72810,1);
+ if p_primary then raise exception 'KAFAA_STRUCTURE_PRIMARY' using errcode='23514'; end if;
+ if app.structure_is_used(p_id) then raise exception 'KAFAA_STRUCTURE_IN_USE' using errcode='23514'; end if;
+end $$;
+revoke all on function app.assert_unused_structure(uuid,boolean,public.template_status) from public,anon;
+grant execute on function app.assert_unused_structure(uuid,boolean,public.template_status) to authenticated;
+
+-- Preserve every existing publish/content guard, changing only delete eligibility.
+do $$declare definition text; begin
+ definition:=pg_get_functiondef('app.guard_structure_version()'::regprocedure);
+ if position('if old.status <> ''draft'' then raise exception ''Saved structures cannot be deleted''; end if;' in definition)=0 then raise exception 'Unexpected delete guard'; end if;
+ execute replace(definition,'if old.status <> ''draft'' then raise exception ''Saved structures cannot be deleted''; end if;',
+ 'perform app.assert_unused_structure(old.id,old.is_default,old.status);');
+end $$;
+create policy structure_unused_delete on public.assessment_templates for delete to authenticated
+using(status<>'draft' and app.is_directorate() and app.active_staff());
+
+create function public.audit_structure_usage() returns table(template_id uuid,is_used boolean)
+language plpgsql stable security invoker set search_path='' as $$begin
+ if not (app.is_directorate() and app.active_staff()) then raise exception 'Directorate access required' using errcode='42501'; end if;
+ return query select t.id,app.structure_is_used(t.id) from public.assessment_templates t;
+end $$;
+create function public.delete_unused_audit_structure(p_id uuid) returns void
+language plpgsql security invoker set search_path='' as $$declare target public.assessment_templates; begin
+ if not (app.is_directorate() and app.active_staff()) then raise exception 'Directorate access required' using errcode='42501'; end if;
+ perform pg_advisory_xact_lock(72810,1);
+ select * into target from public.assessment_templates where id=p_id for update;
+ if not found then return; end if;
+ perform app.assert_unused_structure(target.id,target.is_default,target.status);
+ delete from public.assessment_templates where id=p_id;
+ if not found then raise exception 'Directorate access required' using errcode='42501'; end if;
+ perform app.log_activity('structure_deleted','assessment_templates',p_id,null,jsonb_build_object('name_en',target.name_en,'structure_version',target.structure_version));
+end $$;
+revoke all on function public.audit_structure_usage(),public.delete_unused_audit_structure(uuid) from public,anon;
+grant execute on function public.audit_structure_usage(),public.delete_unused_audit_structure(uuid) to authenticated;
+commit;
+
+
+-- #####################################################################
+-- # migrations/20261116163646_official_audit_proof_optional.sql
+-- #####################################################################
+
+-- Product decision, 16 November 2026: official audit proof is optional.
+-- Preserve saved checklist definitions, existing files and review provenance.
+-- Scores, date, roster, sign-off, revision checks and pending-upload safety stay.
+-- Independent/centre self-assessment proof rules are outside this change.
+begin;
+
+create or replace function public.validate_assessment_submission(p_audit_id uuid) returns jsonb language plpgsql security invoker set search_path='' as $$
+declare a public.audits;s record;issues jsonb:='[]';v jsonb;m public.audit_team_members;
+begin
+ select * into a from public.audits where id=p_audit_id;
+ if a.id is null or not app.active_staff() or not(app.is_directorate() or app.is_auditor(a.center_id)) then raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';end if;
+ if a.status not in('draft','rejected') then issues:=issues||jsonb_build_array(jsonb_build_object('code','locked'));end if;
+ select ss.*,c.is_active center_active into s from public.assessment_participations p join public.assessment_sessions ss on ss.id=p.session_id join public.centers c on c.id=p.center_id where p.id=a.participation_id;
+ if s.status<>'open' or not s.center_active or (s.due_at is not null and s.due_at<=clock_timestamp()) then issues:=issues||jsonb_build_array(jsonb_build_object('code','closed'));end if;
+ if a.evaluation_date is null then issues:=issues||jsonb_build_array(jsonb_build_object('code','date'));end if;
+ if not exists(select 1 from public.audit_team_members where audit_id=a.id and removed_at is null) or exists(select 1 from public.audit_team_members where audit_id=a.id and removed_at is null and (nullif(btrim(member_name),'') is null or nullif(btrim(actual_job_title),'') is null)) then issues:=issues||jsonb_build_array(jsonb_build_object('code','team'));end if;
+ select * into m from public.audit_team_members where audit_id=a.id and team_role='lead' and removed_at is null;
+ if m.id is null or m.user_id is null or a.lead_auditor_id is distinct from m.user_id or not app.can_sign_for_audit(m.user_id,a.id) then issues:=issues||jsonb_build_array(jsonb_build_object('code','lead'));end if;
+ select coalesce(jsonb_agg(jsonb_build_object('code','score','criterion_id',c.id,'criterion_code',c.code)),'[]') into v from public.assessment_criteria c left join public.audit_responses r on r.audit_id=a.id and r.criterion_id=c.id where c.template_id=a.template_id and c.is_active and not c.excluded_from_total and (r.id is null or (not r.is_not_applicable and r.level is null) or (r.is_not_applicable and not c.allows_not_applicable));issues:=issues||v;
+ if exists(select 1 from public.audit_evidence where audit_id=a.id and upload_status='pending') then issues:=issues||jsonb_build_array(jsonb_build_object('code','upload'));end if;
+ return jsonb_build_object('audit_id',a.id,'row_version',a.row_version,'content_version',a.content_version,'lead_user_id',m.user_id,'issues',issues);
+end $$;
+
+create or replace function app.audit_revision_guard() returns trigger language plpgsql security invoker set search_path='' as $$
+declare v jsonb;m public.audit_team_members;changed boolean;
+begin
+ if tg_op='INSERT' then new.row_version:=1;new.content_version:=1;new.last_review_request_id:=null;new.signed_content_version:=null;new.signed_row_version:=null;new.signoff_version:=null;new.signed_off_by:=null;new.signed_off_name:=null;new.signed_off_at:=null;new.signoff_note:=null;return new;end if;
+ if current_user='authenticated' then
+  if not app.active_staff() then raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';end if;
+  if new.row_version<>old.row_version or new.content_version<>old.content_version then raise exception 'Revision is server owned';end if;
+  if row(new.signed_content_version,new.signed_row_version,new.signed_off_by,new.signed_off_at,new.signed_off_name) is distinct from row(old.signed_content_version,old.signed_row_version,old.signed_off_by,old.signed_off_at,old.signed_off_name) then raise exception 'KAFAA_SIGNATURE_SERVER_OWNED';end if;
+  if new.status<>'submitted' and row(new.signoff_version,new.signoff_note) is distinct from row(old.signoff_version,old.signoff_note) then raise exception 'KAFAA_SIGNOFF_SUBMIT_REQUIRED';end if;
+  if new.last_review_request_id is distinct from old.last_review_request_id and (new.status=old.status or new.status not in('under_review','rejected','approved')) then raise exception 'Review identity requires a decision';end if;
+  if row(new.submitted_at,new.submitted_by,new.reviewed_at,new.reviewed_by,new.approved_at,new.approved_by) is distinct from row(old.submitted_at,old.submitted_by,old.reviewed_at,old.reviewed_by,old.approved_at,old.approved_by) then raise exception 'Workflow stamps are server owned';end if;
+  if old.status in('submitted','under_review') and (to_jsonb(new)-array['status','review_notes','last_review_request_id','updated_at']) is distinct from (to_jsonb(old)-array['status','review_notes','last_review_request_id','updated_at']) then raise exception 'Submitted content is locked';end if;
+ end if;
+ changed:=row(new.evaluation_date,new.registered_patients,new.dialysis_beds,new.title,new.general_recommendations,new.suggested_action_plan) is distinct from row(old.evaluation_date,old.registered_patients,old.dialysis_beds,old.title,old.general_recommendations,old.suggested_action_plan);
+ if changed then
+  new.content_version:=old.content_version+1;new.signed_content_version:=null;new.signed_row_version:=null;new.signed_off_by:=null;new.signed_off_name:=null;new.signed_off_at:=null;new.signoff_version:=null;new.signoff_note:=null;
+ end if;
+ if new.status='submitted' and old.status in('draft','rejected') then
+  v:=public.validate_assessment_submission(old.id);
+  if jsonb_array_length(v->'issues')>0 then raise exception 'KAFAA_SUBMISSION_INCOMPLETE' using errcode='22023',detail=v::text;end if;
+  if new.signoff_version is distinct from 'kafaa-evaluation-v1' then raise exception 'KAFAA_SIGNOFF_REQUIRED_CLIENT_UPDATE' using errcode='22023';end if;
+  select * into m from public.audit_team_members where audit_id=new.id and team_role='lead' and removed_at is null;
+  new.signoff_note:=nullif(btrim(new.signoff_note),'');
+  if auth.uid() is distinct from m.user_id and (not app.registry_writer() or new.signoff_note is null) then raise exception 'KAFAA_LEAD_SIGNOFF_REQUIRED' using errcode='42501';end if;
+  new.signed_off_by:=auth.uid();select coalesce(nullif(full_name,''),auth.uid()::text) into new.signed_off_name from public.profiles where id=auth.uid();
+  new.signed_off_at:=clock_timestamp();new.signed_content_version:=new.content_version;new.signed_row_version:=old.row_version;new.evaluator_name:=m.member_name;new.lead_auditor_id:=m.user_id;
+ end if;
+ if new.status<>old.status and new.status in('approved','rejected','under_review') then
+  if not app.registry_writer() then raise exception 'KAFAA_ACCESS_DENIED' using errcode='42501';end if;
+  if new.status='rejected' and nullif(btrim(new.review_notes),'') is null then raise exception 'KAFAA_REVISION_REASON_REQUIRED' using errcode='22023';end if;
+  if new.status='approved' then
+   if new.evaluation_date is null or nullif(btrim(new.evaluator_name),'') is null or new.submitted_at is null or exists(select 1 from public.assessment_criteria c left join public.audit_responses r on r.audit_id=new.id and r.criterion_id=c.id where c.template_id=new.template_id and c.is_active and not c.excluded_from_total and not coalesce(r.is_not_applicable,false) and r.level is null) then raise exception 'KAFAA_REVIEW_INCOMPLETE' using errcode='22023';end if;
+   -- Previously submitted legacy history is not fabricated or invalidated.
+   if new.signoff_version is not null and (new.signed_content_version is distinct from new.content_version or new.signed_off_by is null) then raise exception 'KAFAA_SIGNED_CONTENT_CONFLICT' using errcode='40001';end if;
+   if new.signoff_version is null then
+    if new.evaluation_date is null or nullif(btrim(new.evaluator_name),'') is null or new.submitted_at is null then raise exception 'KAFAA_REVIEW_INCOMPLETE';end if;
+   end if;
+  end if;
+ end if;
+ new.row_version:=old.row_version+1;return new;
+end $$;
+
+comment on function public.validate_assessment_submission(uuid) is
+  'Official audit readiness: proof attachments and acceptance are optional; incomplete uploads remain blockers.';
+commit;
+
+
+-- #####################################################################
+-- # migrations/20261116195024_active_audit_team_accounts.sql
+-- #####################################################################
+
+-- Removed roster entries retain attribution but must not reserve the login for
+-- future active members of the same assessment. Active duplicates stay forbidden.
+do $$
+begin
+  if not exists (select 1 from pg_constraint
+    where conrelid='public.audit_team_members'::regclass
+      and conname='audit_team_members_audit_id_user_id_key'
+      and contype='u'
+      and pg_get_constraintdef(oid)='UNIQUE (audit_id, user_id)') then
+    raise exception 'Unexpected audit-team account constraint; inspect before applying';
+  end if;
+end $$;
+alter table public.audit_team_members
+  drop constraint audit_team_members_audit_id_user_id_key;
+create unique index audit_team_members_audit_id_user_id_key
+  on public.audit_team_members(audit_id,user_id)
+  where removed_at is null and user_id is not null;
+comment on index public.audit_team_members_audit_id_user_id_key is
+  'One active roster entry per audit/login; removed entries retain historical attribution.';
+
+
+-- #####################################################################
+-- # migrations/20261117051842_retire_staff_module.sql
+-- #####################################################################
+
+-- Staff module retirement. Deploy only after all active clients stop using it.
+-- The certificates bucket is deliberately handled separately through Storage API.
+-- Empty-state upgrade only: never silently discard personnel or proof records.
+begin;
+set local lock_timeout = '5s';
+lock table public.staff_members, public.staff_competencies,
+  public.emergency_drills, public.competency_types in access exclusive mode;
+lock table public.audit_evidence, public.center_self_evidence,
+  public.ncr_evidence in share mode;
+
+do $$
+declare reminder_job_exists boolean;
+begin
+  if exists(select 1 from public.staff_members)
+     or exists(select 1 from public.staff_competencies)
+     or exists(select 1 from public.emergency_drills) then
+    raise exception 'Staff retirement aborted: personnel/certificate/drill records require an export and retention decision';
+  end if;
+  if exists(select 1 from public.audit_evidence where storage_bucket='certificates')
+     or exists(select 1 from public.center_self_evidence where storage_bucket='certificates')
+     or exists(select 1 from public.ncr_evidence where storage_bucket='certificates')
+     or exists(select 1 from storage.objects where bucket_id='certificates') then
+    raise exception 'Staff retirement aborted: certificates bucket is in use';
+  end if;
+  -- String-defined function bodies are not fully protected by pg_depend.
+  if exists (
+    select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname in ('app','public') and p.prokind='f'
+      and p.oid not in ('app.fill_competency_expiry()'::regprocedure,
+                       'public.notify_expiring_competencies()'::regprocedure)
+      and p.prosrc ~* '\m(staff_members|staff_competencies|competency_types|emergency_drills|v_staff_competency_status|v_center_competency_readiness|competency_state|staff_category|certificates)\M'
+  ) then
+    raise exception 'Staff retirement aborted: a function outside the retirement scope references the module';
+  end if;
+  if to_regclass('cron.job') is not null then
+      execute 'select exists(select 1 from cron.job where command ilike ''%notify_expiring_competencies%'')'
+        into reminder_job_exists;
+      if reminder_job_exists then
+        raise exception 'Staff retirement aborted: retire the exact competency reminder cron job first';
+      end if;
+  end if;
+end $$;
+
+-- RESTRICT detects unexpected views, foreign keys, types and catalog consumers.
+drop function public.notify_expiring_competencies() restrict;
+drop view public.v_center_competency_readiness restrict;
+drop view public.v_staff_competency_status restrict;
+drop table public.staff_competencies restrict;
+drop table public.emergency_drills restrict;
+drop table public.staff_members restrict;
+drop table public.competency_types restrict;
+drop function app.fill_competency_expiry() restrict;
+drop type public.competency_state restrict;
+drop type public.staff_category restrict;
+delete from public.app_settings where key='competency.reminder_days';
+drop policy "certificates read" on storage.objects;
+drop policy "certificates write" on storage.objects;
+drop policy "certificates delete" on storage.objects;
 commit;
 
 reset check_function_bodies;

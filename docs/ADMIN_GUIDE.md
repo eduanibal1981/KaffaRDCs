@@ -13,11 +13,12 @@ new app release.
 | Edit the checklist and rating bands | ✅ | — | — | — |
 | Manage users and roles | ✅ | — | — | — |
 | See every centre | ✅ | ✅ | assigned only | own only |
+| Join an official audit | with an auditor grant | with an auditor grant | ✅ | with an auditor grant |
 | Run an assessment | ✅ | ✅ | ✅ | — |
+| Start a centre self-assessment | with a Head grant | with a Head grant | with a Head grant | own centre |
 | Approve or send back an assessment | ✅ | ✅ | — | — |
 | Write a corrective action plan | ✅ | ✅ | ✅ | ✅ |
 | Close a finding | ✅ | ✅ | ✅ | — |
-| Manage staff and certificates | ✅ | — | — | ✅ |
 | Publish a badge | ✅ | ✅ | — | — |
 | Export reports | ✅ | ✅ | ✅ | ✅ |
 
@@ -35,7 +36,7 @@ convenience; the policy underneath is what actually protects the data.
 Directorate publishes a shared assessment
         │
         ▼
-Centre joins and receives its scoring draft
+Auditor joins for an eligible centre and opens its official scoring draft
         │
         ▼
 Scores 79 criteria, attaches evidence     ← saved on the device, syncs automatically
@@ -58,12 +59,12 @@ Approval locks that centre’s result. Directorate can create a correction versi
 ## Where scoring happens
 
 Directorate creates one shared assessment for a saved Audit Structure and calendar
-period, then publishes it to the active centres. Managers or assigned auditors
-join for their centre. Auditors score the joined checklist.
+period, then publishes it to the active centres. An authorized auditor joins
+for a centre covered by their grant and scores the official checklist.
 
 | From | How |
 |---|---|
-| **Audits** tab | Open a shared assessment, then join or continue your centre’s work. |
+| **Audits** tab | Heads can view official progress and results. Auditors can join and continue official work within their grants. |
 | **Audits → New assessment** | Directorate selects the Audit Structure, cycle and period, then saves or publishes the shared assessment. |
 | **A centre’s page** | Open shared assessments with that centre selected. |
 
@@ -96,7 +97,8 @@ centre joining, submission and approval progress.
 
 1. Directorate opens **Audits → New assessment**, chooses a saved Audit
    Structure, cycle and period, and publishes it.
-2. Open the shared assessment and choose **Join assessment** for the centre.
+2. The auditor opens the shared assessment and chooses **Join assessment**
+   for the eligible centre.
 3. Open **General information** to enter the evaluation date and evaluator.
    Patient and bed counts prefill from the centre record.
 4. Choose **Continue scoring** and work through the criteria. The running total,
@@ -196,11 +198,11 @@ Anything that does not fit for your role is in **More** — nothing is hidden.
 
 | Role | Bar | In More |
 |---|---|---|
-| Super Admin | Home · Centres · Assessments · Actions · More | Staff, Compare, Setup |
-| Directorate | Home · Centres · Assessments · Actions · More | Compare, Achievements |
-| Auditor (all centres) | Home · Centres · Assessments · Actions · More | Achievements |
-| Auditor (one centre) | Home · Assessments · Actions · More | — |
-| Centre Manager | Home · Actions · Staff · More | — |
+| Super Admin | Home · Centres · Audits · Actions · More | Compare, Setup |
+| Directorate | Overview · Centres · Audits · Actions · More | Compare, Achievements |
+| Auditor (all centres) | Work · Audits · Actions · More | Achievements |
+| Auditor (one centre) | Work · Audits · Actions · More | — |
+| Centre Head | My Centre · Audits · Actions · More | — |
 
 **Comparison** sits under **Centres** rather than taking its own slot: open
 Centres and tap the *Compare centres* card at the top. Home also links to it
@@ -235,24 +237,12 @@ count and any linked finding — ready for Excel or a pivot table.
 
 ---
 
-## Staff and training
+## Staff module retired
 
-**Staff** has three tabs:
-
-- **Readiness** — what proportion of eligible staff hold each valid certificate
-- **Certificates** — every record, expired and expiring first
-- **Drills** — emergency drill log
-
-Eight competency types are seeded: BLS, ACLS, IV therapy, hand hygiene, PPE,
-POCUS access flow, evacuation training, crash cart. Each has a validity period
-and a reminder lead time (30 days by default).
-
-Reminders reach centre managers in-app. Add a competency type:
-
-```sql
-insert into public.competency_types (code, name_en, name_ar, validity_months, applies_to)
-values ('PALS', 'Paediatric Life Support', 'إنعاش الأطفال', 24, '{nurse,physician}');
-```
+Staff readiness, certificate management and emergency drill pages are removed
+from every role in the local app. Audit evaluation teams, account management
+and clinical training/staffing checklist items remain. The hosted Staff tables/views and dedicated supporting objects are removed;
+only the empty certificate bucket awaits Storage administrator access; see [the retirement plan](plans/06_STAFF_MODULE_REMOVAL.md).
 
 ---
 
@@ -402,7 +392,7 @@ update public.badges set rule_config = '{"min_points": 225}' where code = 'BEST_
 - Patient records are referenced by anonymised code only. There is no patient
   name field anywhere in the database.
 - Survey answers carry no identity and cannot be traced to a person.
-- Evidence and certificates sit in private buckets, readable only by people
+- Assessment and corrective-action evidence sit in private buckets, readable only by people
   authorised for that centre.
 - Every status change on an assessment or a finding is logged with who and when
   (`public.activity_log`, readable by the directorate).
@@ -504,56 +494,172 @@ account list when events are available.
 
 Directorate accounts open Overview. An owner can open More → Directorate
 overview or Centre registry, and can also test the same screens in View as.
-Use the registry for names, codes, bilingual location and activity status;
-deactivating preserves historical campaign membership/results. Use Assessments
-→ New assessment for a saved-structure campaign, or open Campaign progress for
-exclusive workflow counts and campaign-specific approved comparison.
+The Centres card counts registered centres, including inactive entries.
+**View centres** opens that list, and **+ Add centre** opens the editor when
+the registry is empty. Deactivating a centre preserves its campaign history.
+**View structures** opens published Audit Structures for reference. Use
+**Build assessment campaign** to create a campaign from a saved structure.
 
-Open a participation's Review evaluation for scores, proof, recorded team and
-comments. Request revisions requires a reason. The Centre Head can reply, while
-only the evaluation team/Directorate edits official answers. Reload after a
-revision conflict, review the retained note and confirm the current version.
-Approval requires online confirmation and finalized required proof. Missing
+**Awaiting approval** shows submitted audits and audits already under review
+across campaigns. **Auditor review progress** shows scored checklist items
+and the current workflow stage per centre in the selected campaign. Open
+**View campaign details** for workflow counts and approved-result comparison.
+In **Open review**, use **Pre-approval comment** to post feedback in the audit
+dialogue. Authorized auditors and Centre Heads can see the dialogue.
+**Request revisions** reopens the audit for editing and requires a reason.
+Reload after a revision conflict, review the retained note and confirm the
+current version.
+Approval requires online confirmation. Official audit proof is optional; missing
+attachments or proof acceptance do not prevent submission or approval. Missing
 legacy jobs/sign-off are shown explicitly; formal team sign-off and self-audit
 gap comparison are delivered by their separate role plans. In-app feedback
 notifications open the authorized audit dialogue. No external email is sent.
 
+### Official audit readiness — 16 November 2026
+
+When every scored item is answered, the Auditor Work card offers **Review and
+submit evaluation** at the top. Proof remains available as supporting material
+but is optional for official audits, including checklists saved with an evidence
+requirement. The review screen explains this in Arabic and English.
+
+Submission still requires all scores, an evaluation date, the team's full names
+and actual job titles, and a lead linked to an authorized app account. In the
+current code/Android build, use **Set evaluation date** on the review screen,
+then tap the lead-account requirement or a member's Edit icon to link the lead
+to the correct app account. **Evaluation team** still opens the full roster.
+Returning from setup syncs and revalidates automatically; **Sync and validate**
+is available for retry. The sign-off checkbox becomes available after the
+requirements pass. Confirm it and submit as the recorded lead. Directorate's
+existing override requires its reason. Finish or cancel uploads already started
+before submission so queued files are not stranded in a locked audit.
+
+Centre self-assessment proof requirements continue to follow their saved
+checklist. Official scores, N/A rules, grading and findings are unchanged.
+The web build published earlier on 16 November does not yet include these
+date/team repair controls. Web publication is deferred until the user requests
+the release with `docs/WEB_UPDATE_PROMPT.md`.
+
 
 ## Head of Centre self-audits
 
-A signed-in Head opens **My Centre**, selecting the centre explicitly if they
-manage more than one. The dashboard separates the latest approved official
-result, actions across all periods, competency denominators, rolling 12-month
-satisfaction and self-reported campaign readiness. Satisfaction is withheld
-below five responses. Inactive centres retain read access to history.
+Open **My Centre**, select the centre if you manage more than one, and choose
+**Start self-assessment**. The latest published Audit Structure is selected
+by default. You can choose an earlier saved version. Confirm the version to
+start. Each assessment keeps that structure throughout its history.
 
-Join a campaign while connected, then open **Start self-audit**. Use the saved
-checklist's scale choices, optional allowed N/A, comments and criterion proof.
-Save comments explicitly. **Saved on this device** confirms local persistence;
-**Waiting to sync** means server acceptance is outstanding. Scores and owned
-proof copies can resume offline after restart. Proof supports PDF/JPEG/PNG up to
-25 MiB; cancelling the picker does not change an answer. Downloaded proof shows
-**Available offline** and can be viewed/shared from its cached bytes.
+Use **Continue draft** to resume an existing assessment. While offline you
+can score, save comments, and attach eligible proof after opening the draft
+online. **Saved on this device** confirms local persistence. **Waiting to
+sync** means server acceptance is outstanding. Proof supports PDF, JPEG and
+PNG up to 25 MiB. Previously downloaded proof stays available offline.
 
-Reconnect and refresh before submitting. **Submit self-audit snapshot** requires
-complete scores and finalized required proof, then confirms the immutable
-snapshot online. A new self version can be started before the first official
-submission; copy prior proof explicitly into that draft. Failed copies report
-file names and leave the saved draft available for repair. Conflicts show the
-saved and current synced self-answer before a choice is applied.
+Reconnect to submit. **Submit self-audit snapshot** requires complete scores
+and finalized required proof. The latest submitted snapshot appears on the
+dashboard, and the history labels each submission and draft. A
+revision continues with the same Audit Structure. The Head can explicitly
+copy evidence from the prior snapshot into that draft. Inactive centres
+retain authorized read access to their history.
 
-The first official submission freezes the latest submitted self version for
-comparison. An unsubmitted draft is not used, and missing self work does not
-prevent the auditor from submitting. **Self-audit and official evaluation**
-shows the approved official version and pinned self snapshot. Provisional
-comparison requires an explicit submitted self version. Missing answers and N/A
-disagreements are distinct from numerical differences (official minus self).
+The Head can choose **Share with official audit** on a submitted snapshot.
+Only campaigns for the same centre and exact Audit Structure can use it. The
+auditor and Directorate can review the shared snapshot, and the first
+official submission pins it for comparison. Sharing can be replaced or
+withdrawn before the first official proof review or submission. Centre
+self-assessment work can continue after official submission or closure.
 
-Use **Reply to Directorate / Add clarification** for the existing conversation,
-and Actions for CAPA replies and proof. The Head cannot edit official scores,
-approve an assessment or close their own NCR. Plan 4's official proof-review
-provenance is shown as not yet recorded.
+Use the official audit page for progress and results, **Reply to Directorate**
+for discussion, and **Actions** for corrective action replies and evidence.
+Owners can test both roles via **More → Administration → View as**. Preview
+work uses an isolated sample workspace.
 
-Owners can review the new flow in **More → Administration → View as → Head of
-Centre**, choosing the **Campaign** scenario. Sample joining, self scores and
-proof use an isolated preview store and make no live requests.
+## Primary structure and new-assessment locks
+
+Directorate and owner users can open **Audit Structures** and the **⋮** menu
+beside a saved version. **Set as primary** makes an available version the default
+for new assessments. **Lock for new assessments** removes that version from
+new campaign and independent self-assessment selection. **Allow for new
+assessments** unlocks it again. Choose another primary before locking the
+current primary. Availability changes require connectivity.
+
+Existing campaigns, joined assessments, history and self-assessment revisions
+keep their assigned structures. Locking does not change clinical content or
+scores. Directorate manages availability; the owner still creates and edits
+draft structure content.
+
+**Delete an unused version:** open its **⋮** menu and choose **Delete unused
+structure**, then confirm permanent deletion. This removes its checklist items
+as well. The structure must be non-primary and have no campaign or assessment
+links, including draft campaigns and private self-assessment history. Locking
+a used version does not make it deletable. Choose another primary first if an
+otherwise unused version is currently primary. The server rechecks eligibility;
+deletion requires connectivity. Existing assessments cannot be removed by this
+action. Draft structure deletion remains an owner task.
+
+### Self-assessment navigation
+
+After starting or continuing a self-assessment, choose a **Main area**, then a
+**Section**, then a **Criterion**. Filter criteria by **All criteria** or
+**Unanswered**. Choose a saved scoring option, add a comment or compliance proof,
+and use **Previous / Next criterion** to move within the section. The back
+button returns one level. Answers use the existing durable offline queue; check
+the save status before leaving. Use the information button for readiness,
+conflict resolution, refresh, submission, revisions and sharing where permitted.
+Submitted snapshots are read-only; create a revision to change their answers.
+
+### What submission means
+
+Draft self-assessment answers save as you work. **Review and submit** checks
+completion and required proof. **Continue assessment** opens the next missing
+item. Once complete, **Submit self-assessment** keeps a read-only version in your
+history; later changes use a new revision. For independent self-assessments,
+submission does not automatically share the assessment with the Directorate.
+Share the submitted version with an official campaign separately when needed.
+
+### Answered score
+
+On the self-assessment Main areas screen, **Answered score** is points earned
+on answered applicable criteria divided by their combined maximum points. For
+example, 34/51 points is 66.7%. Unanswered and N/A criteria are excluded. The
+answered count still shows completion separately; this interim percentage does
+not replace the final full-assessment result.
+
+
+## Auditor team registration for each assessment
+
+On Auditor Work, use the person-with-tie button in the assessment card to view
+or manage that assessment's team. Start/Resume asks for a name, actual job and
+leader choice if no complete auditor entry exists. Save at least one person
+before assessing. You can add the other auditors and edit draft names/jobs
+through the same card button later.
+
+The centre login may be shared by its auditors: enter each person's own details
+in the team list. Selecting a leader links that entry to the centre login for
+sign-off; other members do not need personal app accounts. The roster belongs
+to this assessment, not every audit at the centre. Submitted rosters are shown
+read-only; use revisions to correct signed assessment details. Offline entries
+remain saved on the device and sync when connected.
+
+
+### Correction plans and Directorate review
+
+The Head opens an action, enters a correction plan and optionally adds root
+cause, work done, photographs or documents. Save keeps work editable; Submit
+to Directorate sends it for review. Proof is optional. Submitted plans stay
+read-only until Directorate feedback returns them for editing.
+
+Directorate reads the submitted plan and opens any listed attachments.
+Comment and send returns a submitted plan to the Head with the note recorded
+in History. Accept and close closes a submitted plan without changing its text.
+An action that has not been submitted can receive comments but cannot yet be
+accepted. Closed actions remain read-only.
+
+
+The Head's Actions page groups findings under their source audit, then the
+main areas in that audit's saved checklist order. Tap an audit or main-area
+heading to collapse/expand it. Counts follow the selected status filter.
+Actions with missing source details remain in an unavailable-source group.
+
+
+On Review audit → Summary, tap the Actions count to open the Actions page for
+that exact audit. It starts with all statuses, including closed actions.
+Use Back to return to the audit review.

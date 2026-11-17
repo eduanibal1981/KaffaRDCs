@@ -73,16 +73,15 @@ class Permissions {
   bool canDiscussAudit(String centerId) => canReadSelfAudit(centerId);
 
   bool get canCreateAssessments => isDirectorate;
-  bool canJoinCenter(String centerId) =>
-      grants.any((g) => g.role == AppRole.auditor &&
-          (g.centerId == null || g.centerId == centerId));
+  bool canJoinCenter(String centerId) => grants.any((g) =>
+      g.role == AppRole.auditor &&
+      (g.centerId == null || g.centerId == centerId));
 
   bool get canRunAudits => isAuditor || isDirectorate;
   bool get canApproveAudits => isDirectorate;
   bool get canCompareAllCentres => isDirectorate;
   bool get canConfigureTemplate => isSuperAdmin;
   bool get canManageUsers => isSuperAdmin;
-  bool get canManageStaff => isSuperAdmin || isCenterManager;
   bool get canCloseNcr => isDirectorate || isAuditor;
   bool get canRespondToNcr => isCenterManager || isDirectorate || isAuditor;
   bool get canAwardBadges => isDirectorate;

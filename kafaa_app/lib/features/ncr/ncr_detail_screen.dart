@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
+import 'package:printing/printing.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../core/l10n/enum_labels.dart';
 import '../../core/l10n/l10n_extensions.dart';
@@ -58,19 +60,29 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
   Future<void> _save(Ncr ncr, {NcrStatus? status}) async {
     setState(() => _busy = true);
     try {
-      await ref.read(ncrRepositoryProvider).update(ncr.id, {
-        'corrective_action_plan': _plan.text.trim(),
-        'root_cause': _rootCause.text.trim(),
-        'resolution_notes': _resolution.text.trim(),
-        if (status != null) 'status': status.wire,
-        if (_note.text.trim().isNotEmpty) 'review_notes': _note.text.trim(),
-      });
-      if (_note.text.trim().isNotEmpty) {
-        await ref
-            .read(ncrRepositoryProvider)
-            .addNote(ncr.id, _note.text.trim());
-        _note.clear();
+      final reviewer = ref.read(permissionsProvider).isDirectorate;
+      if (status == NcrStatus.submittedForReview && _plan.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.ncrPlanRequired)));
+        return;
       }
+      final note = _note.text.trim();
+      if (!reviewer || status != null) {
+        await ref.read(ncrRepositoryProvider).update(ncr.id, {
+          if (!reviewer) ...{
+            'corrective_action_plan': _plan.text.trim(),
+            'root_cause': _rootCause.text.trim(),
+            'resolution_notes': _resolution.text.trim(),
+          },
+          if (status != null) 'status': status.wire,
+          // A status change records this note once through the database trigger.
+          if (status != null) 'review_notes': note,
+        });
+      }
+      if (note.isNotEmpty && (status == null || status == ncr.status)) {
+        await ref.read(ncrRepositoryProvider).addNote(ncr.id, note);
+      }
+      _note.clear();
       ref.invalidate(_ncrProvider(ncr.id));
       ref.invalidate(ncrListProvider);
       ref.invalidate(ncrTimelineProvider(ncr.id));
@@ -113,7 +125,15 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
         if (result == null) return;
         file = result.xFile;
         name = result.name;
-        mime = name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
+        mime = switch (name.split('.').last.toLowerCase()) {
+          'pdf' => 'application/pdf',
+          'png' => 'image/png',
+          'jpg' || 'jpeg' => 'image/jpeg',
+          'doc' => 'application/msword',
+          'docx' =>
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          _ => 'application/octet-stream',
+        };
       }
 
       await ref.read(ncrRepositoryProvider).attachEvidence(
@@ -124,6 +144,7 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
             mimeType: mime,
           );
 
+      ref.invalidate(ncrEvidenceProvider(ncr.id));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.l10n.syncSavedOnDevice)),
@@ -154,9 +175,13 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
           _seed(ncr);
 
           final centre = ref.watch(centersByIdProvider)[ncr.centerId];
-          final canRespond =
-              perms.managesCenter(ncr.centerId) || perms.isDirectorate;
-          final canClose = perms.canCloseNcr;
+          final reviewer = perms.isDirectorate;
+          final awaitingReview = ncr.status == NcrStatus.submittedForReview ||
+              ncr.status == NcrStatus.resolved;
+          final canRespond = !reviewer &&
+              perms.managesCenter(ncr.centerId) &&
+              !awaitingReview &&
+              ncr.status != NcrStatus.closed;
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -171,11 +196,13 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.spaceBetween,
                       children: [
                         Text(ncr.code,
                             style: Theme.of(context).textTheme.labelLarge),
-                        const Spacer(),
                         StatusPill(
                           label: ncr.status.label(context),
                           color: KafaaColors.forNcrStatus(ncr.status.wire),
@@ -231,7 +258,8 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
                   children: [
                     TextField(
                       controller: _rootCause,
-                      enabled: canRespond && !_busy,
+                      readOnly: !canRespond,
+                      enabled: !_busy,
                       minLines: 2,
                       maxLines: 4,
                       decoration: InputDecoration(labelText: l10n.ncrRootCause),
@@ -239,7 +267,8 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
                     const SizedBox(height: 14),
                     TextField(
                       controller: _plan,
-                      enabled: canRespond && !_busy,
+                      readOnly: !canRespond,
+                      enabled: !_busy,
                       minLines: 3,
                       maxLines: 6,
                       decoration: InputDecoration(labelText: l10n.ncrPlan),
@@ -247,7 +276,8 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
                     const SizedBox(height: 14),
                     TextField(
                       controller: _resolution,
-                      enabled: canRespond && !_busy,
+                      readOnly: !canRespond,
+                      enabled: !_busy,
                       minLines: 2,
                       maxLines: 4,
                       decoration:
@@ -260,64 +290,82 @@ class _NcrDetailScreenState extends ConsumerState<NcrDetailScreen> {
                         runSpacing: 8,
                         children: [
                           OutlinedButton.icon(
-                            onPressed: () => _attach(ncr, true),
+                            onPressed: _busy ? null : () => _attach(ncr, true),
                             icon: const Icon(Icons.photo_camera_outlined,
                                 size: 18),
                             label: Text(l10n.evidenceFromCamera),
                           ),
                           OutlinedButton.icon(
-                            onPressed: () => _attach(ncr, false),
+                            onPressed: _busy ? null : () => _attach(ncr, false),
                             icon: const Icon(Icons.attach_file, size: 18),
                             label: Text(l10n.evidenceFromFiles),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: _busy ? null : () => _save(ncr),
-                          child: Text(l10n.actionSave),
-                        ),
-                      ),
+                      Text(l10n.ncrProofOptional),
+                      const SizedBox(height: 12),
+                      Wrap(spacing: 12, runSpacing: 12, children: [
+                        OutlinedButton(
+                            onPressed: _busy
+                                ? null
+                                : () => _save(ncr,
+                                    status: ncr.status == NcrStatus.open ||
+                                            ncr.status == NcrStatus.overdue
+                                        ? NcrStatus.inProgress
+                                        : null),
+                            child: Text(l10n.actionSave)),
+                        FilledButton(
+                            onPressed: _busy
+                                ? null
+                                : () => _save(ncr,
+                                    status: NcrStatus.submittedForReview),
+                            child: Text(l10n.ncrSubmitPlan)),
+                      ]),
                     ],
                   ],
                 ),
               ),
-              if (canRespond) ...[
+              const SizedBox(height: 8),
+              SectionHeader(title: l10n.auditProofTitle),
+              _NcrProof(ncrId: ncr.id),
+              if (awaitingReview && !reviewer)
+                Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(l10n.ncrAwaitingDirectorate)),
+              if (reviewer && ncr.status != NcrStatus.closed) ...[
                 const SizedBox(height: 8),
-                SectionHeader(title: l10n.ncrUpdateStatus),
+                SectionHeader(title: l10n.ncrDirectorateReview),
                 KafaaCard(
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _note,
-                        minLines: 2,
-                        maxLines: 3,
-                        decoration: InputDecoration(labelText: l10n.ncrAddNote),
-                      ),
-                      const SizedBox(height: 14),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final s in [
-                            NcrStatus.inProgress,
-                            NcrStatus.submittedForReview,
-                            NcrStatus.resolved,
-                            if (canClose) NcrStatus.closed,
-                          ])
-                            OutlinedButton(
-                              onPressed: _busy || ncr.status == s
-                                  ? null
-                                  : () => _save(ncr, status: s),
-                              child: Text(s.label(context)),
-                            ),
-                        ],
-                      ),
-                    ],
+                    child: Column(children: [
+                  if (!awaitingReview) Text(l10n.ncrNotSubmitted),
+                  TextField(
+                    controller: _note,
+                    enabled: !_busy,
+                    minLines: 2,
+                    maxLines: 5,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(labelText: l10n.ncrAddNote),
                   ),
-                ),
+                  const SizedBox(height: 14),
+                  Wrap(spacing: 12, runSpacing: 12, children: [
+                    OutlinedButton(
+                        onPressed: _busy || _note.text.trim().isEmpty
+                            ? null
+                            : () => _save(ncr,
+                                status: awaitingReview
+                                    ? NcrStatus.inProgress
+                                    : null),
+                        child: Text(l10n.ncrCommentSend)),
+                    FilledButton(
+                        onPressed: _busy ||
+                                !awaitingReview ||
+                                (ncr.correctiveActionPlan ?? '').trim().isEmpty
+                            ? null
+                            : () => _save(ncr, status: NcrStatus.closed),
+                        child: Text(l10n.ncrAcceptClose)),
+                  ]),
+                ])),
               ],
               const SizedBox(height: 8),
               SectionHeader(title: l10n.ncrTimeline),
@@ -341,7 +389,7 @@ class _Timeline extends ConsumerWidget {
     return AsyncView(
       value: updates,
       onRetry: () => ref.invalidate(ncrTimelineProvider(ncrId)),
-      loading: const SizedBox(height: 80, child: LoadingView()),
+      loading: const Padding(padding: EdgeInsets.all(12), child: LoadingView()),
       builder: (list) {
         if (list.isEmpty) {
           return KafaaCard(child: Text(context.l10n.homeNoData));
@@ -375,5 +423,83 @@ class _Timeline extends ConsumerWidget {
         );
       },
     );
+  }
+}
+
+class _NcrProof extends ConsumerWidget {
+  const _NcrProof({required this.ncrId});
+  final String ncrId;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    return AsyncView(
+      value: ref.watch(ncrEvidenceProvider(ncrId)),
+      onRetry: () => ref.invalidate(ncrEvidenceProvider(ncrId)),
+      builder: (items) => KafaaCard(
+          child: Column(children: [
+        if (items.isEmpty) Text(l.ncrNoProof),
+        for (final item in items)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.attach_file),
+            title: Text(item['file_name'] as String),
+            subtitle:
+                item['_pending'] == true ? Text(l.syncSavedOnDevice) : null,
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => _NcrProofViewer(ncrId: ncrId, item: item))),
+          ),
+      ])),
+    );
+  }
+}
+
+class _NcrProofViewer extends ConsumerStatefulWidget {
+  const _NcrProofViewer({required this.ncrId, required this.item});
+  final String ncrId;
+  final Map<String, dynamic> item;
+  @override
+  ConsumerState<_NcrProofViewer> createState() => _NcrProofViewerState();
+}
+
+class _NcrProofViewerState extends ConsumerState<_NcrProofViewer> {
+  late final loaded = ref
+      .read(ncrRepositoryProvider)
+      .downloadEvidence(widget.ncrId, widget.item['id']);
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final name = widget.item['file_name'] as String;
+    final mime = widget.item['mime_type'] as String?;
+    return Scaffold(
+        appBar: AppBar(title: Text(name)),
+        body: FutureBuilder(
+          future: loaded,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) return ErrorView(error: snapshot.error!);
+            if (!snapshot.hasData) return const LoadingView();
+            final bytes = snapshot.data!;
+            return Column(children: [
+              Expanded(
+                  child: mime == 'application/pdf'
+                      ? PdfPreview(
+                          build: (_) => bytes,
+                          allowPrinting: false,
+                          allowSharing: false,
+                          canChangeOrientation: false,
+                          canChangePageFormat: false)
+                      : mime?.startsWith('image/') == true
+                          ? InteractiveViewer(child: Image.memory(bytes))
+                          : Center(child: Text(name))),
+              TextButton.icon(
+                  icon: const Icon(Icons.share_outlined),
+                  label: Text(l.actionShare),
+                  onPressed: () => SharePlus.instance.share(ShareParams(files: [
+                        XFile.fromData(bytes, name: name, mimeType: mime)
+                      ], fileNameOverrides: [
+                        name
+                      ]))),
+            ]);
+          },
+        ));
   }
 }

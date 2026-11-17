@@ -1,0 +1,30 @@
+{
+  "/": {
+    "matches": true,
+    "bytes": 398
+  },
+  "main.dart.js": {
+    "matches": true,
+    "bytes": 6193951
+  },
+  "flutter_bootstrap.js": {
+    "matches": true,
+    "bytes": 13198
+  },
+  "sqlite3.wasm": {
+    "matches": true,
+    "bytes": 730989
+  },
+  "sqflite_sw.js": {
+    "matches": true,
+    "bytes": 253023
+  },
+  "canvaskit/canvaskit.wasm": {
+    "matches": true,
+    "bytes": 7284602
+  },
+  "spa_retired_path": {
+    "matches_index": true
+  },
+  "host_headers_preserved": true
+}

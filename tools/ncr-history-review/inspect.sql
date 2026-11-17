@@ -1,0 +1,1 @@
+select c.conname, c.conrelid::regclass::text as source, c.confrelid::regclass::text as target, pg_get_constraintdef(c.oid) as definition from pg_constraint c where c.conrelid in ('public.ncr_updates'::regclass,'public.profiles'::regclass) and c.contype='f';

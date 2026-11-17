@@ -150,6 +150,36 @@ class AppL10nEn extends AppL10n {
       'We could not reach the server. Check your connection and try again.';
 
   @override
+  String get quickLoginTitle => 'Temporary test login';
+
+  @override
+  String get quickLoginHint =>
+      'Choose a unit for Unit head or Auditor, then tap a role to sign in.';
+
+  @override
+  String get quickLoginUnit => 'Unit';
+
+  @override
+  String get quickLoginUnitHead => 'Unit head';
+
+  @override
+  String get quickLoginForget => 'Forget test passwords';
+
+  @override
+  String get quickLoginForgotten => 'Test passwords cleared from this app run.';
+
+  @override
+  String get quickLoginPasswordTitle => 'Test account password';
+
+  @override
+  String get quickLoginPasswordHint =>
+      'Enter once to sign in. It is remembered only until the app closes.';
+
+  @override
+  String get quickLoginSharedPassword =>
+      'Use this password for all test accounts';
+
+  @override
   String get validationRequired => 'This field is required';
 
   @override
@@ -175,9 +205,6 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get navActions => 'Actions';
-
-  @override
-  String get navStaff => 'Staff';
 
   @override
   String get navMore => 'More';
@@ -225,9 +252,6 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get homeOpenActions => 'Open actions';
-
-  @override
-  String get homeExpiringCerts => 'Expiring certificates';
 
   @override
   String get homeRecentAudits => 'Recent assessments';
@@ -696,119 +720,6 @@ class AppL10nEn extends AppL10n {
   String get ncrAddNote => 'Add a note';
 
   @override
-  String get staffTitle => 'Staff and training';
-
-  @override
-  String get staffMembers => 'Staff members';
-
-  @override
-  String get staffAdd => 'Add staff member';
-
-  @override
-  String get staffName => 'Full name';
-
-  @override
-  String get staffRef => 'Staff reference';
-
-  @override
-  String get staffCategory => 'Category';
-
-  @override
-  String get staffJobTitle => 'Job title';
-
-  @override
-  String get staffCategoryNurse => 'Nurse';
-
-  @override
-  String get staffCategoryPhysician => 'Physician';
-
-  @override
-  String get staffCategoryPharmacist => 'Pharmacist';
-
-  @override
-  String get staffCategoryTechnician => 'Technician';
-
-  @override
-  String get staffCategoryDietitian => 'Dietitian';
-
-  @override
-  String get staffCategoryAdministrative => 'Administrative';
-
-  @override
-  String get staffCategoryOther => 'Other';
-
-  @override
-  String get staffCertifications => 'Certificates';
-
-  @override
-  String get staffAddCertificate => 'Add a certificate';
-
-  @override
-  String get staffIssueDate => 'Issued on';
-
-  @override
-  String get staffExpiryDate => 'Expires on';
-
-  @override
-  String get staffReadiness => 'Team readiness';
-
-  @override
-  String get staffValid => 'Valid';
-
-  @override
-  String get staffExpiringSoon => 'Expiring soon';
-
-  @override
-  String get staffExpired => 'Expired';
-
-  @override
-  String get staffMissing => 'Not recorded';
-
-  @override
-  String staffExpiresInDays(int days) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: 'Expires in $days days',
-      one: 'Expires tomorrow',
-      zero: 'Expires today',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String staffExpiredDaysAgo(int days) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: 'Expired $days days ago',
-      one: 'Expired yesterday',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get drillsTitle => 'Emergency drills';
-
-  @override
-  String get drillAdd => 'Record a drill';
-
-  @override
-  String get drillType => 'Type of drill';
-
-  @override
-  String get drillDate => 'Date';
-
-  @override
-  String get drillParticipants => 'Number of participants';
-
-  @override
-  String get drillFindings => 'What we learned';
-
-  @override
-  String get drillFollowUp => 'Follow-up actions';
-
-  @override
   String get surveyTitle => 'Patient experience';
 
   @override
@@ -1114,9 +1025,6 @@ class AppL10nEn extends AppL10n {
   String get emptyNcrs => 'No corrective actions have been raised.';
 
   @override
-  String get emptyStaff => 'No staff members recorded yet.';
-
-  @override
   String get emptyNotifications => 'You are all caught up.';
 
   @override
@@ -1142,7 +1050,7 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get privacyNoticeBody =>
-      'Kafa\'a stores assessment results, evidence documents and staff certificates. Patient records are referenced only by anonymised codes — never by name. Survey answers are anonymous and cannot be traced back to an individual. Access is limited by role and every sensitive action is logged.';
+      'Kafa\'a stores assessment results and evidence documents. Patient records are referenced only by anonymised codes — never by name. Survey answers are anonymous and cannot be traced back to an individual. Access is limited by role and every sensitive action is logged.';
 
   @override
   String get confirmDeleteTitle => 'Delete this?';
@@ -2661,6 +2569,34 @@ class AppL10nEn extends AppL10n {
       'Required proof has not been accepted';
 
   @override
+  String get auditProofOptional => 'Proof is optional for official audits.';
+
+  @override
+  String get auditSubmissionSetDate => 'Set evaluation date';
+
+  @override
+  String get auditSubmissionDateNotSet => 'Not recorded';
+
+  @override
+  String get auditSubmissionFixRequirements =>
+      'Complete these items to enable submission. Tap an item to fix it.';
+
+  @override
+  String get auditSubmissionConfirmToEnable =>
+      'Confirm the sign-off statement to enable submission.';
+
+  @override
+  String get auditTeamAccountLinked => 'App account linked';
+
+  @override
+  String get auditTeamLeadAccountHelp =>
+      'Link the lead to their app account. That person must sign in to confirm and submit the evaluation.';
+
+  @override
+  String get auditTeamAccountsUnavailable =>
+      'Eligible app accounts could not be loaded. Retry to link the lead. Existing links are retained.';
+
+  @override
   String get auditSignoffConfirm =>
       'I confirm this evaluation reflects the evidence reviewed by the recorded team';
 
@@ -2724,4 +2660,94 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get campaignActionPublish => 'Publish';
+
+  @override
+  String get assessmentNavigationMenu => 'Assessment navigation';
+
+  @override
+  String get assessmentReturnSections => 'Return to sections';
+
+  @override
+  String get assessmentReturnMainAreas => 'Return to main areas';
+
+  @override
+  String get assessmentDashboard => 'Dashboard';
+
+  @override
+  String get assessmentNextSectionCriteria => 'Next section criteria';
+
+  @override
+  String get assessmentChooseSection => 'Choose a section first.';
+
+  @override
+  String get assessmentLastSection => 'This is the last section.';
+
+  @override
+  String get assessmentAnswerSectionFirst =>
+      'Answer all criteria in the current section first.';
+
+  @override
+  String get auditTeamRegisterTitle => 'Register auditor';
+
+  @override
+  String get auditTeamRegisterHint =>
+      'Before assessing, add at least one auditor’s actual name and job. Mark whether this person is the team leader.';
+
+  @override
+  String get auditTeamCenterAccountHint =>
+      'Enter the person’s details, not the centre account name. The leader uses this centre login for sign-off.';
+
+  @override
+  String get auditTeamSaveContinue => 'Save and continue assessment';
+
+  @override
+  String get auditTeamPerAssessmentHint =>
+      'This team belongs to this assessment only. Add or edit the people taking part in this audit.';
+
+  @override
+  String get auditTeamRecordedReadOnly =>
+      'This submitted assessment’s team is read-only. Use the revision workflow for corrections.';
+
+  @override
+  String ncrGroupCount(int count) {
+    return 'Actions: $count';
+  }
+
+  @override
+  String get ncrNoSourceAudit => 'Not linked to an audit';
+
+  @override
+  String get ncrSourceAuditUnavailable => 'Source audit unavailable';
+
+  @override
+  String get ncrSubmitPlan => 'Submit to Directorate';
+
+  @override
+  String get ncrCommentSend => 'Comment and send';
+
+  @override
+  String get ncrAcceptClose => 'Accept and close';
+
+  @override
+  String get ncrDirectorateReview => 'Directorate review';
+
+  @override
+  String get ncrAwaitingDirectorate =>
+      'Submitted to Directorate. The plan is read-only until feedback is returned.';
+
+  @override
+  String get ncrNotSubmitted =>
+      'The centre has not submitted a correction plan for review yet.';
+
+  @override
+  String get ncrProofOptional => 'Proof or screenshots are optional.';
+
+  @override
+  String get ncrNoProof => 'No proof attached.';
+
+  @override
+  String get ncrPlanRequired => 'Enter a correction plan before submitting.';
+
+  @override
+  String get ncrMainAreaUnavailable => 'Main area unavailable';
 }

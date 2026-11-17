@@ -107,12 +107,14 @@ class SyncService extends StateNotifier<SyncStatus> {
   }
 
   /// Callers that flush during an existing pass must wait for that pass.
-  Future<void> sync({String? auditId}) async {
+  Future<void> sync(
+      {String? auditId, bool retryTeamAccountConflicts = false}) async {
     if (_activeSync != null) {
       await _activeSync;
-      if (auditId == null) return;
+      if (auditId == null && !retryTeamAccountConflicts) return;
     }
-    final running = _drain(auditId: auditId);
+    final running = _drain(
+        auditId: auditId, retryTeamAccountConflicts: retryTeamAccountConflicts);
     _activeSync = running;
     try {
       await running;
@@ -121,7 +123,8 @@ class SyncService extends StateNotifier<SyncStatus> {
     }
   }
 
-  Future<void> _drain({String? auditId}) async {
+  Future<void> _drain(
+      {String? auditId, bool retryTeamAccountConflicts = false}) async {
     bool target(OutboxEntry e) =>
         auditId == null ||
         e.payload['audit_id'] == auditId ||
@@ -138,6 +141,19 @@ class SyncService extends StateNotifier<SyncStatus> {
 
     try {
       final failedIds = <String>{};
+      if (retryTeamAccountConflicts) {
+        for (final entry in await _store.pending()) {
+          if (target(entry) &&
+              entry.isExhausted &&
+              entry.kind == OutboxKind.auditTeamUpsert &&
+              (entry.lastError
+                      ?.contains('audit_team_members_audit_id_user_id_key') ??
+                  false)) {
+            // Explicit retry only: retain the exact person/payload and row identity.
+            await _store.replacePending(entry, entry.payload);
+          }
+        }
+      }
       var snapshot = await _store.pending();
       var entries = snapshot.where((e) => !e.isExhausted && target(e)).toList();
       while (mounted && entries.isNotEmpty) {
@@ -586,6 +602,9 @@ class SyncService extends StateNotifier<SyncStatus> {
     await _client
         .from('ncr_evidence')
         .upsert(row, onConflict: 'id', ignoreDuplicates: true);
+    final key = 'ncr.proof.accepted.${row['ncr_id']}';
+    final accepted = await _store.readCache<Map<String, dynamic>>(key) ?? {};
+    await _store.putCache(key, {...accepted, row['id'] as String: row});
   }
 
   Future<void> _uploadEvidence(Map<String, dynamic> payload) async {

@@ -31,9 +31,6 @@ class _NewAuditScreenState extends ConsumerState<NewAuditScreen> {
   PeriodFrequency _frequency = PeriodFrequency.semiannual;
   DateTime _anchor = DateTime.now();
   DateTime? _dueDate;
-  String _cycle = DateTime.now().month >= 7
-      ? '${DateTime.now().year}-${DateTime.now().year + 1}'
-      : '${DateTime.now().year - 1}-${DateTime.now().year}';
   bool _busy = false;
   bool get _locked => _busy || _draft.containsKey('attempt');
   String? _error;
@@ -56,7 +53,6 @@ class _NewAuditScreenState extends ConsumerState<NewAuditScreen> {
       _templateId = draft['template_id'];
       _title.text = draft['title_en'] ?? '';
       _titleAr.text = draft['title_ar'] ?? '';
-      _cycle = draft['cycle'] ?? _cycle;
       if (draft['frequency'] != null) {
         _frequency = PeriodFrequency.tryParse(draft['frequency']);
       }
@@ -73,7 +69,7 @@ class _NewAuditScreenState extends ConsumerState<NewAuditScreen> {
       'template_id': blueprint.template.id,
       'title_en': _title.text.trim(),
       'title_ar': _titleAr.text.trim(),
-      'cycle': _cycle,
+      'cycle': _frequency.keyFor(_anchor),
       'frequency': _frequency.wire,
       'start': period.start.toIso8601String(),
       'end': period.end.toIso8601String(),
@@ -265,19 +261,6 @@ class _NewAuditScreenState extends ConsumerState<NewAuditScreen> {
                                       labelText: l10n.assessmentNameAr),
                                   textDirection: TextDirection.rtl,
                                   hintLocales: const [Locale('ar')]),
-                              const SizedBox(height: 16),
-                              TextFormField(
-                                  key: ValueKey(_draft['client_id']),
-                                  initialValue: _cycle,
-                                  enabled:
-                                      !_busy && !_draft.containsKey('attempt'),
-                                  decoration: InputDecoration(
-                                      labelText: l10n.auditCycle),
-                                  onChanged: (value) => _cycle = value.trim(),
-                                  validator: (value) =>
-                                      (value ?? '').trim().isEmpty
-                                          ? l10n.validationRequired
-                                          : null),
                             ]),
                             const SizedBox(height: 14),
                             _section(context, l10n.campaignSchedule, [

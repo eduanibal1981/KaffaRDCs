@@ -156,6 +156,7 @@ selection, so a sample can be defended on review.
 |---|---|
 | Not Applicable is **disabled** by default on every criterion | The official total is a fixed 237. Enable per criterion if the directorate wants exclusions. |
 | Auto-raised corrective actions only fire **after submission** | A draft in progress would otherwise flood the centre with findings the auditor is still deciding. |
+| Official audit proof is **optional** for submission and approval (user decision, 16 November 2026) | Attachments and acceptance remain available as supporting material. Saved checklist definitions and self-assessment proof requirements are preserved; scores, date, team and lead sign-off still apply. |
 | An auditor may suppress an auto-raised finding, but **only with a written reason** | Enforced by a database constraint, not just the UI. |
 | Only an auditor or the directorate may **close** a finding | A centre cannot mark its own non-conformance resolved and closed. |
 | Badges are **private until approved** | Avoids publishing a score comparison the directorate has not signed off. |

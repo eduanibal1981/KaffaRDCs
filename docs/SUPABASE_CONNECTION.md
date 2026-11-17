@@ -377,3 +377,212 @@ fell 42→41; unused indexes rose 29→37. See
 [auditor-verification.json](evidence/auditor-verification.json).
 Credentials remained in client storage/process memory. Hosted SQL did not write
 Storage objects; real file-byte/camera/share-sheet checks remain manual.
+
+### Independent self-assessments
+
+On 15 November 2026, the dedicated control session returned the exact Kafaa
+API URL before inspection and application of
+`20261114213439_independent_self_assessments`. Hosted rollback tests passed
+before and after. The authenticated Data API reports the independent
+self-assessment capability and anonymous table reads are denied. The
+project-scoped launcher and config still default to read-only. A command-local
+write session kept the same project restriction. A later attempt to refresh
+diagnostics encountered the dedicated OAuth response parsing error.
+
+### Auditor section comments
+
+The local migration `20261115000655_audit_section_comments` passed the
+combined installer and role, retry and sign-off tests. The dedicated
+`kafaa_db` read and write sessions reported an OAuth refresh parsing error,
+and the browser authorization callback expired. Restore the command-local
+authorization for the same Kafaa project using the steps above. Before applying
+the migration, verify the exact API URL and inspect hosted schema, migration
+history, logs and advisors. Rehearse the role suite in a rollback transaction.
+The default workspace endpoint remains read-only.
+
+### Test account cleanup connection check — 15 November 2026
+
+The configured project endpoint still matches `onzmwoajiyennqtjcjez`.
+An ephemeral dedicated `kafaa_db` control session with the same restriction
+and a command-local `read_only=false` override failed at `get_project_url`:
+`OAuth token refresh failed: Failed to parse server response`. Live identity
+and account state were not verified in this attempt. No shared/global
+connection settings changed, and workspace defaults remain read-only.
+
+The requested four-account cleanup is supplied as
+[manual maintenance SQL](../supabase/maintenance/remove_screenshot_test_accounts.sql)
+for the exact project SQL Editor. It passed isolated local checks and has
+**not been executed on kaffaDB**. Future MCP execution requires successful
+dedicated authorization, exact API URL verification and hosted dependency
+inspection first; another project's connection is never a fallback.
+
+A subsequent named-account role-assignment attempt on the same date failed
+at the same `get_project_url` OAuth refresh step. No hosted email inventory,
+role inspection or role changes occurred. The confirmed Bausher auditor mapping
+is supplied as [manual SQL](../supabase/maintenance/grant_bausher_auditor_access.sql),
+locally tested with centre-scope checks. The rest of the mappings await the
+actual address list or restored dedicated authorization. App passwords do not
+authorize MCP or administrative database writes.
+
+### Dedicated access restored and roles applied — 15 November 2026
+
+Fresh OAuth for the existing command-local write endpoint completed successfully;
+the browser and CLI confirmed completion. Dedicated `kafaa_db` control sessions
+returned the exact `https://onzmwoajiyennqtjcjez.supabase.co` API URL before each
+inspection, rehearsal, write and verification session. This supersedes the
+earlier refresh failures for this endpoint. The config and launcher retain their
+read-only defaults and exact project restriction. No shared/global account or
+connection configuration changed.
+
+After deployed schema/guards/policies/FKs, history, logs and advisor inspection,
+the nine explicit new-account role mappings were applied and tested through MCP.
+No schema migration was needed. All four supplied actual sign-ins passed scoped
+Data API tests; passwords/session tokens stayed in process memory. App passwords
+were not used to authorize MCP.
+
+Hard deletion of the four old accounts failed in a rollback rehearsal because
+approved assessments retain their user references. Their app grants were revoked,
+profiles deactivated and Auth sessions removed instead; their Auth rows remain.
+Clinical/public data hashes and existing advisor category/counts are unchanged.
+See [hosted rollout verification](evidence/named-account-hosted-verification.json)
+and [PROJECT_REVIEW.md](PROJECT_REVIEW.md) for exact mappings and limits.
+
+### Structure availability — 15 November 2026
+
+Dedicated scoped MCP sessions verified the exact Kafaa API URL and inspected
+deployed schema, guards, policies, history, logs and advisors before applying
+`20261115164915_structure_availability`. Hosted rehearsal and committed tests
+passed; the local filename matches the assigned version. Earlier migration
+drift remains: do not replay all local SQL on kaffaDB. Workspace/launcher defaults
+remain read-only, with no shared/global connection changes. Evidence:
+[structure availability](evidence/structure-availability-verification.json).
+
+### Unused structure deletion — 15 November 2026
+
+Applied `20261115170347_delete_unused_structures` through the dedicated scoped
+MCP after exact API URL verification, deployed dependency/guard/policy inspection,
+history/log/advisor checks and rollback rehearsal. Committed tests passed and
+all 39 public-table hashes match baseline; no existing structure was deleted.
+Local filename matches hosted history. Workspace/launcher remain scoped and
+read-only by default, with no shared/global connection changes. See
+[verification](evidence/delete-unused-structures-verification.json).
+
+### Clean dataset — 15 November 2026
+
+Verified exact Kafaa API identity and inspected deployed dependencies, triggers,
+logs, advisors and migration history before the authorized mock cleanup. A
+fingerprint-guarded transaction passed rollback rehearsal, committed, then passed
+independent readback. Migration history is unchanged; config/launcher still
+read-only by default. No shared/global connection changed. The four centre
+identities and original v1.00 checklist remain, with 10 real accounts/roles;
+operational mock data and legacy test accounts are removed. Do not run demo seeds
+or replay the full installer on this clean hosted database. See
+[cleanup verification](evidence/mock-data-cleanup-verification.json).
+
+### Optional official proof — 16 November 2026
+
+Fresh authorization for Kafaa's dedicated command-local write endpoint completed
+in the correct Chrome profile after an OAuth refresh parse error. The exact
+configured project restriction and `get_project_url` were checked before every
+hosted session. No shared connector account or persistent MCP setting changed.
+The workspace config and launcher still default to the scoped read-only URL.
+
+After deployed function/policy/trigger, history, log and advisor inspection,
+MCP applied `20261116163646_official_audit_proof_optional`. The local migration
+filename was reconciled to that hosted version. It changes only official
+submission/approval validation; saved checklist flags and self-assessment proof
+rules are retained. Both changed functions retain invoker rights and their
+existing access controls.
+
+Authenticated no-proof submission/approval tests passed in hosted rollback
+transactions before and after installation. All 43 public-table hashes are
+unchanged. A read-only check as the actual BausherAud identity now reports only
+missing date/team/lead for its 79-response draft, with no proof issue. Do not
+submit that real audit as a verification fixture.
+
+The isolated helper in `tools/auditor-flow-review/hosted.py` defaults to the same
+read-only endpoint; `--write` supplies a command-local override for authorized
+rehearsals or deployment. Its apply action rejects replay of this migration.
+The final default read-only endpoint check still returned an OAuth refresh
+response parse error; successful hosted verification used the freshly authorized
+command-local write endpoint. Do not describe that as restored authorization
+for both endpoint variants or change the persistent default to work around it.
+Earlier untracked migrations remain unreconciled; do not use a blanket push or
+rerun the full installer on kaffaDB. Delivery evidence and web-host identity are
+in `docs/PROJECT_REVIEW.md`.
+
+
+## Temporary login shortcuts — 16 November 2026
+
+Development sign-in has optional Directorate, Unit head and Auditor shortcuts
+using the existing Kafaa-domain accounts. The unit picker resolves the previously
+verified Bousher/Seeb/Al Amerat/Quriyat account names, including `quryiat`. It
+selects credentials only; normal Auth and deployed role grants still control
+access. Passwords entered in the app remain in memory for that app run. Setup and
+the optional ignored local test-password define are documented in
+[SETUP.md](SETUP.md#temporary-role-login-on-the-emulator).
+
+This UI change does not investigate or modify the hosted database or reverify
+MCP authorization. The last recorded dedicated connection limitation above still
+applies. No account passwords, grants, project endpoint or connection settings
+were changed. The shortcuts are disabled in profile/release builds.
+
+
+### Active audit-team account links — 16 November 2026
+
+The dedicated command-local write endpoint successfully reverified the exact
+Kafaa API URL and deployed `20261116195024_active_audit_team_accounts` after
+inspection and rollback tests. Removed team rows retain history but no longer
+reserve the shared login. Active duplicates remain blocked. The source migration
+matches hosted history; do not replay it manually. Default read-only OAuth
+refresh still reported the known parse error; project defaults and shared/global
+connections remain unchanged. Details: `PROJECT_REVIEW.md`.
+
+
+### Table guide verification — 17 November 2026
+
+The default project-scoped read-only endpoint again returned the known OAuth
+refresh response parsing error. The existing command-local write-capable
+endpoint returned the exact Kafaa API URL and successfully executed only schema
+metadata SELECTs. This does not establish restored authorization for the
+read-only endpoint. Persistent config/launcher defaults and shared/global
+connections were unchanged. The verified public inventory contains 43 tables;
+`audit_section_comments` is absent. See [DATABASE_TABLE_GUIDE.md](DATABASE_TABLE_GUIDE.md)
+and [metadata evidence](evidence/database-table-inventory.json).
+
+
+17 November 2026 corrective-action History investigation: exact Kafaa API URL
+reverified through the existing command-local endpoint; only FK metadata was
+read. Default read-only OAuth refresh still reports response parsing failure.
+The emulator's existing centre-head session reproduced PGRST200 for the invalid
+author embed, while the direct history query succeeds. No authorization,
+persistent connection setting or hosted database changes were required.
+
+
+17 November 2026 Staff retirement planning: configured project restriction and
+command-local `get_project_url` reverified the exact Kafaa API URL before SELECTs
+on deployed dependencies, policies, functions, Storage metadata and record counts.
+Default read-only OAuth refresh still fails response parsing; the existing
+command-local same-project endpoint worked. No hosted mutations, account changes
+or persistent connection-setting changes. Evidence: `tools/staff-removal-plan/`.
+
+## Staff retirement verification — 17 November 2026
+
+The dedicated same-project command-local write endpoint succeeded for the
+explicitly approved Staff retirement migration `20261117051842`. Every session
+verified `https://onzmwoajiyennqtjcjez.supabase.co` before using schema/data tools.
+Persistent `.codex/config.toml`, launcher restriction and all global/shared
+connector accounts remain unchanged. The default read-only OAuth limitation
+recorded above is not claimed fixed by this successful write-endpoint session.
+
+The four Staff tables/two views and dedicated supporting SQL objects are now
+removed; 1,903 retained fingerprints match and 39 public tables remain.
+`tools/staff-removal/` contains scoped restoration and verification evidence.
+
+Storage administration is a separate limitation: browser access is unavailable,
+newer CLI administrator-key retrieval stalled, and the existing older CLI returned
+403 for this exact project's API-key endpoint. No key was printed or persisted.
+Do not change a global/shared account to work around it. The empty private
+`certificates` bucket is the only pending deletion; use its Storage API/dashboard
+with Kafaa-specific administrator access. The dedicated MCP SQL authorization
+continues to work and is not the connection that returned this CLI 403.

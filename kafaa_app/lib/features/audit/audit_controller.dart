@@ -35,7 +35,8 @@ class AuditRunnerState {
   double get percent => calculation.percent;
   GradingBand? get band => calculation.band;
   List<AssessmentCriterion> get unscored => calculation.unscored;
-  List<AssessmentCriterion> get missingEvidence => calculation.missingEvidence;
+  // Official audits allow supporting proof without requiring an attachment.
+  List<AssessmentCriterion> get missingEvidence => const [];
   int countAtLevel(ScoreLevel level) => calculation.countAtLevel(level);
   int sectionAnswered(String id) => calculation.sectionAnswered(id);
   double sectionPercent(String id) => calculation.sectionPercent(id);

@@ -10,8 +10,8 @@ import '../../core/routing/app_router.dart';
 import '../../core/theme/kafaa_colors.dart';
 import '../../core/widgets/common.dart';
 import '../../data/models/assessment_session.dart';
+import '../../data/models/assessment.dart';
 import '../../data/models/center.dart';
-import '../../data/repositories/assessment_repository.dart';
 import '../../data/repositories/assessment_session_repository.dart';
 import '../../data/repositories/audit_repository.dart';
 import '../../data/repositories/center_repository.dart';
@@ -19,6 +19,7 @@ import '../../data/repositories/operations_repository.dart';
 import '../auth/session.dart';
 import 'assessment_sessions_screen.dart';
 import 'audit_controller.dart';
+import '../../data/repositories/audit_team_repository.dart';
 
 class AuditorWorkScreen extends ConsumerStatefulWidget {
   const AuditorWorkScreen({super.key});
@@ -47,14 +48,29 @@ class _AuditorWorkScreenState extends ConsumerState<AuditorWorkScreen> {
         queryParameters: sectionId == null ? null : {'sectionId': sectionId},
       ).toString();
 
-  Future<void> _start(AssessmentSession campaign, RenalCenter center) async {
+  Future<void> _openTeam(String id) async {
+    await _open('/audits/$id/team');
+    if (!mounted) return;
+    ref.invalidate(auditTeamProvider(id));
+    ref.invalidate(auditSummaryProvider(id));
+    ref.invalidate(auditRunnerProvider(id));
+  }
+
+  Widget _teamButton(VoidCallback? onPressed, {Color? color}) => IconButton(
+        tooltip: context.l10n.auditTeamTitle,
+        icon: const Icon(Icons.person_4_outlined),
+        color: color,
+        onPressed: onPressed,
+      );
+
+  Future<void> _start(AssessmentSession campaign, RenalCenter center,
+      {bool teamOnly = false}) async {
     if (_starting ||
         !campaign.acceptsWork ||
         !ref.read(permissionsProvider).canJoinCenter(center.id)) {
       return;
     }
     final repo = ref.read(assessmentSessionRepositoryProvider);
-    final structures = ref.read(assessmentRepositoryProvider);
     setState(() => _starting = true);
     try {
       final id = await repo.join(campaign.id, center.id);
@@ -62,11 +78,12 @@ class _AuditorWorkScreenState extends ConsumerState<AuditorWorkScreen> {
       ref.invalidate(assessmentParticipantsProvider(campaign.id));
       ref.invalidate(auditListProvider);
       _reload();
-      final blueprint = await structures.loadBlueprint(campaign.templateId);
-      if (!mounted) return;
-      final section = blueprint.sections.where((s) => s.isActive).firstOrNull;
       setState(() => _starting = false);
-      await _open(_runRoute(id, section?.id));
+      if (teamOnly) {
+        await _openTeam(id);
+      } else {
+        await _open(_runRoute(id, null));
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -250,6 +267,11 @@ class _AuditorWorkScreenState extends ConsumerState<AuditorWorkScreen> {
         KafaaCard(
           title: context.pick(center.nameEn, center.nameAr),
           subtitle: formatPeriodKey(context, campaign.periodKey),
+          trailing: _teamButton(id != null
+              ? () => _openTeam(id)
+              : p.centerActive && campaign.acceptsWork && !_starting
+                  ? () => _start(campaign, center, teamOnly: true)
+                  : null),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             if (id != null) ...[
@@ -284,14 +306,34 @@ class _AuditorWorkScreenState extends ConsumerState<AuditorWorkScreen> {
       return KafaaCard(
         title: context.pick(center.nameEn, center.nameAr),
         subtitle: formatPeriodKey(context, campaign.periodKey),
+        trailing: _teamButton(() => _openTeam(id)),
         child: FilledButton(
             onPressed: () => _open('/audits/$id'),
             child: Text(l.assessmentView)),
       );
     }
-    final sections = audit.blueprint.sections.where((s) => s.isActive).toList();
+    final sections = audit.blueprint.sections.where((s) => s.isActive).toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final domains = [...audit.blueprint.domains]
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final groups = [
+      for (final domain in <AssessmentDomain?>[
+        ...domains,
+        if (sections.any((s) => audit.blueprint.domainById(s.domainId) == null))
+          null,
+      ])
+        (
+          domain: domain,
+          sections: sections
+              .where((s) => domain == null
+                  ? audit.blueprint.domainById(s.domainId) == null
+                  : s.domainId == domain.id)
+              .toList()
+        ),
+    ].where((group) => group.sections.isNotEmpty).toList();
     final next =
         audit.unscored.firstOrNull?.sectionId ?? sections.firstOrNull?.id;
+    final scoresComplete = audit.totalItems > 0 && audit.unscored.isEmpty;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Card(
         color: KafaaColors.dashboardNavy,
@@ -299,9 +341,13 @@ class _AuditorWorkScreenState extends ConsumerState<AuditorWorkScreen> {
           padding: const EdgeInsets.all(16),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(context.pick(center.nameEn, center.nameAr),
-                style:
-                    theme.textTheme.titleLarge?.copyWith(color: Colors.white)),
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(
+                  child: Text(context.pick(center.nameEn, center.nameAr),
+                      style: theme.textTheme.titleLarge
+                          ?.copyWith(color: Colors.white))),
+              _teamButton(() => _openTeam(id), color: Colors.white),
+            ]),
             Text(formatPeriodKey(context, campaign.periodKey),
                 style: theme.textTheme.bodyMedium
                     ?.copyWith(color: Colors.white70)),
@@ -322,8 +368,11 @@ class _AuditorWorkScreenState extends ConsumerState<AuditorWorkScreen> {
             const SizedBox(height: 12),
             FilledButton(
               style: _primaryStyle(context),
-              onPressed: () => _open(_runRoute(id, next)),
-              child: Text(l.auditorResumeAudit),
+              onPressed: () => _open(
+                  scoresComplete ? '/audits/$id/submit' : _runRoute(id, null)),
+              child: Text(scoresComplete
+                  ? l.auditSubmissionTitle
+                  : l.auditorResumeAudit),
             ),
           ]),
         ),
@@ -331,23 +380,42 @@ class _AuditorWorkScreenState extends ConsumerState<AuditorWorkScreen> {
       const SizedBox(height: 18),
       Text(l.adminSections, style: theme.textTheme.titleLarge),
       const SizedBox(height: 8),
-      for (final section in sections)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Card(
-            color: next == section.id
-                ? KafaaColors.teal.withValues(alpha: 0.13)
-                : null,
-            child: ListTile(
-              selected: next == section.id,
-              title: Text(context.pick(section.nameEn, section.nameAr)),
-              trailing: Text(
-                '${audit.sectionAnswered(section.id)}/${audit.scorable.where((point) => point.sectionId == section.id).length}',
-                textDirection: TextDirection.ltr,
-              ),
-              onTap: () => _open(_runRoute(id, section.id)),
-            ),
+      for (final group in groups)
+        ExpansionTile(
+          key: PageStorageKey(
+              'work-$id-area-${group.domain?.id ?? "ungrouped"}'),
+          initiallyExpanded: true,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+          childrenPadding: EdgeInsets.zero,
+          shape: const Border(),
+          collapsedShape: const Border(),
+          title: Text(
+            group.domain == null
+                ? l.structureUngrouped
+                : context.pick(group.domain!.nameEn, group.domain!.nameAr),
+            style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700, color: theme.colorScheme.primary),
           ),
+          children: [
+            for (final section in group.sections)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Card(
+                  color: next == section.id
+                      ? KafaaColors.teal.withValues(alpha: 0.13)
+                      : null,
+                  child: ListTile(
+                    selected: next == section.id,
+                    title: Text(context.pick(section.nameEn, section.nameAr)),
+                    trailing: Text(
+                      '${audit.sectionAnswered(section.id)}/${audit.scorable.where((point) => point.sectionId == section.id).length}',
+                      textDirection: TextDirection.ltr,
+                    ),
+                    onTap: () => _open(_runRoute(id, section.id)),
+                  ),
+                ),
+              ),
+          ],
         ),
       Align(
           alignment: AlignmentDirectional.centerStart,

@@ -7,6 +7,9 @@ and [PROJECT_REVIEW.md](../PROJECT_REVIEW.md). Database role remains
 [shared contract](00_SHARED_TECHNICAL_CONTRACT.md) and
 [Directorate dialogue contract](02_DIRECTORATE.md).
 
+The [independent self-assessment release](05_INDEPENDENT_SELF_ASSESSMENTS.md)
+supersedes the join-to-self-assessment design below.
+
 ## 1. User journey and role boundaries
 
 The Head opens **My Centre** to see quality indicators and available campaigns.
@@ -286,7 +289,7 @@ local persistence succeeded; a sync label means the server accepted it.
 | --- | --- |
 | Latest approved score/band | Current approved shared official audit with visible campaign/period and exact source link |
 | Open corrective actions | Centre-wide open/in_progress/submitted_for_review/overdue items, clearly labeled; campaign-specific list is separately filtered |
-| Staff competency readiness | Reuse existing readiness data and its defined denominator; show missing data rather than manufacturing training completion |
+| Staff competency readiness | Superseded by Plan 6: removed from the current app scope |
 | Patient satisfaction | Existing rolling 12-month survey summary, with sample-count privacy suppression below five responses |
 | Campaign readiness | Self-reported earned points / eligible pinned maximum plus separately displayed checklist completion |
 
@@ -355,7 +358,7 @@ Phone hierarchy:
 My Centre
   Centre picker if multiple managed centres
   Latest approved score + source period
-  Actions / competency / satisfaction cards
+  Actions / satisfaction cards
   Join or Continue campaign cards
   Directorate feedback + unread count
 

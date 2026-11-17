@@ -107,7 +107,7 @@ UI context. `exit()` cancels preview listeners/jobs and discards the context.
 
 Implement repository interfaces for the workflows exercised in preview:
 centres, assessment sessions, official audits, self-audits, team, discussion,
-NCRs, analytics, staff, achievements and evidence. Existing concrete repository
+NCRs, analytics, achievements and evidence. Existing concrete repository
 classes become normal implementations with unchanged public behavior where
 possible. Add fake implementations under `lib/features/admin/testing/`.
 

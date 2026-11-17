@@ -83,14 +83,6 @@ const _actions = NavItem(
   description: _actionsDescription,
 );
 
-const _staff = NavItem(
-  route: Routes.staff,
-  icon: Icons.badge_outlined,
-  selectedIcon: Icons.badge,
-  label: _staffLabel,
-  description: _staffDescription,
-);
-
 const _more = NavItem(
   route: Routes.more,
   icon: Icons.more_horiz_outlined,
@@ -105,8 +97,6 @@ String _auditsLabel(BuildContext c) => c.l10n.navAudits;
 String _auditsDescription(BuildContext c) => c.l10n.auditsTitle;
 String _actionsLabel(BuildContext c) => c.l10n.navActions;
 String _actionsDescription(BuildContext c) => c.l10n.ncrTitle;
-String _staffLabel(BuildContext c) => c.l10n.navStaff;
-String _staffDescription(BuildContext c) => c.l10n.staffTitle;
 String _moreLabel(BuildContext c) => c.l10n.navMore;
 
 /// Everything this user can reach, most important first.
@@ -130,7 +120,6 @@ List<NavItem> candidateDestinations(Permissions perms) => [
         _centres,
       if (perms.canAccessAssessments) _audits,
       _actions,
-      if (perms.canManageStaff) _staff,
     ];
 
 /// The bottom bar: at most four of the above, then More.

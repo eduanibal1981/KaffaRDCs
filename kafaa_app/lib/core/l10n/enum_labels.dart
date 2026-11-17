@@ -54,28 +54,6 @@ extension EvidenceMethodLabel on EvidenceMethod {
       };
 }
 
-extension StaffCategoryLabel on StaffCategory {
-  String label(BuildContext context) => switch (this) {
-        StaffCategory.nurse => context.l10n.staffCategoryNurse,
-        StaffCategory.physician => context.l10n.staffCategoryPhysician,
-        StaffCategory.pharmacist => context.l10n.staffCategoryPharmacist,
-        StaffCategory.technician => context.l10n.staffCategoryTechnician,
-        StaffCategory.dietitian => context.l10n.staffCategoryDietitian,
-        StaffCategory.administrative =>
-          context.l10n.staffCategoryAdministrative,
-        StaffCategory.other => context.l10n.staffCategoryOther,
-      };
-}
-
-extension CompetencyStateLabel on CompetencyState {
-  String label(BuildContext context) => switch (this) {
-        CompetencyState.valid => context.l10n.staffValid,
-        CompetencyState.expiringSoon => context.l10n.staffExpiringSoon,
-        CompetencyState.expired => context.l10n.staffExpired,
-        CompetencyState.missing => context.l10n.staffMissing,
-      };
-}
-
 extension AppRoleLabel on AppRole {
   String label(BuildContext context) => switch (this) {
         AppRole.superAdmin => context.l10n.roleSuperAdmin,

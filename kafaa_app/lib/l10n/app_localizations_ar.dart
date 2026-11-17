@@ -151,6 +151,37 @@ class AppL10nAr extends AppL10n {
       'تعذّر الوصول إلى الخادم. تحقق من اتصالك ثم أعد المحاولة.';
 
   @override
+  String get quickLoginTitle => 'دخول تجريبي مؤقت';
+
+  @override
+  String get quickLoginHint =>
+      'اختر الوحدة لرئيس الوحدة أو المدقق، ثم اضغط على الدور لتسجيل الدخول.';
+
+  @override
+  String get quickLoginUnit => 'الوحدة';
+
+  @override
+  String get quickLoginUnitHead => 'رئيس الوحدة';
+
+  @override
+  String get quickLoginForget => 'نسيان كلمات المرور التجريبية';
+
+  @override
+  String get quickLoginForgotten =>
+      'تم مسح كلمات المرور التجريبية من جلسة التطبيق الحالية.';
+
+  @override
+  String get quickLoginPasswordTitle => 'كلمة مرور الحساب التجريبي';
+
+  @override
+  String get quickLoginPasswordHint =>
+      'أدخلها مرة واحدة لتسجيل الدخول. تُحفظ مؤقتاً حتى إغلاق التطبيق فقط.';
+
+  @override
+  String get quickLoginSharedPassword =>
+      'استخدام كلمة المرور هذه لجميع الحسابات التجريبية';
+
+  @override
   String get validationRequired => 'هذا الحقل مطلوب';
 
   @override
@@ -177,9 +208,6 @@ class AppL10nAr extends AppL10n {
 
   @override
   String get navActions => 'الإجراءات';
-
-  @override
-  String get navStaff => 'الطاقم';
 
   @override
   String get navMore => 'المزيد';
@@ -227,9 +255,6 @@ class AppL10nAr extends AppL10n {
 
   @override
   String get homeOpenActions => 'الإجراءات المفتوحة';
-
-  @override
-  String get homeExpiringCerts => 'شهادات على وشك الانتهاء';
 
   @override
   String get homeRecentAudits => 'أحدث التقييمات';
@@ -700,123 +725,6 @@ class AppL10nAr extends AppL10n {
   String get ncrAddNote => 'إضافة ملاحظة';
 
   @override
-  String get staffTitle => 'الطاقم والتدريب';
-
-  @override
-  String get staffMembers => 'أعضاء الطاقم';
-
-  @override
-  String get staffAdd => 'إضافة عضو';
-
-  @override
-  String get staffName => 'الاسم الكامل';
-
-  @override
-  String get staffRef => 'الرقم المرجعي';
-
-  @override
-  String get staffCategory => 'الفئة';
-
-  @override
-  String get staffJobTitle => 'المسمى الوظيفي';
-
-  @override
-  String get staffCategoryNurse => 'ممرض';
-
-  @override
-  String get staffCategoryPhysician => 'طبيب';
-
-  @override
-  String get staffCategoryPharmacist => 'صيدلي';
-
-  @override
-  String get staffCategoryTechnician => 'فني';
-
-  @override
-  String get staffCategoryDietitian => 'أخصائي تغذية';
-
-  @override
-  String get staffCategoryAdministrative => 'إداري';
-
-  @override
-  String get staffCategoryOther => 'أخرى';
-
-  @override
-  String get staffCertifications => 'الشهادات';
-
-  @override
-  String get staffAddCertificate => 'إضافة شهادة';
-
-  @override
-  String get staffIssueDate => 'تاريخ الإصدار';
-
-  @override
-  String get staffExpiryDate => 'تاريخ الانتهاء';
-
-  @override
-  String get staffReadiness => 'جاهزية الفريق';
-
-  @override
-  String get staffValid => 'سارية';
-
-  @override
-  String get staffExpiringSoon => 'على وشك الانتهاء';
-
-  @override
-  String get staffExpired => 'منتهية';
-
-  @override
-  String get staffMissing => 'غير مسجلة';
-
-  @override
-  String staffExpiresInDays(int days) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: 'تنتهي خلال $days يوماً',
-      few: 'تنتهي خلال $days أيام',
-      two: 'تنتهي بعد يومين',
-      one: 'تنتهي غداً',
-      zero: 'تنتهي اليوم',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String staffExpiredDaysAgo(int days) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: 'انتهت قبل $days يوماً',
-      few: 'انتهت قبل $days أيام',
-      two: 'انتهت قبل يومين',
-      one: 'انتهت أمس',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get drillsTitle => 'تمارين الطوارئ';
-
-  @override
-  String get drillAdd => 'تسجيل تمرين';
-
-  @override
-  String get drillType => 'نوع التمرين';
-
-  @override
-  String get drillDate => 'التاريخ';
-
-  @override
-  String get drillParticipants => 'عدد المشاركين';
-
-  @override
-  String get drillFindings => 'ما تم استخلاصه';
-
-  @override
-  String get drillFollowUp => 'إجراءات المتابعة';
-
-  @override
   String get surveyTitle => 'تجربة المريض';
 
   @override
@@ -1124,9 +1032,6 @@ class AppL10nAr extends AppL10n {
   String get emptyNcrs => 'لم تُفتح أي إجراءات تصحيحية.';
 
   @override
-  String get emptyStaff => 'لم يُسجَّل أي عضو في الطاقم بعد.';
-
-  @override
   String get emptyNotifications => 'لا توجد تنبيهات جديدة.';
 
   @override
@@ -1152,7 +1057,7 @@ class AppL10nAr extends AppL10n {
 
   @override
   String get privacyNoticeBody =>
-      'تحفظ كفاءة نتائج التقييم ومستندات الأدلة وشهادات الطاقم. ويُشار إلى سجلات المرضى برموز مجهولة الهوية فقط دون أي أسماء. أما إجابات الاستبيان فهي مجهولة تماماً ولا يمكن ربطها بشخص معين. والوصول محدود بحسب الصلاحية، وتُسجَّل جميع الإجراءات الحساسة.';
+      'تحفظ كفاءة نتائج التقييم ومستندات الأدلة. ويُشار إلى سجلات المرضى برموز مجهولة الهوية فقط دون أي أسماء. أما إجابات الاستبيان فهي مجهولة تماماً ولا يمكن ربطها بشخص معين. والوصول محدود بحسب الصلاحية، وتُسجَّل جميع الإجراءات الحساسة.';
 
   @override
   String get confirmDeleteTitle => 'هل تريد الحذف؟';
@@ -2652,6 +2557,34 @@ class AppL10nAr extends AppL10n {
   String get auditSubmissionMissingProof => 'لم يُقبل الدليل المطلوب بعد';
 
   @override
+  String get auditProofOptional => 'إرفاق الأدلة اختياري في التدقيق الرسمي.';
+
+  @override
+  String get auditSubmissionSetDate => 'تحديد تاريخ التقييم';
+
+  @override
+  String get auditSubmissionDateNotSet => 'غير مسجل';
+
+  @override
+  String get auditSubmissionFixRequirements =>
+      'أكمل هذه المتطلبات لتفعيل الإرسال. اضغط على المتطلب لإكماله.';
+
+  @override
+  String get auditSubmissionConfirmToEnable =>
+      'أقر بصحة التقييم لتفعيل الإرسال.';
+
+  @override
+  String get auditTeamAccountLinked => 'مرتبط بحساب في التطبيق';
+
+  @override
+  String get auditTeamLeadAccountHelp =>
+      'اربط رئيس الفريق بحسابه في التطبيق. يجب أن يسجل صاحب الحساب الدخول لإقرار التقييم وإرساله.';
+
+  @override
+  String get auditTeamAccountsUnavailable =>
+      'تعذر تحميل الحسابات المؤهلة. أعد المحاولة لربط رئيس الفريق. تم الاحتفاظ بالروابط الموجودة.';
+
+  @override
   String get auditSignoffConfirm =>
       'أؤكد أن هذا التقييم يعكس الأدلة التي راجعها الفريق المسجل';
 
@@ -2716,4 +2649,93 @@ class AppL10nAr extends AppL10n {
 
   @override
   String get campaignActionPublish => 'نشر';
+
+  @override
+  String get assessmentNavigationMenu => 'التنقل في التقييم';
+
+  @override
+  String get assessmentReturnSections => 'العودة إلى الأقسام';
+
+  @override
+  String get assessmentReturnMainAreas => 'العودة إلى المحاور الرئيسية';
+
+  @override
+  String get assessmentDashboard => 'لوحة التحكم';
+
+  @override
+  String get assessmentNextSectionCriteria => 'معايير القسم التالي';
+
+  @override
+  String get assessmentChooseSection => 'اختر قسمًا أولًا.';
+
+  @override
+  String get assessmentLastSection => 'هذا هو القسم الأخير.';
+
+  @override
+  String get assessmentAnswerSectionFirst =>
+      'أجب عن جميع معايير القسم الحالي أولًا.';
+
+  @override
+  String get auditTeamRegisterTitle => 'تسجيل المدقق';
+
+  @override
+  String get auditTeamRegisterHint =>
+      'قبل بدء التقييم، أضف الاسم الفعلي والمسمى الوظيفي لمدقق واحد على الأقل، وحدد ما إذا كان رئيس الفريق.';
+
+  @override
+  String get auditTeamCenterAccountHint =>
+      'أدخل بيانات الشخص، وليس اسم حساب المركز. يستخدم رئيس الفريق حساب المركز لإقرار التقييم.';
+
+  @override
+  String get auditTeamSaveContinue => 'حفظ ومتابعة التقييم';
+
+  @override
+  String get auditTeamPerAssessmentHint =>
+      'هذا الفريق خاص بهذا التقييم فقط. أضف المشاركين في هذا التدقيق أو عدّل بياناتهم.';
+
+  @override
+  String get auditTeamRecordedReadOnly =>
+      'فريق التقييم المرسل للقراءة فقط. استخدم مسار المراجعة لإجراء التصحيحات.';
+
+  @override
+  String ncrGroupCount(int count) {
+    return 'الإجراءات: $count';
+  }
+
+  @override
+  String get ncrNoSourceAudit => 'غير مرتبط بتدقيق';
+
+  @override
+  String get ncrSourceAuditUnavailable => 'التدقيق المصدر غير متاح';
+
+  @override
+  String get ncrSubmitPlan => 'إرسال إلى المديرية';
+
+  @override
+  String get ncrCommentSend => 'إرسال التعليق';
+
+  @override
+  String get ncrAcceptClose => 'قبول وإغلاق';
+
+  @override
+  String get ncrDirectorateReview => 'مراجعة المديرية';
+
+  @override
+  String get ncrAwaitingDirectorate =>
+      'تم الإرسال إلى المديرية. الخطة للقراءة فقط حتى إعادة الملاحظات.';
+
+  @override
+  String get ncrNotSubmitted => 'لم يرسل المركز خطة تصحيح للمراجعة بعد.';
+
+  @override
+  String get ncrProofOptional => 'الأدلة أو لقطات الشاشة اختيارية.';
+
+  @override
+  String get ncrNoProof => 'لا توجد أدلة مرفقة.';
+
+  @override
+  String get ncrPlanRequired => 'أدخل خطة التصحيح قبل الإرسال.';
+
+  @override
+  String get ncrMainAreaUnavailable => 'المحور الرئيسي غير متاح';
 }

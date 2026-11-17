@@ -237,43 +237,6 @@ enum RiskLevel {
   }
 }
 
-enum StaffCategory {
-  nurse('nurse'),
-  physician('physician'),
-  pharmacist('pharmacist'),
-  technician('technician'),
-  dietitian('dietitian'),
-  administrative('administrative'),
-  other('other');
-
-  const StaffCategory(this.wire);
-  final String wire;
-
-  static StaffCategory tryParse(String? value) {
-    for (final c in StaffCategory.values) {
-      if (c.wire == value) return c;
-    }
-    return StaffCategory.other;
-  }
-}
-
-enum CompetencyState {
-  valid('valid'),
-  expiringSoon('expiring_soon'),
-  expired('expired'),
-  missing('missing');
-
-  const CompetencyState(this.wire);
-  final String wire;
-
-  static CompetencyState tryParse(String? value) {
-    for (final s in CompetencyState.values) {
-      if (s.wire == value) return s;
-    }
-    return CompetencyState.missing;
-  }
-}
-
 enum SurveyInputType {
   emoji5('emoji_5'),
   stars5('stars_5'),

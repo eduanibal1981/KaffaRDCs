@@ -367,6 +367,60 @@ abstract class AppL10n {
   /// **'We could not reach the server. Check your connection and try again.'**
   String get signInErrorNetwork;
 
+  /// No description provided for @quickLoginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary test login'**
+  String get quickLoginTitle;
+
+  /// No description provided for @quickLoginHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a unit for Unit head or Auditor, then tap a role to sign in.'**
+  String get quickLoginHint;
+
+  /// No description provided for @quickLoginUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get quickLoginUnit;
+
+  /// No description provided for @quickLoginUnitHead.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit head'**
+  String get quickLoginUnitHead;
+
+  /// No description provided for @quickLoginForget.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget test passwords'**
+  String get quickLoginForget;
+
+  /// No description provided for @quickLoginForgotten.
+  ///
+  /// In en, this message translates to:
+  /// **'Test passwords cleared from this app run.'**
+  String get quickLoginForgotten;
+
+  /// No description provided for @quickLoginPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Test account password'**
+  String get quickLoginPasswordTitle;
+
+  /// No description provided for @quickLoginPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter once to sign in. It is remembered only until the app closes.'**
+  String get quickLoginPasswordHint;
+
+  /// No description provided for @quickLoginSharedPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this password for all test accounts'**
+  String get quickLoginSharedPassword;
+
   /// No description provided for @validationRequired.
   ///
   /// In en, this message translates to:
@@ -420,12 +474,6 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Actions'**
   String get navActions;
-
-  /// No description provided for @navStaff.
-  ///
-  /// In en, this message translates to:
-  /// **'Staff'**
-  String get navStaff;
 
   /// No description provided for @navMore.
   ///
@@ -516,12 +564,6 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Open actions'**
   String get homeOpenActions;
-
-  /// No description provided for @homeExpiringCerts.
-  ///
-  /// In en, this message translates to:
-  /// **'Expiring certificates'**
-  String get homeExpiringCerts;
 
   /// No description provided for @homeRecentAudits.
   ///
@@ -1381,198 +1423,6 @@ abstract class AppL10n {
   /// **'Add a note'**
   String get ncrAddNote;
 
-  /// No description provided for @staffTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Staff and training'**
-  String get staffTitle;
-
-  /// No description provided for @staffMembers.
-  ///
-  /// In en, this message translates to:
-  /// **'Staff members'**
-  String get staffMembers;
-
-  /// No description provided for @staffAdd.
-  ///
-  /// In en, this message translates to:
-  /// **'Add staff member'**
-  String get staffAdd;
-
-  /// No description provided for @staffName.
-  ///
-  /// In en, this message translates to:
-  /// **'Full name'**
-  String get staffName;
-
-  /// No description provided for @staffRef.
-  ///
-  /// In en, this message translates to:
-  /// **'Staff reference'**
-  String get staffRef;
-
-  /// No description provided for @staffCategory.
-  ///
-  /// In en, this message translates to:
-  /// **'Category'**
-  String get staffCategory;
-
-  /// No description provided for @staffJobTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Job title'**
-  String get staffJobTitle;
-
-  /// No description provided for @staffCategoryNurse.
-  ///
-  /// In en, this message translates to:
-  /// **'Nurse'**
-  String get staffCategoryNurse;
-
-  /// No description provided for @staffCategoryPhysician.
-  ///
-  /// In en, this message translates to:
-  /// **'Physician'**
-  String get staffCategoryPhysician;
-
-  /// No description provided for @staffCategoryPharmacist.
-  ///
-  /// In en, this message translates to:
-  /// **'Pharmacist'**
-  String get staffCategoryPharmacist;
-
-  /// No description provided for @staffCategoryTechnician.
-  ///
-  /// In en, this message translates to:
-  /// **'Technician'**
-  String get staffCategoryTechnician;
-
-  /// No description provided for @staffCategoryDietitian.
-  ///
-  /// In en, this message translates to:
-  /// **'Dietitian'**
-  String get staffCategoryDietitian;
-
-  /// No description provided for @staffCategoryAdministrative.
-  ///
-  /// In en, this message translates to:
-  /// **'Administrative'**
-  String get staffCategoryAdministrative;
-
-  /// No description provided for @staffCategoryOther.
-  ///
-  /// In en, this message translates to:
-  /// **'Other'**
-  String get staffCategoryOther;
-
-  /// No description provided for @staffCertifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Certificates'**
-  String get staffCertifications;
-
-  /// No description provided for @staffAddCertificate.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a certificate'**
-  String get staffAddCertificate;
-
-  /// No description provided for @staffIssueDate.
-  ///
-  /// In en, this message translates to:
-  /// **'Issued on'**
-  String get staffIssueDate;
-
-  /// No description provided for @staffExpiryDate.
-  ///
-  /// In en, this message translates to:
-  /// **'Expires on'**
-  String get staffExpiryDate;
-
-  /// No description provided for @staffReadiness.
-  ///
-  /// In en, this message translates to:
-  /// **'Team readiness'**
-  String get staffReadiness;
-
-  /// No description provided for @staffValid.
-  ///
-  /// In en, this message translates to:
-  /// **'Valid'**
-  String get staffValid;
-
-  /// No description provided for @staffExpiringSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Expiring soon'**
-  String get staffExpiringSoon;
-
-  /// No description provided for @staffExpired.
-  ///
-  /// In en, this message translates to:
-  /// **'Expired'**
-  String get staffExpired;
-
-  /// No description provided for @staffMissing.
-  ///
-  /// In en, this message translates to:
-  /// **'Not recorded'**
-  String get staffMissing;
-
-  /// No description provided for @staffExpiresInDays.
-  ///
-  /// In en, this message translates to:
-  /// **'{days, plural, =0{Expires today} =1{Expires tomorrow} other{Expires in {days} days}}'**
-  String staffExpiresInDays(int days);
-
-  /// No description provided for @staffExpiredDaysAgo.
-  ///
-  /// In en, this message translates to:
-  /// **'{days, plural, =1{Expired yesterday} other{Expired {days} days ago}}'**
-  String staffExpiredDaysAgo(int days);
-
-  /// No description provided for @drillsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Emergency drills'**
-  String get drillsTitle;
-
-  /// No description provided for @drillAdd.
-  ///
-  /// In en, this message translates to:
-  /// **'Record a drill'**
-  String get drillAdd;
-
-  /// No description provided for @drillType.
-  ///
-  /// In en, this message translates to:
-  /// **'Type of drill'**
-  String get drillType;
-
-  /// No description provided for @drillDate.
-  ///
-  /// In en, this message translates to:
-  /// **'Date'**
-  String get drillDate;
-
-  /// No description provided for @drillParticipants.
-  ///
-  /// In en, this message translates to:
-  /// **'Number of participants'**
-  String get drillParticipants;
-
-  /// No description provided for @drillFindings.
-  ///
-  /// In en, this message translates to:
-  /// **'What we learned'**
-  String get drillFindings;
-
-  /// No description provided for @drillFollowUp.
-  ///
-  /// In en, this message translates to:
-  /// **'Follow-up actions'**
-  String get drillFollowUp;
-
   /// No description provided for @surveyTitle.
   ///
   /// In en, this message translates to:
@@ -2119,12 +1969,6 @@ abstract class AppL10n {
   /// **'No corrective actions have been raised.'**
   String get emptyNcrs;
 
-  /// No description provided for @emptyStaff.
-  ///
-  /// In en, this message translates to:
-  /// **'No staff members recorded yet.'**
-  String get emptyStaff;
-
   /// No description provided for @emptyNotifications.
   ///
   /// In en, this message translates to:
@@ -2176,7 +2020,7 @@ abstract class AppL10n {
   /// No description provided for @privacyNoticeBody.
   ///
   /// In en, this message translates to:
-  /// **'Kafa\'a stores assessment results, evidence documents and staff certificates. Patient records are referenced only by anonymised codes — never by name. Survey answers are anonymous and cannot be traced back to an individual. Access is limited by role and every sensitive action is logged.'**
+  /// **'Kafa\'a stores assessment results and evidence documents. Patient records are referenced only by anonymised codes — never by name. Survey answers are anonymous and cannot be traced back to an individual. Access is limited by role and every sensitive action is logged.'**
   String get privacyNoticeBody;
 
   /// No description provided for @confirmDeleteTitle.
@@ -4904,6 +4748,54 @@ abstract class AppL10n {
   /// **'Required proof has not been accepted'**
   String get auditSubmissionMissingProof;
 
+  /// No description provided for @auditProofOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof is optional for official audits.'**
+  String get auditProofOptional;
+
+  /// No description provided for @auditSubmissionSetDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Set evaluation date'**
+  String get auditSubmissionSetDate;
+
+  /// No description provided for @auditSubmissionDateNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get auditSubmissionDateNotSet;
+
+  /// No description provided for @auditSubmissionFixRequirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete these items to enable submission. Tap an item to fix it.'**
+  String get auditSubmissionFixRequirements;
+
+  /// No description provided for @auditSubmissionConfirmToEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm the sign-off statement to enable submission.'**
+  String get auditSubmissionConfirmToEnable;
+
+  /// No description provided for @auditTeamAccountLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'App account linked'**
+  String get auditTeamAccountLinked;
+
+  /// No description provided for @auditTeamLeadAccountHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Link the lead to their app account. That person must sign in to confirm and submit the evaluation.'**
+  String get auditTeamLeadAccountHelp;
+
+  /// No description provided for @auditTeamAccountsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Eligible app accounts could not be loaded. Retry to link the lead. Existing links are retained.'**
+  String get auditTeamAccountsUnavailable;
+
   /// No description provided for @auditSignoffConfirm.
   ///
   /// In en, this message translates to:
@@ -5023,6 +4915,168 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Publish'**
   String get campaignActionPublish;
+
+  /// No description provided for @assessmentNavigationMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment navigation'**
+  String get assessmentNavigationMenu;
+
+  /// No description provided for @assessmentReturnSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to sections'**
+  String get assessmentReturnSections;
+
+  /// No description provided for @assessmentReturnMainAreas.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to main areas'**
+  String get assessmentReturnMainAreas;
+
+  /// No description provided for @assessmentDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get assessmentDashboard;
+
+  /// No description provided for @assessmentNextSectionCriteria.
+  ///
+  /// In en, this message translates to:
+  /// **'Next section criteria'**
+  String get assessmentNextSectionCriteria;
+
+  /// No description provided for @assessmentChooseSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a section first.'**
+  String get assessmentChooseSection;
+
+  /// No description provided for @assessmentLastSection.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the last section.'**
+  String get assessmentLastSection;
+
+  /// No description provided for @assessmentAnswerSectionFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer all criteria in the current section first.'**
+  String get assessmentAnswerSectionFirst;
+
+  /// No description provided for @auditTeamRegisterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Register auditor'**
+  String get auditTeamRegisterTitle;
+
+  /// No description provided for @auditTeamRegisterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Before assessing, add at least one auditor’s actual name and job. Mark whether this person is the team leader.'**
+  String get auditTeamRegisterHint;
+
+  /// No description provided for @auditTeamCenterAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the person’s details, not the centre account name. The leader uses this centre login for sign-off.'**
+  String get auditTeamCenterAccountHint;
+
+  /// No description provided for @auditTeamSaveContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and continue assessment'**
+  String get auditTeamSaveContinue;
+
+  /// No description provided for @auditTeamPerAssessmentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This team belongs to this assessment only. Add or edit the people taking part in this audit.'**
+  String get auditTeamPerAssessmentHint;
+
+  /// No description provided for @auditTeamRecordedReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This submitted assessment’s team is read-only. Use the revision workflow for corrections.'**
+  String get auditTeamRecordedReadOnly;
+
+  /// No description provided for @ncrGroupCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions: {count}'**
+  String ncrGroupCount(int count);
+
+  /// No description provided for @ncrNoSourceAudit.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked to an audit'**
+  String get ncrNoSourceAudit;
+
+  /// No description provided for @ncrSourceAuditUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Source audit unavailable'**
+  String get ncrSourceAuditUnavailable;
+
+  /// No description provided for @ncrSubmitPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit to Directorate'**
+  String get ncrSubmitPlan;
+
+  /// No description provided for @ncrCommentSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment and send'**
+  String get ncrCommentSend;
+
+  /// No description provided for @ncrAcceptClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept and close'**
+  String get ncrAcceptClose;
+
+  /// No description provided for @ncrDirectorateReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Directorate review'**
+  String get ncrDirectorateReview;
+
+  /// No description provided for @ncrAwaitingDirectorate.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted to Directorate. The plan is read-only until feedback is returned.'**
+  String get ncrAwaitingDirectorate;
+
+  /// No description provided for @ncrNotSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'The centre has not submitted a correction plan for review yet.'**
+  String get ncrNotSubmitted;
+
+  /// No description provided for @ncrProofOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof or screenshots are optional.'**
+  String get ncrProofOptional;
+
+  /// No description provided for @ncrNoProof.
+  ///
+  /// In en, this message translates to:
+  /// **'No proof attached.'**
+  String get ncrNoProof;
+
+  /// No description provided for @ncrPlanRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a correction plan before submitting.'**
+  String get ncrPlanRequired;
+
+  /// No description provided for @ncrMainAreaUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Main area unavailable'**
+  String get ncrMainAreaUnavailable;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

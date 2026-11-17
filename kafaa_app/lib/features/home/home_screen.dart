@@ -413,12 +413,6 @@ class _QuickActions extends StatelessWidget {
         label: l10n.homeOpenActions,
         onTap: () => context.go(Routes.actions),
       ),
-      if (perms.canManageStaff)
-        (
-          icon: Icons.badge_outlined,
-          label: l10n.staffTitle,
-          onTap: () => context.go(Routes.staff),
-        ),
       if (perms.canCompareAllCentres)
         (
           icon: Icons.insights_outlined,

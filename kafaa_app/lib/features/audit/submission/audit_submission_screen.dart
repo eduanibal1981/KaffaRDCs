@@ -3,14 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/l10n/l10n_extensions.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/theme/kafaa_colors.dart';
 import '../../../core/widgets/common.dart';
 import '../../../data/repositories/audit_team_repository.dart';
 import '../../../data/repositories/audit_repository.dart';
 import '../../../data/models/audit_submission_issue.dart';
+import '../../../data/models/audit.dart';
+import '../../../data/models/audit_team_member.dart';
 import '../../auth/session.dart';
 import '../audit_section_content.dart';
 import '../audit_controller.dart';
+import '../team/audit_team_sheet.dart';
 import 'audit_submission_controller.dart';
 
 class AuditSubmissionScreen extends ConsumerStatefulWidget {
@@ -32,6 +36,7 @@ class _State extends ConsumerState<AuditSubmissionScreen> {
   }
 
   Future<void> run(Future<void> Function() work) async {
+    if (busy) return;
     setState(() {
       busy = true;
       error = null;
@@ -54,6 +59,37 @@ class _State extends ConsumerState<AuditSubmissionScreen> {
     if (!mounted) return;
     _needsValidation = false;
     ref.invalidate(auditTeamProvider(widget.auditId));
+    ref.invalidate(auditSummaryProvider(widget.auditId));
+  }
+
+  Future<void> _editDate(AuditSummary summary) async {
+    final date = await showDatePicker(
+        context: context,
+        initialDate: summary.evaluationDate ?? DateTime.now(),
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2100));
+    if (date == null || !mounted) return;
+    await run(() async {
+      // Queue the explicit selection durably before validating online.
+      await ref.read(auditRepositoryProvider).updateAudit(widget.auditId, {
+        'evaluation_date': date.toIso8601String().split('T').first,
+      });
+      ref.invalidate(auditSummaryProvider(widget.auditId));
+      await _validate();
+    });
+  }
+
+  Future<void> _editTeam([AuditTeamMember? member]) async {
+    setState(() {
+      confirmed = false;
+      _needsValidation = true;
+    });
+    if (member == null) {
+      await context.push('/audits/${widget.auditId}/team');
+    } else {
+      await showAuditTeamSheet(context, widget.auditId, member: member);
+    }
+    if (mounted) await run(_validate);
   }
 
   Future<void> _saveComment(String body) async {
@@ -71,6 +107,7 @@ class _State extends ConsumerState<AuditSubmissionScreen> {
     final preflight = ref.watch(auditSubmissionIssuesProvider(widget.auditId));
     final team = ref.watch(auditTeamProvider(widget.auditId)).valueOrNull ?? [];
     final audit = ref.watch(auditRunnerProvider(widget.auditId)).valueOrNull;
+    final summary = ref.watch(auditSummaryProvider(widget.auditId));
     final comment = auditOverallCommentProvider(widget.auditId);
     final theme = Theme.of(c);
     return Scaffold(
@@ -112,30 +149,76 @@ class _State extends ConsumerState<AuditSubmissionScreen> {
             ),
           ),
           const SizedBox(height: 12),
+          Text(l.auditProofOptional),
+          const SizedBox(height: 12),
+          KafaaCard(
+            child: AsyncView(
+              value: summary,
+              onRetry: () =>
+                  ref.invalidate(auditSummaryProvider(widget.auditId)),
+              builder: (saved) {
+                if (saved == null) return Text(l.assessmentClosedReadOnly);
+                final editable = saved.isEditable &&
+                    ref
+                        .watch(permissionsProvider)
+                        .canAuditCenter(saved.centerId);
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.calendar_month_outlined),
+                  title: Text(l.auditEvaluationDate),
+                  subtitle: Text(saved.evaluationDate == null
+                      ? l.auditSubmissionDateNotSet
+                      : formatDate(c, saved.evaluationDate)),
+                  trailing: editable
+                      ? TextButton(
+                          key: const ValueKey('submission-edit-date'),
+                          onPressed: busy ? null : () => _editDate(saved),
+                          child: Text(saved.evaluationDate == null
+                              ? l.auditSubmissionSetDate
+                              : l.actionEdit))
+                      : null,
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
           FilledButton.tonalIcon(
               onPressed: busy ? null : () => run(_validate),
               icon: const Icon(Icons.sync),
               label: Text(l.auditSubmissionRefresh)),
           TextButton(
-              onPressed: () => c.push('/audits/${widget.auditId}/team'),
+              onPressed: busy ? null : () => _editTeam(),
               child: Text(l.auditTeamTitle)),
           for (final m in team)
             ListTile(
                 title: Text(m.name),
                 subtitle: Text(
-                    '${m.job ?? l.auditTeamMissingJob}\n${m.lead ? l.auditTeamLead : l.auditTeamMember}')),
+                    '${m.job ?? l.auditTeamMissingJob}\n${m.lead ? l.auditTeamLead : l.auditTeamMember}\n${m.userId == null ? l.auditTeamGuest : l.auditTeamAccountLinked}${m.pending ? '\n${l.syncSavedOnDevice}' : ''}'),
+                trailing: summary.valueOrNull?.isEditable == true &&
+                        ref
+                            .watch(permissionsProvider)
+                            .canAuditCenter(summary.valueOrNull!.centerId)
+                    ? IconButton(
+                        tooltip: l.actionEdit,
+                        onPressed: busy ? null : () => _editTeam(m),
+                        icon: const Icon(Icons.edit_outlined))
+                    : null),
           AsyncView(
               value: preflight,
-              onRetry: () =>
-                  ref.invalidate(auditSubmissionIssuesProvider(widget.auditId)),
+              onRetry: () => run(_validate),
               builder: (data) {
                 final actor = ref.watch(sessionProvider).valueOrNull?.user.id;
                 final override = data.leadUserId != actor;
-                final allowed =
-                    !override || ref.watch(permissionsProvider).isDirectorate;
+                final allowed = actor != null &&
+                    data.leadUserId != null &&
+                    (!override || ref.watch(permissionsProvider).isDirectorate);
                 return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (data.issues.isNotEmpty) ...[
+                        Text(l.auditSubmissionFixRequirements),
+                        const SizedBox(height: 8),
+                      ],
                       for (final issue in data.issues)
                         ListTile(
                             leading: const Icon(Icons.error_outline),
@@ -143,10 +226,27 @@ class _State extends ConsumerState<AuditSubmissionScreen> {
                             subtitle: issue.criterionCode == null
                                 ? null
                                 : Text(issue.criterionCode!),
-                            onTap: issue.criterionId != null
-                                ? () => c.push('/audits/${widget.auditId}/run')
-                                : null),
-                      if (!allowed) Text(l.auditSignoffLeadOnly),
+                            trailing:
+                                ['date', 'team', 'lead'].contains(issue.code)
+                                    ? const Icon(Icons.chevron_right)
+                                    : null,
+                            onTap: busy
+                                ? null
+                                : issue.code == 'date' &&
+                                        summary.valueOrNull?.isEditable == true
+                                    ? () => _editDate(summary.valueOrNull!)
+                                    : ['team', 'lead'].contains(issue.code)
+                                        ? () => _editTeam(issue.code == 'lead'
+                                            ? team
+                                                .where((m) => m.lead)
+                                                .firstOrNull
+                                            : null)
+                                        : issue.criterionId != null
+                                            ? () => c.push(
+                                                '/audits/${widget.auditId}/run')
+                                            : null),
+                      if (!allowed && data.leadUserId != null)
+                        Text(l.auditSignoffLeadOnly),
                       if (override && allowed)
                         TextField(
                             controller: note,
@@ -158,12 +258,19 @@ class _State extends ConsumerState<AuditSubmissionScreen> {
                       CheckboxListTile(
                           contentPadding: EdgeInsets.zero,
                           value: confirmed,
-                          onChanged: busy || _commentDirty || _needsValidation
+                          onChanged: busy ||
+                                  _commentDirty ||
+                                  _needsValidation ||
+                                  !allowed ||
+                                  data.issues.isNotEmpty ||
+                                  (override && note.text.trim().isEmpty)
                               ? null
                               : (v) => setState(() => confirmed = v ?? false),
                           title: Text(l.auditSignoffConfirm)),
                       Text(
                           '${l.auditSignoffStatementVersion}: kafaa-evaluation-v1'),
+                      if (data.issues.isEmpty && allowed && !confirmed)
+                        Text(l.auditSubmissionConfirmToEnable),
                       const SizedBox(height: 16),
                       FilledButton(
                           style: FilledButton.styleFrom(

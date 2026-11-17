@@ -72,13 +72,6 @@ abstract final class KafaaColors {
         _ => neutral500,
       };
 
-  static Color forCompetencyState(String state) => switch (state) {
-        'valid' => success,
-        'expiring_soon' => warning,
-        'expired' => danger,
-        _ => neutral500,
-      };
-
   /// A stable colour per index, used for series in comparison charts.
   static const series = <Color>[
     brandBlue,

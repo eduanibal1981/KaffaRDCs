@@ -234,13 +234,20 @@ class _Summary extends StatelessWidget {
       AuditSectionCommentsSummary(auditId: a.auditId, templateId: a.templateId),
       Text(bundle.audit['suggested_action_plan'] as String? ?? ''),
       const SizedBox(height: 12),
-      Text('${l.navActions}: ${bundle.rows('ncrs').length}',
-          style: Theme.of(context).textTheme.titleMedium),
-      for (final n in bundle.rows('ncrs'))
-        ListTile(
-            title: Text(context.pick(n['title_en'], n['title_ar'])),
-            subtitle: Text(NcrStatus.tryParse(n['status']).label(context)),
-            onTap: () => context.push('/actions/${n['id']}')),
+      KafaaCard(
+        key: const ValueKey('review-actions-count'),
+        onTap: () => context
+            .push(Uri(path: '/audits/${a.auditId}/actions', queryParameters: {
+          'centerId': a.centerId,
+          'auditId': a.auditId,
+        }).toString()),
+        child: Row(children: [
+          Expanded(
+              child: Text(l.ncrGroupCount(bundle.rows('ncrs').length),
+                  style: Theme.of(context).textTheme.titleMedium)),
+          Icon(context.isRtl ? Icons.chevron_left : Icons.chevron_right),
+        ]),
+      ),
       const SizedBox(height: 12),
       Text(l.reviewSelfUnavailable),
       TextButton(
@@ -376,8 +383,7 @@ class _CriterionReviewCard extends ConsumerWidget {
             CriterionProofPanel(
                 contextKey: CriterionProofKey(bundle.summary.auditId, c.id),
                 canEdit: false),
-          if (c.evidenceRequired && evidence.isEmpty)
-            Text(context.l10n.criterionEvidenceRequired),
+          if (evidence.isEmpty) Text(context.l10n.auditProofOptional),
           for (final e in evidence)
             TextButton.icon(
                 onPressed: () => openReviewProof(context, ref, e),

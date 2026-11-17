@@ -126,8 +126,9 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ),
                     TextButton(
-                      onPressed: () =>
-                          ref.read(syncServiceProvider.notifier).sync(),
+                      onPressed: () => ref
+                          .read(syncServiceProvider.notifier)
+                          .sync(retryTeamAccountConflicts: true),
                       child: Text(l10n.statusSyncNow),
                     ),
                   ],

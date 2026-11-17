@@ -17,6 +17,7 @@ insert into public.centers(id,code,name_en,name_ar) values
  ('d2000000-0000-0000-0000-000000000002','AUDITOR_QA2','Self QA two','اختبار ذاتي اثنان');
 insert into public.user_roles(user_id,role,center_id) values
  ('d1000000-0000-0000-0000-000000000001','super_admin',null),
+ ('d1000000-0000-0000-0000-000000000001','auditor',null),
  ('d1000000-0000-0000-0000-000000000002','center_manager','d2000000-0000-0000-0000-000000000001'),
  ('d1000000-0000-0000-0000-000000000003','center_manager','d2000000-0000-0000-0000-000000000002'),
  ('d1000000-0000-0000-0000-000000000004','auditor','d2000000-0000-0000-0000-000000000001'),
@@ -53,6 +54,9 @@ select public.upsert_center_self_response('dc000000-0000-0000-0000-000000000001'
 select public.reserve_center_self_evidence('dd000000-0000-0000-0000-000000000001','dc000000-0000-0000-0000-000000000001','{"file_name":"qa.pdf","mime_type":"application/pdf","size_bytes":4}');
 insert into storage.objects(bucket_id,name,owner,metadata) select storage_bucket,storage_path,auth.uid(),'{"size":4,"mimetype":"application/pdf"}'::jsonb from public.center_self_evidence where id='dd000000-0000-0000-0000-000000000001';
 select public.finalize_center_self_evidence('dd000000-0000-0000-0000-000000000001');
+select public.upsert_center_self_response(gen_random_uuid(),'db000000-0000-0000-0000-000000000001','d5000000-0000-0000-0000-000000000002',0,gen_random_uuid(),'{"is_not_applicable":true}');
+select public.submit_center_self_audit('db000000-0000-0000-0000-000000000001',(select row_version from public.center_self_audits where id='db000000-0000-0000-0000-000000000001'));
+select public.share_center_self_assessment((select participation_id from public.audits where id=pg_temp.sid('audit')),'db000000-0000-0000-0000-000000000001',null);
 select set_config('request.jwt.claim.sub','d1000000-0000-0000-0000-000000000004',true);
 select pg_temp.denied($q$select public.record_audit_evidence_review(gen_random_uuid(),'d9000000-0000-0000-0000-000000000002','dd000000-0000-0000-0000-000000000001',null,'accepted',null)$q$,'SOURCE_MISMATCH');
 select pg_temp.denied($q$select public.record_audit_evidence_review(gen_random_uuid(),'d9000000-0000-0000-0000-000000000001','dd000000-0000-0000-0000-000000000001',null,'not_accepted',' ')$q$,'NOTE_REQUIRED');
@@ -64,10 +68,10 @@ select pg_temp.ok((select count(*)=1 from public.v_audit_reviewed_proof where ou
 select pg_temp.ok(not exists(select 1 from jsonb_array_elements(public.validate_assessment_submission(pg_temp.sid('audit'))->'issues') i where i->>'code'='proof'),'Reviewed self proof satisfies preflight');
 select public.record_audit_evidence_review(gen_random_uuid(),'d9000000-0000-0000-0000-000000000001','dd000000-0000-0000-0000-000000000001',null,'not_accepted','Later finding');
 select pg_temp.ok((select count(*)=0 from public.v_audit_reviewed_proof where outcome='accepted'),'Later rejection overrides prior acceptance');
-select pg_temp.ok(exists(select 1 from jsonb_array_elements(public.validate_assessment_submission(pg_temp.sid('audit'))->'issues') i where i->>'code'='proof'),'Later rejection blocks submission');
+select pg_temp.ok(not exists(select 1 from jsonb_array_elements(public.validate_assessment_submission(pg_temp.sid('audit'))->'issues') i where i->>'code'='proof'),'Proof rejection is retained without blocking optional-proof submission');
 select pg_temp.denied($q$update public.audit_evidence_reviews set outcome='accepted'$q$,'permission denied');
 select set_config('request.jwt.claim.sub','d1000000-0000-0000-0000-000000000002',true);
-select pg_temp.denied($q$select public.remove_draft_self_evidence('dd000000-0000-0000-0000-000000000001')$q$,'review');
+select pg_temp.denied($q$select public.remove_draft_self_evidence('dd000000-0000-0000-0000-000000000001')$q$,'SELF_FROZEN');
 select pg_temp.denied($q$select public.record_audit_evidence_review(gen_random_uuid(),'d9000000-0000-0000-0000-000000000001','dd000000-0000-0000-0000-000000000001',null,'accepted',null)$q$,'OFFICIAL_LOCKED');
 select set_config('request.jwt.claim.sub','d1000000-0000-0000-0000-000000000004',true);
 select public.reserve_audit_evidence('df000000-0000-0000-0000-000000000001',pg_temp.sid('audit'),jsonb_build_object('response_id','d9000000-0000-0000-0000-000000000001','storage_path','d2000000-0000-0000-0000-000000000001/'||pg_temp.sid('audit')::text||'/d9000000-0000-0000-0000-000000000001/qa.pdf','file_name','qa.pdf','mime_type','application/pdf','size_bytes',4));
@@ -80,8 +84,6 @@ do $$declare n int;begin update storage.objects set metadata='{"size":8}' where 
 do $$declare n int;begin delete from storage.objects where bucket_id='audit-evidence';get diagnostics n=row_count;perform pg_temp.ok(n=0,'Object deletion denied');end$$;
 select pg_temp.ok((select count(*)=0 from public.ncrs where audit_id=pg_temp.sid('audit')),'Proof review does not create draft NCRs');
 select set_config('request.jwt.claim.sub','d1000000-0000-0000-0000-000000000002',true);
-select public.upsert_center_self_response('dc000000-0000-0000-0000-000000000002','db000000-0000-0000-0000-000000000001','d5000000-0000-0000-0000-000000000002',0,gen_random_uuid(),'{"is_not_applicable":true}');
-select public.submit_center_self_audit('db000000-0000-0000-0000-000000000001',(select row_version from public.center_self_audits where id='db000000-0000-0000-0000-000000000001'));
 select set_config('request.jwt.claim.sub','d1000000-0000-0000-0000-000000000004',true);
 select public.submit_assessment_evaluation(pg_temp.sid('audit'),(select row_version from public.audits where id=pg_temp.sid('audit')),'kafaa-evaluation-v1');
 select pg_temp.ok((select self_audit_baseline_id='db000000-0000-0000-0000-000000000001' from public.audits where id=pg_temp.sid('audit')),'Signoff pins submitted self baseline');

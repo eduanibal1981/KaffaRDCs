@@ -499,8 +499,6 @@ class _CampaignProgress extends ConsumerWidget {
     final progress =
         campaign == null ? null : directorateCampaignProvider(campaign.id);
     final data = progress == null ? null : ref.watch(progress);
-    final period =
-        campaign == null ? null : formatPeriodKey(context, campaign.periodKey);
 
     return Card(
       child: Padding(
@@ -508,66 +506,56 @@ class _CampaignProgress extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            LayoutBuilder(builder: (context, constraints) {
-              final title = Row(children: [
-                Icon(Icons.bar_chart, color: teal),
-                const SizedBox(width: 8),
-                Expanded(
-                    child: Text(l.directorateAuditProgress,
-                        style: theme.textTheme.titleMedium)),
-              ]);
-              if (period == null) return title;
-              final periodPicker = campaigns.length == 1
-                  ? StatusPill(label: period, color: teal, dense: true)
-                  : PopupMenuButton<String>(
-                      tooltip: l.campaignProgress,
-                      initialValue: campaign!.id,
-                      onSelected: (id) => ref
-                          .read(directorateSelectedSessionProvider.notifier)
-                          .state = id,
-                      itemBuilder: (context) => [
-                        for (final item in campaigns)
-                          PopupMenuItem(
-                            value: item.id,
-                            child: Text(
-                              '${formatPeriodKey(context, item.periodKey)} · ${context.pick(item.titleEn, item.titleAr)}',
-                            ),
-                          ),
-                      ],
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 44),
-                        child: Align(
-                          widthFactor: 1,
-                          child: StatusPill(
-                              label: period,
-                              color: teal,
-                              dense: true,
-                              icon: Icons.expand_more),
+            if (campaign != null) ...[
+              if (campaigns.length == 1)
+                Text(
+                  context.pick(campaign.titleEn, campaign.titleAr),
+                  style: theme.textTheme.titleMedium?.copyWith(color: teal),
+                )
+              else
+                PopupMenuButton<String>(
+                  tooltip: l.campaignProgress,
+                  initialValue: campaign.id,
+                  onSelected: (id) => ref
+                      .read(directorateSelectedSessionProvider.notifier)
+                      .state = id,
+                  itemBuilder: (context) => [
+                    for (final item in campaigns)
+                      PopupMenuItem(
+                        value: item.id,
+                        child: Text(
+                          '${formatPeriodKey(context, item.periodKey)} · ${context.pick(item.titleEn, item.titleAr)}',
                         ),
                       ),
-                    );
-              if (constraints.maxWidth <
-                      MediaQuery.textScalerOf(context).scale(14) * 23 ||
-                  period.length > 20) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [title, const SizedBox(height: 4), periodPicker],
-                );
-              }
-              return Row(children: [
-                Expanded(child: title),
-                const SizedBox(width: 8),
-                ConstrainedBox(
-                  constraints:
-                      BoxConstraints(maxWidth: constraints.maxWidth * 0.44),
-                  child: periodPicker,
+                  ],
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            context.pick(campaign.titleEn, campaign.titleAr),
+                            style: theme.textTheme.titleMedium
+                                ?.copyWith(color: teal),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(Icons.expand_more, color: teal),
+                      ],
+                    ),
+                  ),
                 ),
-              ]);
-            }),
+              const SizedBox(height: 8),
+            ],
+            Row(children: [
+              Icon(Icons.bar_chart, color: teal),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(l.directorateAuditProgress,
+                    style: theme.textTheme.titleMedium),
+              ),
+            ]),
             const SizedBox(height: 6),
-            if (campaigns.length > 1 && campaign != null)
-              Text(context.pick(campaign.titleEn, campaign.titleAr),
-                  style: theme.textTheme.bodySmall),
             AsyncView(
               value: sessions,
               onRetry: () => ref.invalidate(assessmentSessionsProvider),

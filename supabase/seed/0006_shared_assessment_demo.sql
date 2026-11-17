@@ -1,11 +1,15 @@
 -- Synthetic assessments created through the shared publication/join/review RPCs.
--- Run after the shared-only migration and after granting an app Super Admin.
+-- Run after installing the current schema and granting an app Super Admin.
+-- Use an existing authorized roaming auditor to join the synthetic campaigns.
+-- Official proof must be uploaded and reviewed through the app. Mock scores
+-- that require proof remain in draft until that work is complete.
 -- Re-running keeps existing demo work and creates no duplicate assessments.
 begin;
 
 do $$
 declare
   v_admin uuid;
+  v_auditor uuid;
 begin
   select user_id into v_admin
   from public.user_roles
@@ -15,7 +19,16 @@ begin
   if v_admin is null then
     raise exception 'Grant an app Super Admin before loading shared mock assessments';
   end if;
+  select ur.user_id into v_auditor
+  from public.user_roles ur join public.profiles p on p.id=ur.user_id
+  where ur.role='auditor' and ur.revoked_at is null and ur.center_id is null and p.is_active
+  order by ur.granted_at, ur.id limit 1;
+  if v_auditor is null then
+    raise exception 'Grant an app roaming auditor before loading shared mock assessments';
+  end if;
   perform set_config('request.jwt.claim.sub', v_admin::text, true);
+  perform set_config('app.kafaa_seed_admin',v_admin::text,true);
+  perform set_config('app.kafaa_seed_auditor',v_auditor::text,true);
 end $$;
 
 set local role authenticated;
@@ -32,6 +45,9 @@ declare
   v_items integer;
   v_max integer;
   v_answered integer;
+  v_waiting_for_proof boolean;
+  v_auditor uuid := current_setting('app.kafaa_seed_auditor')::uuid;
+  v_admin uuid := current_setting('app.kafaa_seed_admin')::uuid;
 begin
   select id into v_template
   from public.assessment_templates
@@ -51,6 +67,7 @@ begin
       ('2026-H2', date '2026-07-01', date '2026-12-31', '2026-2027', false)
     ) as periods(key, starts, ends, cycle, close_after_review)
   loop
+    v_waiting_for_proof := false;
     v_session := public.create_assessment_session(
       md5('kafaa-shared-demo|' || v_period.key)::uuid,
       v_template, v_period.cycle, 'semiannual',
@@ -86,8 +103,13 @@ begin
         v_answered := v_center.current_answered;
       end if;
 
+      perform set_config('request.jwt.claim.sub',v_auditor::text,true);
       v_audit := public.join_assessment(v_session, v_center.id);
+      perform set_config('request.jwt.claim.sub',v_admin::text,true);
       if exists(select 1 from public.audit_responses where audit_id=v_audit) then
+        if v_status='approved' and exists(select 1 from public.audits where id=v_audit and status<>'approved') then
+          v_waiting_for_proof := true;
+        end if;
         continue;
       end if;
 
@@ -100,8 +122,8 @@ begin
       where id=v_audit;
 
       insert into public.audit_responses
-        (audit_id, criterion_id, scale_option_id, comment)
-      select v_audit, ranked.id, scale.scale_option_id,
+        (audit_id, criterion_id, scale_option_id, last_mutation_id, comment)
+      select v_audit, ranked.id, scale.scale_option_id, gen_random_uuid(),
              case when ranked.score_order <= v_max-v_target
                   then 'Mock finding for shared assessment training.' end
       from (
@@ -119,7 +141,22 @@ begin
       where ranked.answer_order <= v_answered;
 
       if v_status in ('submitted','approved') then
-        perform public.set_assessment_audit_status(v_audit, 'submitted');
+        if exists(
+          select 1 from public.audit_responses r
+          join public.assessment_criteria c on c.id=r.criterion_id
+          where r.audit_id=v_audit and c.evidence_required and not r.is_not_applicable
+        ) then
+          v_waiting_for_proof := true;
+          raise notice 'Mock audit for % (%): scored draft awaits reviewed proof', v_center.code,v_period.key;
+          continue;
+        end if;
+        perform set_config('request.jwt.claim.sub',v_auditor::text,true);
+        perform public.upsert_audit_team_member(gen_random_uuid(),v_audit,0,
+          jsonb_build_object('member_name','Mock assessment lead','actual_job_title',
+            'Training auditor','team_role','lead','user_id',v_auditor));
+        perform public.submit_assessment_evaluation(v_audit,
+          (select row_version from public.audits where id=v_audit),'kafaa-evaluation-v1');
+        perform set_config('request.jwt.claim.sub',v_admin::text,true);
       end if;
       if v_status='approved' then
         perform public.set_assessment_audit_status(v_audit, 'under_review');
@@ -127,7 +164,7 @@ begin
       end if;
     end loop;
 
-    if v_period.close_after_review then
+    if v_period.close_after_review and not v_waiting_for_proof then
       perform public.set_assessment_state(v_session, 'closed');
     end if;
   end loop;

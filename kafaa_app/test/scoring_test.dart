@@ -54,8 +54,8 @@ void main() {
       // 4 Met (12) + 3 Partially Met (6) + 3 Not Met (3) = 21 of 30.
       final responses = <String, AuditResponse>{};
       for (var i = 0; i < 4; i++) {
-        responses['c$i'] = buildResponse(
-            criterionId: 'c$i', level: ScoreLevel.met, points: 3);
+        responses['c$i'] =
+            buildResponse(criterionId: 'c$i', level: ScoreLevel.met, points: 3);
       }
       for (var i = 4; i < 7; i++) {
         responses['c$i'] = buildResponse(
@@ -107,10 +107,14 @@ void main() {
       expect(state.progress, closeTo(0.6, 0.001));
     });
 
-    test('scored criteria that require evidence but have none are flagged', () {
+    test('official audits allow no proof while retaining template diagnostics',
+        () {
       final responses = <String, AuditResponse>{
         'c0': buildResponse(
-            criterionId: 'c0', level: ScoreLevel.met, points: 3, evidenceCount: 2),
+            criterionId: 'c0',
+            level: ScoreLevel.met,
+            points: 3,
+            evidenceCount: 2),
         'c1': buildResponse(
             criterionId: 'c1', level: ScoreLevel.notMet, points: 1),
         'c2': buildResponse(
@@ -119,7 +123,9 @@ void main() {
 
       final state = stateWith(responses, evidenceRequired: true);
 
-      expect(state.missingEvidence.map((c) => c.code), ['C1', 'C2']);
+      expect(state.missingEvidence, isEmpty);
+      expect(
+          state.calculation.missingEvidence.map((c) => c.code), ['C1', 'C2']);
     });
 
     test('section percentages are computed independently', () {

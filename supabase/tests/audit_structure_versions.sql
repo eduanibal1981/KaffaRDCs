@@ -55,7 +55,7 @@ begin
   begin
     delete from public.assessment_templates where id=full_id;
     raise exception 'Saved version deleted';
-  exception when raise_exception then if sqlerrm='Saved version deleted' then raise; end if;
+  exception when check_violation then if sqlerrm<>'KAFAA_STRUCTURE_PRIMARY' then raise; end if;
   end;
   begin
     perform public.create_assessment_session(gen_random_uuid(),partial_id,'QA','semiannual','2091-01-01','2091-06-30','QA draft structure');

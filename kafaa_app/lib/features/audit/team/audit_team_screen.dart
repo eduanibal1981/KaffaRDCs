@@ -15,6 +15,9 @@ class AuditTeamScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final summary = ref.watch(auditSummaryProvider(auditId));
+    final permissions = ref.watch(permissionsProvider);
+    final centerAccount =
+        permissions.isAuditor && permissions.homeCenterId != null;
     final editable = summary.valueOrNull?.isEditable == true &&
         ref
             .watch(permissionsProvider)
@@ -26,13 +29,18 @@ class AuditTeamScreen extends ConsumerWidget {
             onRetry: () => ref.invalidate(auditTeamProvider(auditId)),
             builder: (members) =>
                 ListView(padding: const EdgeInsets.all(16), children: [
+                  Text(l.auditTeamPerAssessmentHint),
+                  if (summary.valueOrNull?.isEditable == false)
+                    Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(l.auditTeamRecordedReadOnly)),
                   for (final m in members)
                     Card(
                         child: ListTile(
                             isThreeLine: true,
                             title: Text(m.name),
                             subtitle: Text(
-                                '${m.job ?? l.auditTeamMissingJob}\n${m.lead ? l.auditTeamLead : l.auditTeamMember}${m.userId == null ? ' · ${l.auditTeamGuest}' : ''}${m.pending ? ' · ${l.syncSavedOnDevice}' : ''}'),
+                                '${m.job ?? l.auditTeamMissingJob}\n${m.lead ? l.auditTeamLead : l.auditTeamMember}${centerAccount ? '' : ' · ${m.userId == null ? l.auditTeamGuest : l.auditTeamAccountLinked}'}${m.pending ? ' · ${l.syncSavedOnDevice}' : ''}'),
                             onTap: editable
                                 ? () => showAuditTeamSheet(context, auditId,
                                     member: m)

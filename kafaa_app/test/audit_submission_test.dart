@@ -53,8 +53,17 @@ void main() {
         scope.invalidate(auditTeamProvider(audit['id']));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        await tester
-            .ensureVisible(find.widgetWithText(FilledButton, l.actionAdd));
+        final addMember = find.widgetWithText(FilledButton, l.actionAdd);
+        if (addMember.evaluate().isEmpty) {
+          await tester.scrollUntilVisible(addMember, 200,
+              scrollable: find
+                  .descendant(
+                      of: find.byType(AuditTeamScreen),
+                      matching: find.byType(Scrollable))
+                  .first);
+        }
+        await tester.ensureVisible(addMember);
+        await tester.pumpAndSettle();
         await tester.tap(find.widgetWithText(FilledButton, l.actionAdd));
         await tester.pumpAndSettle();
         final name = find.widgetWithText(TextFormField, l.auditTeamFullName);

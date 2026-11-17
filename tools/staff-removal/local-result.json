@@ -1,0 +1,38 @@
+{
+  "forward_upgrade": true,
+  "fresh_install": true,
+  "reference_and_demo_reseed": true,
+  "blocked_unsafe_cases": [
+    "personnel",
+    "drill",
+    "bucket",
+    "function",
+    "foreign-key",
+    "cron",
+    "view"
+  ],
+  "retained_fingerprint_unchanged": true,
+  "sql_suites": [
+    "active_audit_team_accounts",
+    "audit_discussions_and_review",
+    "audit_evidence_reviews",
+    "audit_team_and_signoff",
+    "center_self_audits",
+    "directorate_registry",
+    "independent_self_assessments",
+    "official_audit_proof_optional",
+    "role_access_administration",
+    "self_audit_storage",
+    "shared_assessments",
+    "staff_module_retirement"
+  ],
+  "excluded_suites": [
+    "named_account_access",
+    "delete_unused_structures",
+    "structure_availability",
+    "audit_structure_versions"
+  ],
+  "exclusion_reason": "Three suites require named-account/seven-audit hosted fixtures; audit_structure_versions has an unrelated nondeterministic same-section fixture selection. Retained schema/scoring fingerprints and synthetic role/self/team suites cover this removal",
+  "storage_api_deletion": "Not part of isolated PostgreSQL rehearsal",
+  "rehearsal_only": true
+}

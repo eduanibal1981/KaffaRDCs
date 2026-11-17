@@ -46,6 +46,25 @@ void main() {
         expect(routes.toSet().length, routes.length);
       });
 
+      test('$name cannot reach the retired Staff module', () {
+        expect(candidateDestinations(perms).map((d) => d.route),
+            isNot(contains(Routes.staff)));
+        expect(overflowDestinations(perms).map((d) => d.route),
+            isNot(contains(Routes.staff)));
+        for (final path in [
+          Routes.staff,
+          '/staff/certificates',
+          '/staff/drills'
+        ]) {
+          expect(roleRouteRedirect(path, perms, actual: perms, preview: false),
+              Routes.home);
+          expect(
+              roleRouteRedirect(path, perms,
+                  preview: true, actual: roles['super admin']!),
+              Routes.home);
+        }
+      });
+
       test('$name always ends on More', () {
         expect(primaryDestinations(perms).last.route, Routes.more);
       });
@@ -60,7 +79,7 @@ void main() {
       });
     });
 
-    test('a super admin overflows staff into More rather than a sixth tab', () {
+    test('a super admin has five destinations and no retired overflow', () {
       final perms = roles['super admin']!;
       final primary = primaryDestinations(perms).map((d) => d.route).toList();
       final overflow = overflowDestinations(perms).map((d) => d.route).toList();
@@ -72,20 +91,15 @@ void main() {
         Routes.actions,
         Routes.more,
       ]);
-      expect(overflow, [Routes.staff]);
+      expect(overflow, isEmpty);
     });
 
     test('a centre manager sees no list of one centre', () {
       final primary =
           primaryDestinations(roles['centre manager']!).map((d) => d.route);
       expect(primary, isNot(contains(Routes.centres)));
-      expect(primary, [
-        Routes.home,
-        Routes.audits,
-        Routes.actions,
-        Routes.staff,
-        Routes.more
-      ]);
+      expect(
+          primary, [Routes.home, Routes.audits, Routes.actions, Routes.more]);
     });
 
     test('an auditor opens Work with the four planned destinations', () {

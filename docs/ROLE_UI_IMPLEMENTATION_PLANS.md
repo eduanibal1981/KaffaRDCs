@@ -5,6 +5,9 @@ Plans 1–4 are implemented. Remaining manual platform checks are recorded in th
 individual plans. Implementation and
 verification are recorded in [PROJECT_REVIEW.md](PROJECT_REVIEW.md).
 
+The [independent self-assessment release](plans/05_INDEPENDENT_SELF_ASSESSMENTS.md)
+supersedes the Head of Centre joining workflow below.
+
 ## Read the plans
 
 | Plan | Intended experience |
@@ -108,7 +111,7 @@ narrow that union but cannot expand it.
 | --- | --- | --- |
 | Admin | Home, Centres, Assessments, Actions, More | `/more/admin`, `/more/admin/users`, `/more/admin/tester`, saved structure editor |
 | Directorate | Overview, Centres, Assessments, Actions, More | `/directorate/centers`, `/assessments/new`, `/assessments/:sessionId/progress`, `/audits/:auditId/review` |
-| Head of Centre | My Centre, Assessments, Actions, Staff, More | `/assessments/:sessionId/self-audit`, `/assessments/:sessionId/gap`, `/audits/:auditId/dialogue` |
+| Head of Centre | My Centre, Audits, Actions, More | `/assessments/:sessionId/self-audit`, `/assessments/:sessionId/gap`, `/audits/:auditId/dialogue` |
 | Auditor | Work, Assessments, Actions, More | `/audits/:auditId/team`, `/audits/:auditId/run`, `/audits/:auditId/submit`, `/audits/:auditId/dialogue` |
 
 New routes are proposed. Keep `/audits/new` as a redirect to the existing shared
@@ -204,3 +207,13 @@ The final automated baseline is 275 passing Flutter tests, clean analysis, nine
 SQL suites, concurrency checks and scoped hosted verification. Manual hardware,
 iOS and browser-specific proof checks remain as documented; these are separate
 from the completed implementation.
+
+
+## Staff-module retirement — 17 November 2026
+
+[Plan 6: retire Staff and training management](plans/06_STAFF_MODULE_REMOVAL.md)
+covers removing readiness/certificates/drills from all role surfaces and deleting
+only their dedicated backend objects after client cutover. It preserves audit
+evaluation teams/sign-off and saved clinical checklist content. The app, web/Safari release and hosted SQL removal are verified. Earlier
+Staff/readiness plans are superseded. Only deletion of the empty private
+certificate bucket awaits Storage administrator access.

@@ -422,13 +422,10 @@ class FakeRepositories extends http.BaseClient {
               },
         ];
       case 'v_recurring_findings':
-      case 'v_staff_competency_status':
-      case 'v_center_competency_readiness':
       case 'v_center_satisfaction_monthly':
       case 'v_center_score_trend':
       case 'v_center_strengths_weaknesses':
       case 'v_survey_question_breakdown':
-      case 'competency_types':
         return [];
       default:
         return _table(table);
@@ -489,7 +486,7 @@ class FakeRepositories extends http.BaseClient {
       'completion_percent': responses.length / 4 * 100,
       'template_name_en': _table('assessment_templates').first['name_en'],
       'template_name_ar': _table('assessment_templates').first['name_ar'],
-      'evaluation_date': fixtures.seedTime.toIso8601String(),
+      'evaluation_date': audit['evaluation_date'],
       'version': audit['version'] ?? 1,
       'row_version': audit['row_version'] ?? 1,
     };
@@ -556,9 +553,6 @@ class FakeRepositories extends http.BaseClient {
       'ncrs',
       'ncr_updates',
       'ncr_evidence',
-      'staff_members',
-      'staff_competencies',
-      'emergency_drills',
       'center_badges',
       'notifications',
       'audit_team_members'
@@ -596,10 +590,6 @@ class FakeRepositories extends http.BaseClient {
         _require(_directorate);
       } else if (table == 'notifications') {
         _require(method == 'PATCH');
-      } else if (['staff_members', 'staff_competencies', 'emergency_drills']
-          .contains(table)) {
-        _require(center is String &&
-            fixtures.simulation.permissions.managesCenter(center));
       } else if (table == 'center_badges') {
         _require(_directorate && center is String && _canRead(center));
       } else if (table.startsWith('ncr')) {

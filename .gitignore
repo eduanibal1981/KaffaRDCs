@@ -41,3 +41,31 @@ kafaa_app/.pub-cache/
 
 /tools/auditor-qa/*.log
 /tools/auditor-qa/*.json
+
+# Optional-proof deployment inspection outputs
+/tools/auditor-flow-review/*.json
+
+# Keep new device captures and raw hosted QA data local. Already tracked,
+# reviewed evidence is unaffected by these rules.
+/docs/evidence/
+/tools/database-table-guide/*.json
+/tools/leader-save-review/**/*.json
+/tools/leader-save-review/*.json
+/tools/leader-save-review/*.png
+/tools/leader-save-review/flutter-*.txt
+/tools/ncr-history-review/*.json
+/tools/ncr-history-review/*.png
+/tools/staff-removal-plan/*.json
+/tools/staff-removal-plan/*.txt
+/tools/staff-removal/*.json
+!/tools/staff-removal/implementation-status.json
+!/tools/staff-removal/local-result.json
+!/tools/staff-removal/postconditions.json
+!/tools/staff-removal/release.json
+!/tools/staff-removal/web-verification.json
+
+# Account-specific operational commands are retained in this workspace.
+/supabase/maintenance/assign_named_account_access.sql
+/supabase/maintenance/grant_bausher_auditor_access.sql
+/supabase/maintenance/remove_screenshot_test_accounts.sql
+/supabase/maintenance/revoke_legacy_test_account_access.sql

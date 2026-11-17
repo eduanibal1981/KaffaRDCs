@@ -123,6 +123,37 @@ class AuditTeamRepository {
     sync.scheduleSync();
   }
 
+  /// Named people share the centre login; only the lead links to its sign-off
+  /// account. Release an older link through the same durable, ordered outbox.
+  Future<void> saveCenterMember(String auditId,
+      {AuditTeamMember? member,
+      required String name,
+      required String job,
+      required bool lead,
+      required String accountId}) async {
+    if (name.trim().isEmpty || job.trim().isEmpty) {
+      throw StateError('KAFAA_TEAM_NAME_JOB_REQUIRED');
+    }
+    if (lead) {
+      final members = await load(auditId);
+      for (final previous in members
+          .where((m) => m.id != member?.id && m.userId == accountId)) {
+        await save(auditId,
+            member: previous,
+            name: previous.name,
+            job: previous.job ?? '',
+            lead: false,
+            userId: null);
+      }
+    }
+    await save(auditId,
+        member: member,
+        name: name,
+        job: job,
+        lead: lead,
+        userId: lead ? accountId : null);
+  }
+
   Future<void> remove(AuditTeamMember m) async {
     final deps = (await store.pending())
         .where((e) =>

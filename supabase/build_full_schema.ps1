@@ -27,7 +27,14 @@ $files = @(
   "migrations\20261113221701_center_self_template_index.sql",
   "migrations\20261113222745_center_self_deadline_guard.sql",
   "migrations\20261113225856_center_self_proof_retries.sql",
-  "migrations\20261114113748_auditor_workflows.sql"
+  "migrations\20261114113748_auditor_workflows.sql",
+  "migrations\20261114213439_independent_self_assessments.sql",
+  "migrations\20261115000655_audit_section_comments.sql",
+  "migrations\20261115164915_structure_availability.sql",
+  "migrations\20261115170347_delete_unused_structures.sql",
+  "migrations\20261116163646_official_audit_proof_optional.sql",
+  "migrations\20261116195024_active_audit_team_accounts.sql",
+  "migrations\20261117051842_retire_staff_module.sql"
 )
 
 $sb = New-Object System.Text.StringBuilder
@@ -42,7 +49,7 @@ $sb = New-Object System.Text.StringBuilder
 -- It creates the schema, the security policies, the storage buckets,
 -- and loads the official 79-criterion Kafa'a checklist (237 points).
 --
--- Load optional centre/staff examples with seed/0004_demo_data.sql.
+-- Load optional centre/survey examples with seed/0004_demo_data.sql.
 -- Load shared assessment examples with seed/0006_shared_assessment_demo.sql
 -- after granting an app Super Admin.
 --

@@ -50,10 +50,10 @@ Then the seeds:
 |---|---|---|
 | 1 | `seed/0001_template_kafaa_2025_2026.sql` | **Yes** — template, domains, sections, grading bands |
 | 2 | `seed/0002_criteria_79_items.sql` | **Yes** — the 79 criteria in both languages |
-| 3 | `seed/0003_reference_data.sql` | **Yes** — settings, competencies, badges, survey, dictionary |
-| 4 | `seed/0004_demo_data.sql` | Optional synthetic centres, staff and surveys |
+| 3 | `seed/0003_reference_data.sql` | **Yes** — settings, badges, survey, dictionary |
+| 4 | `seed/0004_demo_data.sql` | Optional synthetic centres and surveys |
 | 5 | `seed/0005_bootstrap_users.sql` | **Yes** — installs the role-granting helper |
-| 6 | `seed/0006_shared_assessment_demo.sql` | Optional shared assessment examples, after migrations and an app Super Admin grant |
+| 6 | `seed/0006_shared_assessment_demo.sql` | Optional shared assessment examples, after migrations and active Super Admin and roaming auditor grants |
 
 Seed 2 ends with an integrity check. A successful run prints:
 
@@ -65,7 +65,7 @@ If it raises `Seed integrity check failed`, something did not load — re-run
 seeds 1 and 2 from the top.
 
 The combined installer also includes the Audit Structure versions, shared
-assessment and shared-only migrations in the order maintained by
+assessment, and independent self-assessment migrations in the order maintained by
 `supabase/build_full_schema.ps1`. Individual installs must apply those upgrades
 before loading the shared mock assessments.
 
@@ -173,6 +173,30 @@ and relaunching the app; hot reload cannot add missing build-time configuration.
 Building without the keys is not a crash — the app shows a screen explaining
 exactly which values are missing.
 
+### Temporary role login on the emulator
+
+The local development configuration enables `KAFAA_QUICK_LOGIN`. The sign-in
+screen adds **Directorate**, **Unit head** and **Auditor** buttons. Choose
+Bousher, Seeb, Al Amerat or Quriyat in **Unit** for either unit-scoped role.
+These use the existing `@kafaa.omanrdcs.com` accounts and normal password sign-in;
+their actual database grants determine access.
+
+On first use, enter the account's existing password in the app. If all test
+accounts share a password, select **Use this password for all test accounts**.
+After a successful login it is reused across sign-outs for the current app run.
+**Forget test passwords** clears it; fully closing the app also clears it.
+Passwords entered here are not written to preferences, SQLite or project files.
+
+For immediate login after a full restart, you may optionally set
+`KAFAA_TEST_PASSWORD` in the ignored `kafaa_app/env/dev.json` yourself. This is
+only for an intentionally shared test password; it becomes part of the local
+debug build. Keep that file and build private. No password is supplied in the
+checked-in example. A full configured relaunch applies changes.
+
+Set `KAFAA_QUICK_LOGIN` to `false` and relaunch to remove the panel. The panel
+also requires the exact Kafaa API URL and a debug build. Profile/release builds
+hide it regardless of the flag, and do not load the optional test password.
+
 ### Debug on a physical iPhone
 
 1. Connect and unlock the iPhone. Tap **Trust** if prompted.
@@ -254,19 +278,16 @@ resolve bundled fonts for offline generation. The source is maintained in the
 
 ## 8. Scheduled jobs (optional but recommended)
 
-Three maintenance functions should run daily. In the SQL Editor:
+The overdue-corrective-action function can run daily. In the SQL Editor:
 
 ```sql
 create extension if not exists pg_cron;
 
 select cron.schedule('kafaa-overdue-ncrs', '0 2 * * *',
   $$select public.mark_overdue_ncrs()$$);
-
-select cron.schedule('kafaa-expiring-certs', '15 2 * * *',
-  $$select public.notify_expiring_competencies()$$);
 ```
 
-Without these, overdue findings still show correctly in the app (it compares
+Without this, overdue findings still show correctly in the app (it compares
 dates on read) but no notification is sent.
 
 ## 9. Verify
@@ -276,17 +297,19 @@ Sign in as the super admin. You should see:
 - **Home** — four renal units, an average score, open actions
 - **Centres → Compare centres** shows results from approved shared participation.
 - **Audits** opens shared assessments directly.
-- **Mock assessment · 2026-H1** is closed with four approved centre results.
-- **Mock assessment · 2026-H2** has Quriyat approved, Bausher submitted, Seeb
-  partially scored and Al Amerat available to join.
+- **Mock assessment · 2026-H1** has four joined centre records.
+- **Mock assessment · 2026-H2** has three joined centre records, with Seeb
+  partially scored and Al Amerat eligible to join.
 - **More → Setup → Audit Structures** lists the saved structure versions.
 
-Open the H2 shared assessment and choose Seeb’s **Continue scoring** to exercise
-scoring, or Al Amerat’s **Join assessment** to start a centre’s participation.
+With an auditor grant, open the H2 shared assessment and choose Seeb’s
+**Continue scoring** or Al Amerat’s **Join assessment**.
 
-`0006_shared_assessment_demo.sql` is safe to repeat. It retains its existing
-joined work and uses stable session client identities. The shared-only migration
-rejects standalone assessment inserts from older clients.
+`0006_shared_assessment_demo.sql` is safe to repeat. It retains existing
+joined work and uses stable session client identities. On a fresh install,
+mock official audits that require evidence stay as scored drafts until proof
+is uploaded and reviewed through the app. The auditor grant is required for
+joining. Heads can start self-assessments independently from My Centre.
 
 If everything is empty, RLS is working but your account has no role — go back
 to step 3.
@@ -433,3 +456,21 @@ real-device restart with unsynced proof, native sharing, iOS runtime, and browse
 quota/offline PDF viewing. The rendered widget tests do not establish those
 hardware/browser behaviors. Current evidence and exact scope are in
 `docs/evidence/center-head-verification.json` and `docs/PROJECT_REVIEW.md`.
+
+## Staff module retirement (17 November 2026)
+
+The current app omits Staff readiness, certificates and drills for all roles.
+Historical migrations still create their objects; the forward migration
+`20261117051842_retire_staff_module.sql` removes only those objects, with empty-data
+and dependency guards. It is included at the end of the generated installer.
+Reference/demo seeds no longer insert Staff data. Do not replay the installer
+or seeds on the hosted database.
+
+For an existing installation, follow [Plan 6](plans/06_STAFF_MODULE_REMOVAL.md):
+update or retire all old clients first, recheck dependencies and reminder callers,
+capture restoration definitions, apply the scoped migration, then delete the
+empty `certificates` bucket using the Storage API. A fresh SQL installer retains
+that historical empty bucket until the same API cleanup; its Staff policies
+are removed. Keep audit teams, account helpers, clinical criteria and all other
+evidence buckets. Hosted SQL cleanup was applied as migration `20261117051842`; only the empty
+private certificate bucket awaits Storage administrator access.

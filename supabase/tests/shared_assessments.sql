@@ -42,6 +42,7 @@ insert into auth.users(id,email) values
  ('90000000-0000-0000-0000-000000000003','shared-auditor@kafaa-test.invalid');
 insert into public.user_roles(user_id,role,center_id) values
  ('90000000-0000-0000-0000-000000000001','super_admin',null),
+ ('90000000-0000-0000-0000-000000000001','auditor',null),
  ('90000000-0000-0000-0000-000000000002','center_manager','92000000-0000-0000-0000-000000000001'),
  ('90000000-0000-0000-0000-000000000003','auditor','92000000-0000-0000-0000-000000000001');
 set local role authenticated;
@@ -58,10 +59,13 @@ delete from public.assessment_sessions where id='91000000-0000-0000-0000-0000000
 select pg_temp.assert_true(exists(select 1 from public.assessment_sessions where id='91000000-0000-0000-0000-000000000001'),'Published history retained');
 select set_config('request.jwt.claim.sub','90000000-0000-0000-0000-000000000002',true);
 select pg_temp.assert_true((select eligible_count from public.v_assessment_progress where id='91000000-0000-0000-0000-000000000001')=1,'Manager sees own progress denominator');
+select pg_temp.expect_error($q$select public.join_assessment('91000000-0000-0000-0000-000000000001','92000000-0000-0000-0000-000000000001')$q$,'AUDITOR_JOIN_REQUIRED');
+select set_config('request.jwt.claim.sub','90000000-0000-0000-0000-000000000003',true);
 select public.join_assessment('91000000-0000-0000-0000-000000000001','92000000-0000-0000-0000-000000000001');
 select pg_temp.assert_true(public.join_assessment('91000000-0000-0000-0000-000000000001','92000000-0000-0000-0000-000000000001')=(select audit_id from public.v_assessment_center_status where session_id='91000000-0000-0000-0000-000000000001'),'Join retry returns canonical audit');
 select pg_temp.assert_true((select count(*) from public.audits where participation_id in(select id from public.assessment_participations where session_id='91000000-0000-0000-0000-000000000001'))=1,'One root audit');
 select pg_temp.assert_true((select max_points=237 and scorable_count=79 and evaluation_date is null from public.v_audit_summary where session_id='91000000-0000-0000-0000-000000000001'),'Joined draft initialized with pinned structure');
+select set_config('request.jwt.claim.sub','90000000-0000-0000-0000-000000000002',true);
 select pg_temp.expect_error($q$select public.join_assessment('91000000-0000-0000-0000-000000000001','92000000-0000-0000-0000-000000000002')$q$,'cannot join');
 select pg_temp.expect_error($q$select public.publish_assessment('91000000-0000-0000-0000-000000000001')$q$,'Only directorate');
 select pg_temp.expect_error($q$update public.audits set total_points=999 where participation_id is not null$q$,'permission denied');

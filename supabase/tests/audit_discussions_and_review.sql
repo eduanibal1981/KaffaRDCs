@@ -48,7 +48,9 @@ select pg_temp.expect_error($q$select public.create_assessment_session('b3000000
 select public.publish_assessment('b3000000-0000-0000-0000-000000000001');
 select pg_temp.assert_true((select pending_join=eligible_count and joined_count=0 from public.v_assessment_workflow_counts where session_id='b3000000-0000-0000-0000-000000000001'),'Zero joined counted exclusively');
 select set_config('request.jwt.claim.sub','b1000000-0000-0000-0000-000000000002',true);
+select set_config('request.jwt.claim.sub','b1000000-0000-0000-0000-000000000005',true);
 insert into qa_ids values('audit',public.join_assessment('b3000000-0000-0000-0000-000000000001','b2000000-0000-0000-0000-000000000001'));
+select set_config('request.jwt.claim.sub','b1000000-0000-0000-0000-000000000002',true);
 insert into qa_ids select 'part',participation_id from public.audits where id=pg_temp.id('audit');
 insert into qa_ids values('discussion',public.ensure_audit_discussion(pg_temp.id('part')));
 select public.post_audit_message('b4000000-0000-0000-0000-000000000001',pg_temp.id('discussion'),' Head reply ',pg_temp.id('audit'));
@@ -64,7 +66,9 @@ select pg_temp.expect_error($q$select public.review_assessment_audit(pg_temp.id(
 select set_config('request.jwt.claim.sub','b1000000-0000-0000-0000-000000000003',true);
 select pg_temp.assert_true((select count(*)=0 from public.audit_messages where discussion_id=pg_temp.id('discussion')),'Other centre cannot read dialogue');
 select pg_temp.expect_error($q$select public.ensure_audit_discussion(pg_temp.id('part'))$q$,'ACCESS_DENIED');
+select set_config('request.jwt.claim.sub','b1000000-0000-0000-0000-000000000005',true);
 insert into qa_ids values('other_audit',public.join_assessment('b3000000-0000-0000-0000-000000000001','b2000000-0000-0000-0000-000000000002'));
+select set_config('request.jwt.claim.sub','b1000000-0000-0000-0000-000000000003',true);
 insert into qa_ids values('other_discussion',public.ensure_audit_discussion((select participation_id from public.audits where id=pg_temp.id('other_audit'))));
 select public.post_audit_message('b4000000-0000-0000-0000-000000000003',pg_temp.id('other_discussion'),'Other reply',pg_temp.id('other_audit'));
 select set_config('request.jwt.claim.sub','b1000000-0000-0000-0000-000000000005',true);

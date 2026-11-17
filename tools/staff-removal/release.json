@@ -1,0 +1,19 @@
+{
+  "custom_web": {
+    "url": "https://kaffa.honestana.com",
+    "worker": "kaffa-web",
+    "version": "981a6dc5-f009-4dc1-8964-2c2d155297b1",
+    "deployment": "3aa11b83-1327-4962-b3f3-f8baaf4080bc",
+    "compatibility_date": "2026-11-15"
+  },
+  "safari": {
+    "project_id": "appgprj_6af5c5614c3081919be468cf75f5d23c",
+    "url": "https://kafaa-safari-preview.daintyloon4096.chatgpt.site",
+    "version_number": 7,
+    "commit_sha": "5c6607bf4fb1c955e3f2cef516e29c2a717157ab",
+    "deployment_id": "appgdep_6afbe1d2332c8191a7f0d07fe24f1c88",
+    "owner_only": true
+  },
+  "hosted_migration": "20261117051842_retire_staff_module",
+  "storage_bucket_cleanup": "pending: administrator access denied 403"
+}

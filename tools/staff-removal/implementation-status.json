@@ -1,0 +1,19 @@
+{
+  "app_removed_all_roles": true,
+  "flutter_tests": 407,
+  "analysis_clean": true,
+  "native_android_installed_preserving_data": true,
+  "custom_web_updated": true,
+  "safari_private_updated": true,
+  "hosted_sql_applied": true,
+  "migration_version": "20261117051842",
+  "retained_fingerprints": 1903,
+  "retained_fingerprints_match": true,
+  "hosted_public_tables": 39,
+  "checklist_items": 79,
+  "checklist_max_points": 237,
+  "remaining": {
+    "private_empty_certificates_bucket": "Storage admin API key access denied HTTP 403; user action requested"
+  },
+  "plan_complete": false
+}
